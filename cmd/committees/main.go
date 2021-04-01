@@ -5,5 +5,6 @@ import (
 )
 
 func main() {
-	bills.DownloadCommitteesYaml()
+	// bills.DownloadCommitteesYaml()
+	bills.ReadCommitteesYaml()
 }

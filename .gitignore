@@ -9,6 +9,7 @@ vendor
 *.dylib
 !**/cmd/*/*.go
 
+tmp
 tmp/*
 
 # Test binary, built with `go test -c`
