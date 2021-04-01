@@ -15,6 +15,8 @@
 	    $(GOBUILD) -o cmd/bin/billmeta -v cmd/billmeta/main.go
 	    $(GOBUILD) -o cmd/bin/compare -v cmd/compare/main.go
 	    $(GOBUILD) -o cmd/bin/listxml -v cmd/listxml/main.go
+	    $(GOBUILD) -o cmd/bin/legislators -v cmd/legislators/main.go
+	    $(GOBUILD) -o cmd/bin/committees -v cmd/committees/main.go
     test: 
 	    $(GOTEST) -v ./...
     clean: 

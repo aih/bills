@@ -2,8 +2,11 @@ package bills
 
 import (
 	"fmt"
+	"io"
 	"io/fs"
 	"log"
+	"net/http"
+	"os"
 	"path/filepath"
 )
 
@@ -55,4 +58,38 @@ func ListDataJsonFiles() (dataJsonFiles []string, err error) {
 		fmt.Printf("Got %d files!\n", len(dataJsonFiles))
 	}
 	return
+}
+
+// Make local tmp directory if it doesn't exist
+func MakeTempDir() {
+	fmt.Println("Making tmp directory")
+	path := "./tmp"
+	mode := os.ModePerm
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		os.Mkdir(path, mode)
+	}
+}
+
+// DownloadFile will download a url to a local file. It's efficient because it will
+// write as it downloads and not load the whole file into memory.
+// See https://golangcode.com/download-a-file-from-a-url/
+func DownloadFile(filepath string, url string) error {
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Create the file
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	return err
 }
