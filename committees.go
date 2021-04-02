@@ -13,8 +13,9 @@ var (
 )
 
 type Committees struct {
-	Committees []Committee
+	Committees []Committee `yaml:"committees,omitempty,flow"`
 }
+
 type Committee struct {
 	Type             string         `yaml:"type,omitempty,flow"`
 	Name             string         `yaml:"name,omitempty,flow"`
@@ -44,10 +45,15 @@ func DownloadCommitteesYaml() (downloadpath string, err error) {
 		panic(err)
 	}
 	fmt.Println("Downloaded: " + committeesYamlUrl)
+	Prepend(downloadpath, "committees:")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Prepended 'committees:' to file")
 	return
 }
 
-func (c *Committees) ParseYaml(data []byte) error {
+func (c *Committees) ParseCommitteeYaml(data []byte) error {
 	if err := yaml.Unmarshal(data, c); err != nil {
 		return err
 	}
@@ -62,10 +68,10 @@ func ReadCommitteesYaml() {
 		log.Printf("Error reading %s   #%v ", pathToYaml, err)
 	}
 	var committees Committees
-	if err := committees.ParseYaml(yamlFile); err != nil {
+	if err := committees.ParseCommitteeYaml(yamlFile); err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%+v\n", committees)
+	//fmt.Printf("%+v\n", committees)
 
 }

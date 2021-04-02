@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -92,4 +93,57 @@ func DownloadFile(filepath string, url string) error {
 	// Write the body to file
 	_, err = io.Copy(out, resp.Body)
 	return err
+}
+
+// Copy the src file to dst. Any existing file will be overwritten and will not
+// copy file attributes.
+func CopyFile(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, in)
+	if err != nil {
+		return err
+	}
+	return out.Close()
+}
+
+func Prepend(filepath string, text string) error {
+	tmpname := "tmpcopy.txt"
+	tmpcopy, err := os.Create(tmpname)
+	defer os.Remove(tmpname)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	_, err = tmpcopy.WriteString(text + "\n")
+	if err != nil {
+		fmt.Println(err)
+		tmpcopy.Close()
+		return err
+	}
+	data, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = tmpcopy.Write(data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	e := CopyFile(tmpname, filepath)
+	if e != nil {
+		log.Fatal(e)
+	}
+
+	return nil
 }
