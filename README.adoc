@@ -1,6 +1,8 @@
 ## Process Bills with Golang
 
-This repository (`bills`) defines a module (`github.com/aih//bills`) with one package (`main`).
+This repository (`bills`) defines a module (`github.com/aih/bills`) with one package (`main`).
 
 To build and run this module: 
 `go run github.com/aih/bills`
+
+To build and create commands in the `bills/cmd` directory, run make (to apply the `Makefile`).

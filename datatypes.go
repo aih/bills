@@ -12,6 +12,7 @@ type BillMeta struct {
 	Titles                   []string
 	TitlesWholeBill          []string
 	Cosponsors               []CosponsorItem
+	Committees               []CommitteeItem
 	RelatedBills             []RelatedBillItem
 	RelatedBillsByBillnumber RelatedBillMap
 }
@@ -34,6 +35,14 @@ type CosponsorItem struct {
 	State             string `json:"state"`
 	Title             string `json:"title"`
 	WithdrawnAt       string `json:"withdrawn_at"`
+}
+
+type CommitteeItem struct {
+	Activity       string `json:"activity"`
+	Committee      string `json:"committee"`
+	CommitteeId    string `json:"committee_id"`
+	Subcommittee   string `json:"subcommittee"`
+	SubcommitteeId string `json:"subcomittee_id"`
 }
 
 type RelatedBillItem struct {
@@ -73,7 +82,7 @@ type DataJson struct {
 	BillType         string            `json:"bill_type"`
 	ByRequest        bool              `json:"by_request"`
 	CommitteeReports []interface{}     `json:"committee_reports"`
-	Committees       []interface{}     `json:"committees"`
+	Committees       []CommitteeItem   `json:"committees"`
 	Congress         string            `json:"congress"`
 	Cosponsors       []CosponsorItem   `json:"cosponsors"`
 	EnactedAs        string            `json:"enacted_as"`

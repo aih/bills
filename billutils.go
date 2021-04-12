@@ -60,6 +60,7 @@ func ExtractBillMeta(path string, billMetaStorageChannel chan BillMeta, wg *sync
 	_ = json.Unmarshal([]byte(file), &dat)
 
 	billMeta.BillCongressTypeNumber = billCongressTypeNumber
+	billMeta.Committees = dat.Committees
 	billMeta.Cosponsors = dat.Cosponsors
 	titlesMap := getBillTitles(dat)
 	billMeta.Titles = titlesMap["titles"]
