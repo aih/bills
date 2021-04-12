@@ -8,13 +8,13 @@ type TitlesJson struct {
 }
 
 type BillMeta struct {
-	BillCongressTypeNumber   string
-	Titles                   []string
-	TitlesWholeBill          []string
-	Cosponsors               []CosponsorItem
-	Committees               []CommitteeItem
-	RelatedBills             []RelatedBillItem
-	RelatedBillsByBillnumber RelatedBillMap
+	BillCongressTypeNumber   string            `json:"bill_congress_type_number"`
+	Titles                   []string          `json:"titles"`
+	TitlesWholeBill          []string          `json:"titles_whole_bill"`
+	Cosponsors               []CosponsorItem   `json:"cosponsors"`
+	Committees               []CommitteeItem   `json:"committees"`
+	RelatedBills             []RelatedBillItem `json:"related_bills"`
+	RelatedBillsByBillnumber RelatedBillMap    `json:"related_dict"`
 }
 
 type BillMetaDoc map[string]BillMeta
@@ -47,15 +47,15 @@ type CommitteeItem struct {
 }
 
 type RelatedBillItem struct {
-	BillId                 string `json:"bill_id"`
-	IdentifiedBy           string `json:"identified_by"`
-	Reason                 string `json:"reason"`
-	Type                   string `json:"type"`
-	BillCongressTypeNumber string
-	Sponsor                CosponsorItem
-	Cosponsors             []CosponsorItem
-	Titles                 []string
-	TitlesWholeBill        []string
+	BillId                 string          `json:"bill_id"`
+	IdentifiedBy           string          `json:"identified_by"`
+	Reason                 string          `json:"reason"`
+	Type                   string          `json:"type"`
+	BillCongressTypeNumber string          `json:"bill_congress_type_number"`
+	Sponsor                CosponsorItem   `json:"sponsor"`
+	Cosponsors             []CosponsorItem `json:"cosponsors"`
+	Titles                 []string        `json:"titles"`
+	TitlesWholeBill        []string        `json:"titles_whole_bill"`
 }
 
 type RelatedBillMap map[string]RelatedBillItem
@@ -106,6 +106,6 @@ type DataJson struct {
 }
 
 type WordSample struct {
-	BillCongressTypeNumber string
-	WordList               []string
+	BillCongressTypeNumber string   `json:"bill_congress_type_number"`
+	WordList               []string `json:"word_list"`
 }
