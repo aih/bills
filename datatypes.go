@@ -26,23 +26,24 @@ type SummaryItem struct {
 }
 
 type CosponsorItem struct {
-	BioGuideId        string `json:"bioguide_id"`
-	Type              string `json:"type"`
+	BioguideId string `json:"bioguide_id"`
+	ThomasId   string `json:"thomas_id"`
+	//Type              string `json:"type"`
 	District          string `json:"district"`
 	Name              string `json:"name"`
-	OriginalCosponsor string `json:"original_cosponsor"`
+	OriginalCosponsor bool   `json:"original_cosponsor"`
 	SponsoredAt       string `json:"sponsored_at"`
 	State             string `json:"state"`
 	Title             string `json:"title"`
-	WithdrawnAt       string `json:"withdrawn_at"`
+	//WithdrawnAt       string `json:"withdrawn_at"`
 }
 
 type CommitteeItem struct {
-	Activity       string `json:"activity"`
-	Committee      string `json:"committee"`
-	CommitteeId    string `json:"committee_id"`
-	Subcommittee   string `json:"subcommittee"`
-	SubcommitteeId string `json:"subcomittee_id"`
+	Activity       []string `json:"activity"`
+	Committee      string   `json:"committee"`
+	CommitteeId    string   `json:"committee_id"`
+	Subcommittee   string   `json:"subcommittee"`
+	SubcommitteeId string   `json:"subcomittee_id"`
 }
 
 type RelatedBillItem struct {
