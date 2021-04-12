@@ -26,16 +26,16 @@ type SummaryItem struct {
 }
 
 type CosponsorItem struct {
-	BioguideId string `json:"bioguide_id"`
-	ThomasId   string `json:"thomas_id"`
-	//Type              string `json:"type"`
+	BioguideId        string `json:"bioguide_id"`
+	ThomasId          string `json:"thomas_id"`
+	Type              string `json:"type"`
 	District          string `json:"district"`
 	Name              string `json:"name"`
 	OriginalCosponsor bool   `json:"original_cosponsor"`
 	SponsoredAt       string `json:"sponsored_at"`
 	State             string `json:"state"`
 	Title             string `json:"title"`
-	//WithdrawnAt       string `json:"withdrawn_at"`
+	WithdrawnAt       string `json:"withdrawn_at"`
 }
 
 type CommitteeItem struct {
@@ -47,15 +47,15 @@ type CommitteeItem struct {
 }
 
 type RelatedBillItem struct {
-	BillId                 string          `json:"bill_id"`
-	IdentifiedBy           string          `json:"identified_by"`
-	Reason                 string          `json:"reason"`
-	Type                   string          `json:"type"`
-	BillCongressTypeNumber string          `json:"bill_congress_type_number"`
-	Sponsor                CosponsorItem   `json:"sponsor"`
-	Cosponsors             []CosponsorItem `json:"cosponsors"`
-	Titles                 []string        `json:"titles"`
-	TitlesWholeBill        []string        `json:"titles_whole_bill"`
+	BillId                 string `json:"bill_id"`
+	IdentifiedBy           string `json:"identified_by"`
+	Reason                 string `json:"reason"`
+	Type                   string `json:"type"`
+	BillCongressTypeNumber string `json:"bill_congress_type_number"`
+	//Sponsor                CosponsorItem   `json:"sponsor"`
+	//Cosponsors             []CosponsorItem `json:"cosponsors"`
+	Titles          []string `json:"titles"`
+	TitlesWholeBill []string `json:"titles_whole_bill"`
 }
 
 type RelatedBillMap map[string]RelatedBillItem

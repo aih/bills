@@ -71,6 +71,7 @@ func makeBillMeta() {
 	for billMeta := range billMetaStorageChannel {
 		billCounter++
 		fmt.Printf("[%d] Storing metadata for %s.\n", billCounter, billMeta.BillCongressTypeNumber)
+		// Get related bill data
 		bills.BillMetaSyncMap.Store(billMeta.BillCongressTypeNumber, billMeta)
 		for _, title := range billMeta.Titles {
 			// titleSyncMap.Store(title, billMeta.BillCongressTypeNumber)
