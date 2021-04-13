@@ -9,6 +9,7 @@ type TitlesJson struct {
 
 type BillMeta struct {
 	BillCongressTypeNumber   string            `json:"bill_congress_type_number"`
+	ShortTitle               string            `json:"short_title"`
 	Titles                   []string          `json:"titles"`
 	TitlesWholeBill          []string          `json:"titles_whole_bill"`
 	Cosponsors               []CosponsorItem   `json:"cosponsors"`
