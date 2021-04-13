@@ -6,3 +6,6 @@ To build and run this module:
 `go run github.com/aih/bills`
 
 To build and create commands in the `bills/cmd` directory, run make (to apply the `Makefile`).
+
+
+Note: These commands process many files in parallel. It may be necessary to increase the system's file-opening limits to avoid the 'too many files open' error. See, e.g. https://medium.com/@muhammadtriwibowo/set-permanently-ulimit-n-open-files-in-ubuntu-4d61064429a
