@@ -65,6 +65,13 @@ func ListDataJsonFiles() (dataJsonFiles []string, err error) {
 	if err == nil {
 		fmt.Printf("Got %d files!\n", len(dataJsonFiles))
 	}
+	if len(dataJsonFiles) == 0 {
+		fmt.Printf("Retrying on %s\n", PathToDataDir)
+		dataJsonFiles, err = WalkDirFilter(PathToDataDir, isDataJson)
+		if err == nil {
+			fmt.Printf("Got %d files!\n", len(dataJsonFiles))
+		}
+	}
 	return
 }
 
