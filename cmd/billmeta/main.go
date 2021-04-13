@@ -46,6 +46,13 @@ func MarshalJSONStringArray(m *sync.Map) ([]byte, error) {
 	return json.Marshal(tmpMap)
 }
 
+func reverse(ss []string) {
+	last := len(ss) - 1
+	for i := 0; i < len(ss)/2; i++ {
+		ss[i], ss[last-i] = ss[last-i], ss[i]
+	}
+}
+
 // Walks the 'congress' directory
 // Creates three metadata files: bills, titlesJson and billMeta
 // bills is the list of bill numbers (billCongressTypeNumber)
@@ -56,6 +63,7 @@ func makeBillMeta() {
 	billMetaStorageChannel := make(chan bills.BillMeta)
 	fmt.Printf("Getting all files in %s.  This may take a while.\n", bills.PathToCongressDataDir)
 	dataJsonFiles, _ := bills.ListDataJsonFiles()
+	reverse(dataJsonFiles)
 	wg := &sync.WaitGroup{}
 	wg.Add(len(dataJsonFiles))
 	go func() {
