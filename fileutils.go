@@ -44,6 +44,12 @@ func ListDocumentXMLFiles() (documentXMLFiles []string, err error) {
 	if err == nil {
 		fmt.Printf("Got %d files!\n", len(documentXMLFiles))
 	}
+	if (len(documentXMLFiles) == 0) {
+		fmt.Printf("Retrying on %s\n", PathToDataDir) } 
+		documentXMLFiles, err = WalkDirFilter(PathToDataDir, isDocumentXML)
+		if err == nil {
+			fmt.Printf("Got %d files!\n", len(documentXMLFiles)) } 
+		}
 	return
 }
 

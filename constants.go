@@ -14,6 +14,7 @@ var (
 	TitleNoYearRegexCompiled = regexp.MustCompile(`of\s[0-9]{4}$`)
 	removeXMLRegexCompiled   = regexp.MustCompile(`<[^>]+>`)
 	// Set to ../../congress
+	PathToDataDir         = path.Join("/", "data")
 	PathToCongressDataDir = path.Join("..", "..", "..", "congress")
 	BillMetaPath          = path.Join("..", "..", "..", "billMetaGo.json")
 	TitleNoYearIndexPath  = path.Join("..", "..", "..", "titleNoYearIndexGo.json")
