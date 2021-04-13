@@ -45,11 +45,13 @@ func getBillTitles(dataJson DataJson) map[string][]string {
 
 // Extracts bill metadata from a path to a data.json file; sends it to the billMetaStorageChannel
 // as part of a WaitGroup passed as wg
-func ExtractBillMeta(path string, billMetaStorageChannel chan BillMeta, wg *sync.WaitGroup) error {
+func ExtractBillMeta(path string, billMetaStorageChannel chan BillMeta, sem chan bool, wg *sync.WaitGroup) error {
 	defer wg.Done()
+
 	billCongressTypeNumber := BillNumberFromPath(path)
 	fmt.Printf("Processing: %s\n", billCongressTypeNumber)
 	file, err := os.ReadFile(path)
+	<-sem
 	if err != nil {
 		log.Printf("Error reading data.json: %s", err)
 		return err

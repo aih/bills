@@ -60,6 +60,9 @@ func reverse(ss []string) {
 // billMeta collects metadata from data.json files
 func makeBillMeta() {
 	defer fmt.Println("Done")
+	// See http://jmoiron.net/blog/limiting-concurrency-in-go/
+	maxopenfiles := 2000
+	sem := make(chan bool, maxopenfiles)
 	billMetaStorageChannel := make(chan bills.BillMeta)
 	fmt.Printf("Getting all files in %s.  This may take a while.\n", bills.PathToCongressDataDir)
 	dataJsonFiles, _ := bills.ListDataJsonFiles()
@@ -72,7 +75,8 @@ func makeBillMeta() {
 	}()
 
 	for _, path := range dataJsonFiles {
-		go bills.ExtractBillMeta(path, billMetaStorageChannel, wg)
+		sem <- true
+		go bills.ExtractBillMeta(path, billMetaStorageChannel, sem, wg)
 	}
 
 	billCounter := 0
@@ -149,6 +153,9 @@ func makeBillMeta() {
 	}
 	fmt.Println("Writing titleNoYearIndex JSON data to file")
 	os.WriteFile(bills.TitleNoYearIndexPath, []byte(jsonTitleNoYearString), 0666)
+	for i := 0; i < cap(sem); i++ {
+		sem <- true
+	}
 }
 
 func main() {
