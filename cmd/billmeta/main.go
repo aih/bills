@@ -60,9 +60,9 @@ func reverse(ss []string) {
 // billMeta collects metadata from data.json files
 func makeBillMeta() {
 	defer fmt.Println("Done")
-	// With the concurrent billMeta processing, it is not clear the openfiles limit is needed
+	// Limiting openfiles prevents memory issues
 	// See http://jmoiron.net/blog/limiting-concurrency-in-go/
-	maxopenfiles := 2000
+	maxopenfiles := 100
 	sem := make(chan bool, maxopenfiles)
 	billMetaStorageChannel := make(chan bills.BillMeta)
 	fmt.Printf("Getting all files in %s.  This may take a while.\n", bills.PathToCongressDataDir)
