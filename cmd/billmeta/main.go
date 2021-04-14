@@ -60,6 +60,7 @@ func reverse(ss []string) {
 // billMeta collects metadata from data.json files
 func makeBillMeta() {
 	defer fmt.Println("Done")
+	// With the concurrent billMeta processing, it is not clear the openfiles limit is needed
 	// See http://jmoiron.net/blog/limiting-concurrency-in-go/
 	maxopenfiles := 2000
 	sem := make(chan bool, maxopenfiles)
@@ -73,28 +74,31 @@ func makeBillMeta() {
 		wg.Wait()
 		close(billMetaStorageChannel)
 	}()
+	go func() {
+		billCounter := 0
+		for range dataJsonFiles {
+			billMeta := <-billMetaStorageChannel
+			billCounter++
+			fmt.Printf("[%d] Storing metadata for %s.\n", billCounter, billMeta.BillCongressTypeNumber)
+			// Get related bill data
+			bills.BillMetaSyncMap.Store(billMeta.BillCongressTypeNumber, billMeta)
+			for _, title := range billMeta.Titles {
+				// titleSyncMap.Store(title, billMeta.BillCongressTypeNumber)
+				titleNoYear := bills.TitleNoYearRegexCompiled.ReplaceAllString(title, "")
+				if titleBills, loaded := bills.TitleNoYearSyncMap.LoadOrStore(titleNoYear, []string{billMeta.BillCongressTypeNumber}); loaded {
+					titleBills = bills.RemoveDuplicates(append(titleBills.([]string), billMeta.BillCongressTypeNumber))
+					bills.TitleNoYearSyncMap.Store(titleNoYear, titleBills)
+				}
+
+			}
+		}
+	}()
 
 	for _, path := range dataJsonFiles {
 		sem <- true
 		go bills.ExtractBillMeta(path, billMetaStorageChannel, sem, wg)
 	}
 
-	billCounter := 0
-	for billMeta := range billMetaStorageChannel {
-		billCounter++
-		fmt.Printf("[%d] Storing metadata for %s.\n", billCounter, billMeta.BillCongressTypeNumber)
-		// Get related bill data
-		bills.BillMetaSyncMap.Store(billMeta.BillCongressTypeNumber, billMeta)
-		for _, title := range billMeta.Titles {
-			// titleSyncMap.Store(title, billMeta.BillCongressTypeNumber)
-			titleNoYear := bills.TitleNoYearRegexCompiled.ReplaceAllString(title, "")
-			if titleBills, loaded := bills.TitleNoYearSyncMap.LoadOrStore(titleNoYear, []string{billMeta.BillCongressTypeNumber}); loaded {
-				titleBills = bills.RemoveDuplicates(append(titleBills.([]string), billMeta.BillCongressTypeNumber))
-				bills.TitleNoYearSyncMap.Store(titleNoYear, titleBills)
-			}
-
-		}
-	}
 	billslist := getSyncMapKeys(bills.BillMetaSyncMap)
 	billsString, err := json.Marshal(billslist)
 	if err != nil {

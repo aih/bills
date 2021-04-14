@@ -51,7 +51,10 @@ func ExtractBillMeta(path string, billMetaStorageChannel chan BillMeta, sem chan
 	billCongressTypeNumber := BillNumberFromPath(path)
 	fmt.Printf("Processing: %s\n", billCongressTypeNumber)
 	file, err := os.ReadFile(path)
-	<-sem
+	defer func() {
+		fmt.Printf("Finished processing: %s\n", billCongressTypeNumber)
+		<-sem
+	}()
 	if err != nil {
 		log.Printf("Error reading data.json: %s", err)
 		return err
