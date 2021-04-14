@@ -8,6 +8,7 @@ vendor
 *.so
 *.dylib
 !**/cmd/*/*.go
+**/cmd/bin/*
 
 tmp
 tmp/*

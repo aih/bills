@@ -36,10 +36,8 @@ func getBillTitles(dataJson DataJson) map[string][]string {
 			titlesMap["titles"] = append(titlesMap["titles"], titleItem.Title)
 			if !titleItem.IsForPortion {
 				titlesMap["titlesWholeBill"] = append(titlesMap["titlesWholeBill"], titleItem.Title)
-			} else {
-				titlesMap["titlesWholeBill"] = []
 			}
-			
+
 		}
 	}
 	return titlesMap
