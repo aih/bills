@@ -6,9 +6,13 @@ type TitlesJson struct {
 	Title        string `json:"title"`
 	IsForPortion bool   `json:"is_for_portion"`
 }
-
 type BillMeta struct {
+	Actions                  []ActionItem      `json:"actions"`
+	Congress                 string            `json:"congress"`
+	BillType                 string            `json:"bill_type"`
+	Number                   string            `json:"number"`
 	BillCongressTypeNumber   string            `json:"bill_congress_type_number"`
+	History                  interface{}       `json:"history"`
 	ShortTitle               string            `json:"short_title"`
 	Titles                   []string          `json:"titles"`
 	TitlesWholeBill          []string          `json:"titles_whole_bill"`
@@ -20,6 +24,33 @@ type BillMeta struct {
 
 type BillMetaDoc map[string]BillMeta
 
+type ActionItem struct {
+	ActedAt    string   `json:"acted_at"`
+	ActionCode string   `json:"action_code"`
+	References []string `json:"references"`
+	Text       string   `json:"text"`
+	Type       string   `json:"type"`
+}
+
+/*
+type HistoryItem struct {
+	Active bool `json:"active"`
+	ActiveAt string `json:"active_at"`
+ 	AwaitingSignature bool `json:"awaiting_signature"`
+ 	Enacted bool `json:"enacted"`
+ 	HousePassageResult string `json:"house_passage_result"`
+ 	HousePassageResultAt string `json:"house_passage_result_at"`
+ 	Vetoed bool `json:"vetoed"`
+ 	Active bool `json:"active"`
+ 	ActiveAt string `json:"active_at"`
+ 	AwaitingSignature bool `json:"awaiting_signature"`
+ 	Enacted bool `json:"enacted"``
+ 	HousePassageResult string `json:"house_passage_result"`
+ 	HousePassageResultAt string `json:"house_passage_result_at"`
+ 	Vetoed bool `json:"vetoed"`
+}
+*/
+
 type SummaryItem struct {
 	As   string `json:"as"`
 	Date string `json:"date"`
@@ -27,16 +58,16 @@ type SummaryItem struct {
 }
 
 type CosponsorItem struct {
-	BioguideId        string `json:"bioguide_id"`
-	ThomasId          string `json:"thomas_id"`
-	Type              string `json:"type"`
+	BioguideId string `json:"bioguide_id"`
+	ThomasId   string `json:"thomas_id"`
+	// Type              string `json:"type"`
 	District          string `json:"district"`
 	Name              string `json:"name"`
 	OriginalCosponsor bool   `json:"original_cosponsor"`
 	SponsoredAt       string `json:"sponsored_at"`
 	State             string `json:"state"`
 	Title             string `json:"title"`
-	WithdrawnAt       string `json:"withdrawn_at"`
+	// WithdrawnAt       string `json:"withdrawn_at"`
 }
 
 type CommitteeItem struct {
@@ -78,7 +109,7 @@ type SimilarBillItem struct {
 }
 
 type DataJson struct {
-	Actions          []interface{}     `json:"actions"`
+	Actions          []ActionItem      `json:"actions"`
 	Amendments       []interface{}     `json:"amendments"`
 	BillId           string            `json:"bill_id"`
 	BillType         string            `json:"bill_type"`

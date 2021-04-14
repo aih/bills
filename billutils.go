@@ -34,9 +34,12 @@ func getBillTitles(dataJson DataJson) map[string][]string {
 	if len(titles) > 0 {
 		for _, titleItem := range titles {
 			titlesMap["titles"] = append(titlesMap["titles"], titleItem.Title)
-			if titleItem.IsForPortion {
+			if !titleItem.IsForPortion {
 				titlesMap["titlesWholeBill"] = append(titlesMap["titlesWholeBill"], titleItem.Title)
+			} else {
+				titlesMap["titlesWholeBill"] = []
 			}
+			
 		}
 	}
 	return titlesMap
@@ -64,9 +67,15 @@ func ExtractBillMeta(path string, billMetaStorageChannel chan BillMeta, sem chan
 	var dat DataJson
 	_ = json.Unmarshal([]byte(file), &dat)
 
+	billMeta.Actions = dat.Actions
+	billMeta.Number = dat.Number
+	billMeta.BillType = dat.BillType
+	billMeta.Congress = dat.Congress
 	billMeta.BillCongressTypeNumber = billCongressTypeNumber
 	billMeta.Committees = dat.Committees
 	billMeta.Cosponsors = dat.Cosponsors
+	billMeta.History = dat.History
+	billMeta.ShortTitle = dat.ShortTitle
 	titlesMap := getBillTitles(dat)
 	billMeta.Titles = titlesMap["titles"]
 	billMeta.TitlesWholeBill = titlesMap["titlesWholeBill"]
