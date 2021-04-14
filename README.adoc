@@ -8,4 +8,4 @@ To build and run this module:
 To build and create commands in the `bills/cmd` directory, run make (to apply the `Makefile`).
 
 
-Note: These commands process many files in parallel. It may be necessary to increase the system's file-opening limits to avoid the 'too many files open' error. See, e.g. https://medium.com/@muhammadtriwibowo/set-permanently-ulimit-n-open-files-in-ubuntu-4d61064429a
+Note: These commands process many files in parallel. In order to prevent problems on systems that limit open files (e.g. Ubuntu), we've added a max open files parameter in `billmeta`. In addition, to prevent crashes due to system memory limitations, on the production server, I increased file swap size to 4Gb (see https://askubuntu.com/a/1075516/686037).
