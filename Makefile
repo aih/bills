@@ -17,6 +17,7 @@
 	    $(GOBUILD) -o cmd/bin/listxml -v cmd/listxml/main.go
 	    $(GOBUILD) -o cmd/bin/legislators -v cmd/legislators/main.go
 	    $(GOBUILD) -o cmd/bin/committees -v cmd/committees/main.go
+	    $(GOBUILD) -o cmd/bin/unitedstates -v cmd/unitedstates/main.go
     test: 
 	    $(GOTEST) -v ./...
     clean: 

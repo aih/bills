@@ -50,10 +50,13 @@ func CollectWordSample(fpath string, wordSampleStorageChannel chan WordSample, w
 // Collects a random sample of tokenized words
 // for each bill in 'document.xml' files in the 'congress' directory
 // Writes the results to the wordSamplePath
-func CollectWordSamplesFromBills() {
+func CollectWordSamplesFromBills(pathToCongressDataDir string) {
+	if pathToCongressDataDir == "" {
+		pathToCongressDataDir = PathToCongressDataDir
+	}
 	defer fmt.Println("Done collecting word samples")
-	fmt.Printf("Getting all files in %s.  This may take a while.\n", PathToCongressDataDir)
-	documentXMLFiles, _ := ListDocumentXMLFiles()
+	fmt.Printf("Getting all files in %s.  This may take a while.\n", pathToCongressDataDir)
+	documentXMLFiles, _ := ListDocumentXMLFiles(pathToCongressDataDir)
 	wordSampleStorageChannel := make(chan WordSample)
 	wgWordSample := &sync.WaitGroup{}
 	wgWordSample.Add(len(documentXMLFiles))
