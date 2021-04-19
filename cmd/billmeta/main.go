@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"path"
@@ -170,9 +171,11 @@ func makeBillMeta(parentPath string) {
 }
 
 func main() {
-	parentPath := bills.ParentPathDefault
-	if len(os.Args) > 1 {
-		parentPath = os.Args[1]
-	}
+	flagUsage := "Absolute path to the parent directory for 'congress' and json metadata files"
+	flagValue := string(bills.ParentPathDefault)
+	var parentPath string
+	flag.StringVar(&parentPath, "parentPath", flagValue, flagUsage)
+	flag.StringVar(&parentPath, "p", flagValue, flagUsage+" (shorthand)")
+	flag.Parse()
 	makeBillMeta(parentPath)
 }
