@@ -35,12 +35,15 @@ func WalkDirFilter(root string, testPath FilterFunc) (filePaths []string, err er
 
 // Walk 'congress' directory and get filepaths to 'document.xml'
 // which contains the bill xml
-func ListDocumentXMLFiles() (documentXMLFiles []string, err error) {
+func ListDocumentXMLFiles(pathToCongressDataDir string) (documentXMLFiles []string, err error) {
+	if pathToCongressDataDir == "" {
+		pathToCongressDataDir = PathToCongressDataDir
+	}
 	isDocumentXML := func(fpath string) bool {
 		_, file := filepath.Split(fpath)
 		return file == "document.xml"
 	}
-	documentXMLFiles, err = WalkDirFilter(PathToCongressDataDir, isDocumentXML)
+	documentXMLFiles, err = WalkDirFilter(pathToCongressDataDir, isDocumentXML)
 	if err == nil {
 		fmt.Printf("Got %d files!\n", len(documentXMLFiles))
 	}
@@ -56,12 +59,15 @@ func ListDocumentXMLFiles() (documentXMLFiles []string, err error) {
 
 // Walk 'congress' directory and get filepaths to 'data.json'
 // which contains metadata for the bill
-func ListDataJsonFiles() (dataJsonFiles []string, err error) {
+func ListDataJsonFiles(pathToCongressDataDir string) (dataJsonFiles []string, err error) {
+	if pathToCongressDataDir == "" {
+		pathToCongressDataDir = PathToCongressDataDir
+	}
 	isDataJson := func(fpath string) bool {
 		_, file := filepath.Split(fpath)
 		return file == "data.json"
 	}
-	dataJsonFiles, err = WalkDirFilter(PathToCongressDataDir, isDataJson)
+	dataJsonFiles, err = WalkDirFilter(pathToCongressDataDir, isDataJson)
 	if err == nil {
 		fmt.Printf("Got %d files!\n", len(dataJsonFiles))
 	}

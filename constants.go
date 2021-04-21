@@ -15,10 +15,15 @@ var (
 	removeXMLRegexCompiled   = regexp.MustCompile(`<[^>]+>`)
 	// Set to ../../congress
 	PathToDataDir         = path.Join("/", "data")
-	PathToCongressDataDir = path.Join("..", "..", "..", "congress")
-	BillMetaPath          = path.Join("..", "..", "..", "billMetaGo.json")
-	TitleNoYearIndexPath  = path.Join("..", "..", "..", "titleNoYearIndexGo.json")
-	BillsPath             = path.Join("..", "..", "..", "billsGo.json")
+	ParentPathDefault     = path.Join("..", "..", "..")
+	CongressDir           = "congress"
+	BillMetaFile          = "billMetaGo.json"
+	TitleNoYearIndex      = "titleNoYearIndexGo.json"
+	BillsFile             = "billsGo.json"
+	PathToCongressDataDir = path.Join(ParentPathDefault, CongressDir)
+	BillMetaPath          = path.Join(ParentPathDefault, BillMetaFile)
+	TitleNoYearIndexPath  = path.Join(ParentPathDefault, TitleNoYearIndex)
+	BillsPath             = path.Join(ParentPathDefault, BillsFile)
 	BillMetaSyncMap       = new(sync.Map)
 	// titleSyncMap                = new(sync.Map)
 	TitleNoYearSyncMap = new(sync.Map)

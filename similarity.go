@@ -91,7 +91,7 @@ func compareFiles(nGramMaps docMaps) (compareMatrix [][]compareItem, err error) 
 	docPaths := make([]string, len(nGramMaps))
 	compareMatrix = make([][]compareItem, len(docPaths))
 	d := 0
-	for docpath, _ := range nGramMaps {
+	for docpath := range nGramMaps {
 		docPaths[d] = docpath
 		d++
 	}

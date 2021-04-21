@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 	"sync"
 
@@ -58,15 +60,21 @@ func reverse(ss []string) {
 // bills is the list of bill numbers (billCongressTypeNumber)
 // titles is a list of titles (no year)
 // billMeta collects metadata from data.json files
-func makeBillMeta() {
+func makeBillMeta(parentPath string) {
+	pathToBillMeta := bills.BillMetaPath
+	pathToCongressDir := bills.PathToCongressDataDir
+	if parentPath != "" {
+		pathToBillMeta = path.Join(parentPath, bills.BillMetaFile)
+		pathToCongressDir = path.Join(parentPath, bills.CongressDir)
+	}
 	defer fmt.Println("Done")
 	// Limiting openfiles prevents memory issues
 	// See http://jmoiron.net/blog/limiting-concurrency-in-go/
 	maxopenfiles := 100
 	sem := make(chan bool, maxopenfiles)
 	billMetaStorageChannel := make(chan bills.BillMeta)
-	fmt.Printf("Getting all files in %s.  This may take a while.\n", bills.PathToCongressDataDir)
-	dataJsonFiles, _ := bills.ListDataJsonFiles()
+	fmt.Printf("Getting all files in %s.  This may take a while.\n", pathToCongressDir)
+	dataJsonFiles, _ := bills.ListDataJsonFiles(pathToCongressDir)
 	reverse(dataJsonFiles)
 	wg := &sync.WaitGroup{}
 	wg.Add(len(dataJsonFiles))
@@ -150,7 +158,7 @@ func makeBillMeta() {
 		fmt.Printf("Error making JSON data for billMetaMap: %s", err)
 	}
 	fmt.Println("Writing billMeta JSON data to file")
-	os.WriteFile(bills.BillMetaPath, []byte(jsonString), 0666)
+	os.WriteFile(pathToBillMeta, []byte(jsonString), 0666)
 	jsonTitleNoYearString, err := MarshalJSONStringArray(bills.TitleNoYearSyncMap)
 	if err != nil {
 		fmt.Printf("Error making JSON data for billMetaMap: %s", err)
@@ -163,5 +171,11 @@ func makeBillMeta() {
 }
 
 func main() {
-	makeBillMeta()
+	flagUsage := "Absolute path to the parent directory for 'congress' and json metadata files"
+	flagValue := string(bills.ParentPathDefault)
+	var parentPath string
+	flag.StringVar(&parentPath, "parentPath", flagValue, flagUsage)
+	flag.StringVar(&parentPath, "p", flagValue, flagUsage+" (shorthand)")
+	flag.Parse()
+	makeBillMeta(parentPath)
 }
