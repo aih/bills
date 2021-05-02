@@ -174,3 +174,9 @@ func CompareSamples() {
 	//	]
 
 }
+
+func CompareBills(parentPath string, billList []string) {
+
+	fmt.Println(parentPath)
+	fmt.Println(billList)
+}
