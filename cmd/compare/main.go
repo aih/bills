@@ -23,8 +23,6 @@ func (bl *BillList) String() string {
 
 // Set string value in MyList
 func (bl *BillList) Set(s string) error {
-	// TODO remove leading and following spaces and
-	// split on other spaces
 	*bl = strings.Split(s, ",")
 	return nil
 }
@@ -38,6 +36,7 @@ func main() {
 
 	var billList BillList
 	flag.Var(&billList, "billnumbers", "comma-separated list of billnumbers")
+	flag.Var(&billList, "b", "comma-separated list of billnumbers")
 	flag.Parse()
 
 	bills.CompareBills(parentPath, billList)
