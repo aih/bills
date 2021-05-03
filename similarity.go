@@ -177,6 +177,18 @@ func CompareSamples() {
 
 func CompareBills(parentPath string, billList []string) {
 
-	fmt.Println(parentPath)
-	fmt.Println(billList)
+	docPathsToCompare := make([]string, len(billList))
+	for _, billNumber := range billList {
+		billPath, err := PathFromBillNumber(billNumber)
+		if err != nil {
+			fmt.Println("Could not get path for " + billNumber)
+		} else {
+			fmt.Println(path.Join(parentPath, billPath))
+			docPathsToCompare = append(docPathsToCompare, path.Join(parentPath, billPath, "document.xml"))
+		}
+	}
+	fmt.Println(docPathsToCompare)
+	nGramMaps, _ := makeBillNgrams(docPathsToCompare)
+	compareMatrix, _ := compareFiles(nGramMaps)
+	fmt.Println(compareMatrix)
 }
