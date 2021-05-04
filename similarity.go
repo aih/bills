@@ -177,7 +177,7 @@ func CompareSamples() {
 
 func CompareBills(parentPath string, billList []string) {
 
-	docPathsToCompare := make([]string, len(billList))
+	var docPathsToCompare []string
 	for _, billNumber := range billList {
 		billPath, err := PathFromBillNumber(billNumber)
 		if err != nil {
