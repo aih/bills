@@ -175,7 +175,7 @@ func CompareSamples() {
 
 }
 
-func CompareBills(parentPath string, billList []string) {
+func CompareBills(parentPath string, billList []string) [][]compareItem {
 
 	var docPathsToCompare []string
 	for _, billNumber := range billList {
@@ -191,4 +191,5 @@ func CompareBills(parentPath string, billList []string) {
 	nGramMaps, _ := makeBillNgrams(docPathsToCompare)
 	compareMatrix, _ := compareFiles(nGramMaps)
 	fmt.Println(compareMatrix)
+	return compareMatrix
 }
