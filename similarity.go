@@ -175,6 +175,12 @@ func CompareSamples() {
 
 }
 
+// To call from Python
+// import subprocess
+// result = subprocess.run(['./compare', '-p', '../../../congress/data', '-b', '116hr1500rh,115hr6972ih'],  capture_output=True, text=True)
+// result.stdout.split('compareMatrix:\n')[-1]
+// Out[4]: '[[{1 identical} {0.63 incorporates}] [{0.79 incorporated by} {1 identical}]]'
+
 func CompareBills(parentPath string, billList []string) [][]compareItem {
 
 	var docPathsToCompare []string
@@ -183,13 +189,13 @@ func CompareBills(parentPath string, billList []string) [][]compareItem {
 		if err != nil {
 			fmt.Println("Could not get path for " + billNumber)
 		} else {
-			fmt.Println(path.Join(parentPath, billPath))
+			// fmt.Println(path.Join(parentPath, billPath))
 			docPathsToCompare = append(docPathsToCompare, path.Join(parentPath, billPath, "document.xml"))
 		}
 	}
-	fmt.Println(docPathsToCompare)
+	// fmt.Println(docPathsToCompare)
 	nGramMaps, _ := makeBillNgrams(docPathsToCompare)
 	compareMatrix, _ := compareFiles(nGramMaps)
-	fmt.Println(compareMatrix)
+	fmt.Print("compareMatrix:\n", compareMatrix)
 	return compareMatrix
 }
