@@ -44,20 +44,20 @@ type compareItem struct {
 
 func getExplanation(scorei, scorej float64) string {
 	if scorei == 1 && scorej == 1 {
-		return "identical"
+		return "_identical"
 	}
 	if scorei > similarThreshold && scorej > similarThreshold {
-		return "nearly identical"
+		return "_nearly_identical"
 	}
 	if scorei < scoreThreshold && scorej < scoreThreshold {
-		return "unrelated"
+		return "_unrelated"
 	}
 	if (scorei > incorporateThreshold) && scorei > scorej {
-		return "incorporated by"
+		return "_incorporated by"
 	} else if (scorej > incorporateThreshold) && scorej > scorei {
-		return "incorporates"
+		return "_incorporates"
 	} else {
-		return "some similarity"
+		return "_some_similarity"
 	}
 }
 
