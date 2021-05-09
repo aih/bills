@@ -196,6 +196,6 @@ func CompareBills(parentPath string, billList []string) [][]compareItem {
 	// fmt.Println(docPathsToCompare)
 	nGramMaps, _ := makeBillNgrams(docPathsToCompare)
 	compareMatrix, _ := compareFiles(nGramMaps)
-	fmt.Print("compareMatrix:\n", compareMatrix)
+	fmt.Print("compareMatrix:", compareMatrix, ":compareMatrix")
 	return compareMatrix
 }
