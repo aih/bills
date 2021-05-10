@@ -29,6 +29,7 @@ var (
 	incorporateThreshold = .5
 	scoreThreshold       = .1
 	similarThreshold     = .9
+	minimumTotal         = 200
 )
 
 type docMap struct {
@@ -43,11 +44,13 @@ type CompareItem struct {
 	Explanation string
 }
 
-func getExplanation(scorei, scorej float64) string {
+func getExplanation(scorei, scorej float64, iTotal, jTotal int) string {
 	if scorei == 1 && scorej == 1 {
 		return "_identical_"
 	}
-	if scorei > similarThreshold && scorej > similarThreshold {
+
+	// minimumTotal avoids small bills being counted as nearly identical
+	if iTotal > minimumTotal && jTotal > minimumTotal && scorei > similarThreshold && scorej > similarThreshold {
 		return "_nearly_identical_"
 	}
 	if scorei < scoreThreshold && scorej < scoreThreshold {
@@ -116,17 +119,17 @@ func compareFiles(nGramMaps docMaps) (compareMatrix [][]CompareItem, err error) 
 				scoreTotal = scoreTotal + score
 			}
 			//if docpath1 != docpath2 {
-			//	fmt.Printf("Keys:\n%v", nGramMaps[docpath1].keys)
+			// fmt.Printf("Keys:\n%v", nGramMaps[docpath1].keys)
 			//	fmt.Printf("Keys 2:\n%v", nGramMaps[docpath2].keys)
-			//		fmt.Printf("scoreTotal: %d\n", scoreTotal)
-			//		fmt.Printf("scoreTotal: %d\n", scoreTotal)
-			//		fmt.Printf("iTotal: %d\n", iTotal)
-			//		fmt.Printf("jTotal: %d\n", jTotal)
+			fmt.Printf("scoreTotal: %d\n", scoreTotal)
+			fmt.Printf("scoreTotal: %d\n", scoreTotal)
+			fmt.Printf("iTotal: %d\n", iTotal)
+			fmt.Printf("jTotal: %d\n", jTotal)
 			//}
 			scorei := math.Round(100*float64(scoreTotal)/float64(iTotal)) / 100
 			scorej := math.Round(100*float64(scoreTotal)/float64(jTotal)) / 100
-			exi := getExplanation(scorei, scorej)
-			exj := getExplanation(scorej, scorei)
+			exi := getExplanation(scorei, scorej, iTotal, jTotal)
+			exj := getExplanation(scorej, scorei, iTotal, jTotal)
 			//if exi == "incorporated by" || exj == "incorporated by" {
 			//	fmt.Printf("i,j docpath1/docpath2 scorei scorej: %d,%d %d/%d %f %f\n", i, j, iTotal, jTotal, scorei, scorej)
 			//}
