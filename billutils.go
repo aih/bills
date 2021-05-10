@@ -2,9 +2,11 @@ package bills
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"strings"
 	"sync"
 )
@@ -24,6 +26,23 @@ func BillNumberFromPath(billPath string) string {
 		return fmt.Sprintf("%s%s%s", matchMap["congress"], matchMap["billnumber"], version)
 	} else {
 		return fmt.Sprintf("%s%s", matchMap["congress"], matchMap["billnumber"])
+	}
+}
+
+//  Gets bill path from the billnumber + version
+//  E.g. billnumber of the form 116hr1500rh returns [path]/data/116/bills/hr/hr1/text-versions
+func PathFromBillNumber(billNumber string) (string, error) {
+	var matchMap = FindNamedMatches(BillnumberRegexCompiled, billNumber)
+	fmt.Println(matchMap)
+	doctypes := "bills"
+	stage, ok := matchMap["stage"]
+	if ok && stage[1:] == "amdt" {
+		doctypes = "amendments"
+	}
+	if version, ok := matchMap["version"]; ok {
+		return path.Join(matchMap["congress"], doctypes, stage, matchMap["stage"]+matchMap["billnumber"], "text-versions", version), nil
+	} else {
+		return path.Join(matchMap["congress"], doctypes, stage, matchMap["stage"]+matchMap["billnumber"]), errors.New("no version number in path")
 	}
 }
 
