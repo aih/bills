@@ -1,6 +1,7 @@
 package bills
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
@@ -37,27 +38,27 @@ type docMap struct {
 
 type docMaps map[string]*docMap
 
-type compareItem struct {
-	score       float64
-	explanation string
+type CompareItem struct {
+	Score       float64
+	Explanation string
 }
 
 func getExplanation(scorei, scorej float64) string {
 	if scorei == 1 && scorej == 1 {
-		return "_identical"
+		return "_identical_"
 	}
 	if scorei > similarThreshold && scorej > similarThreshold {
-		return "_nearly_identical"
+		return "_nearly_identical_"
 	}
 	if scorei < scoreThreshold && scorej < scoreThreshold {
-		return "_unrelated"
+		return "_unrelated_"
 	}
 	if (scorei > incorporateThreshold) && scorei > scorej {
-		return "_incorporated by"
+		return "_incorporated_by_"
 	} else if (scorej > incorporateThreshold) && scorej > scorei {
-		return "_incorporates"
+		return "_incorporates_"
 	} else {
-		return "_some_similarity"
+		return "_some_similarity_"
 	}
 }
 
@@ -86,10 +87,10 @@ func makeBillNgrams(docPaths []string) (nGramMaps docMaps, err error) {
 }
 
 // Compares all of the documents in a docMaps object, returns a matrix of the comparison values
-func compareFiles(nGramMaps docMaps) (compareMatrix [][]compareItem, err error) {
+func compareFiles(nGramMaps docMaps) (compareMatrix [][]CompareItem, err error) {
 	fmt.Println("Comparing files")
 	docPaths := make([]string, len(nGramMaps))
-	compareMatrix = make([][]compareItem, len(docPaths))
+	compareMatrix = make([][]CompareItem, len(docPaths))
 	d := 0
 	for docpath := range nGramMaps {
 		docPaths[d] = docpath
@@ -97,7 +98,7 @@ func compareFiles(nGramMaps docMaps) (compareMatrix [][]compareItem, err error) 
 	}
 	for i, docpath1 := range docPaths {
 		fmt.Printf("Comparison for file: %d\n", i)
-		compareMatrix[i] = make([]compareItem, len(docPaths))
+		compareMatrix[i] = make([]CompareItem, len(docPaths))
 		for j := 0; j < (i + 1); j++ {
 			docpath2 := docPaths[j]
 
@@ -129,8 +130,8 @@ func compareFiles(nGramMaps docMaps) (compareMatrix [][]compareItem, err error) 
 			//if exi == "incorporated by" || exj == "incorporated by" {
 			//	fmt.Printf("i,j docpath1/docpath2 scorei scorej: %d,%d %d/%d %f %f\n", i, j, iTotal, jTotal, scorei, scorej)
 			//}
-			newItemi := compareItem{scorei, exi}
-			newItemj := compareItem{scorej, exj}
+			newItemi := CompareItem{scorei, exi}
+			newItemj := CompareItem{scorej, exj}
 
 			compareMatrix[i][j] = newItemi
 			compareMatrix[j][i] = newItemj
@@ -181,7 +182,7 @@ func CompareSamples() {
 // result.stdout.split('compareMatrix:\n')[-1]
 // Out[4]: '[[{1 identical} {0.63 incorporates}] [{0.79 incorporated by} {1 identical}]]'
 
-func CompareBills(parentPath string, billList []string) [][]compareItem {
+func CompareBills(parentPath string, billList []string) [][]CompareItem {
 
 	var docPathsToCompare []string
 	for _, billNumber := range billList {
@@ -196,6 +197,8 @@ func CompareBills(parentPath string, billList []string) [][]compareItem {
 	// fmt.Println(docPathsToCompare)
 	nGramMaps, _ := makeBillNgrams(docPathsToCompare)
 	compareMatrix, _ := compareFiles(nGramMaps)
-	fmt.Print("compareMatrix:", compareMatrix, ":compareMatrix")
+	compareMatrixJson, _ := json.Marshal(compareMatrix)
+	fmt.Print(":compareMatrix:", string(compareMatrixJson), ":compareMatrix:")
+	//fmt.Print("compareMatrix:", compareMatrix, ":compareMatrix")
 	return compareMatrix
 }
