@@ -26,12 +26,12 @@ var (
 		path.Join(pATH_TO_CONGRESSDATA_DIR_116_HR, "hr133", eNR_PATH), // incorporates 7617
 		path.Join(pATH_TO_CONGRESSDATA_DIR_116_HR, "hr7617", rH_PATH), // incorporated in 133
 	}
-	incorporateThreshold  = .8
-	incorporateRatio      = .2
-	scoreThreshold        = .1
-	similarThreshold      = .8
-	similarScoreThreshold = .1
-	minimumTotal          = 150
+	incorporateThreshold     = .8
+	incorporateRatio         = .2
+	scoreThreshold           = .1
+	nearlyIdenticalThreshold = .8
+	similarScoreThreshold    = .1
+	minimumTotal             = 150
 )
 
 type docMap struct {
@@ -58,7 +58,7 @@ func getExplanation(scorei, scorej float64, iTotal, jTotal int) string {
 	//fmt.Println("----")
 
 	// minimumTotal avoids small bills being counted as nearly identical
-	if ((iTotal > minimumTotal && jTotal > minimumTotal) || ((1 - scorei/scorej) < similarScoreThreshold)) && scorei > similarThreshold && scorej > similarThreshold {
+	if ((iTotal > minimumTotal && jTotal > minimumTotal) || ((1 - scorei/scorej) < similarScoreThreshold)) && scorei > nearlyIdenticalThreshold && scorej > nearlyIdenticalThreshold {
 		return "_nearly_identical_"
 	}
 	if scorei < scoreThreshold && scorej < scoreThreshold {
@@ -101,15 +101,9 @@ func makeBillNgrams(docPaths []string) (nGramMaps docMaps, err error) {
 }
 
 // Compares all of the documents in a docMaps object, returns a matrix of the comparison values
-func compareFiles(nGramMaps docMaps) (compareMatrix [][]CompareItem, err error) {
+func compareFiles(nGramMaps docMaps, docPaths []string) (compareMatrix [][]CompareItem, err error) {
 	fmt.Println("Comparing files")
-	docPaths := make([]string, len(nGramMaps))
 	compareMatrix = make([][]CompareItem, len(docPaths))
-	d := 0
-	for docpath := range nGramMaps {
-		docPaths[d] = docpath
-		d++
-	}
 	for i, docpath1 := range docPaths {
 		fmt.Printf("Comparison for file: %d\n", i)
 		compareMatrix[i] = make([]CompareItem, len(docPaths))
@@ -182,7 +176,7 @@ func CompareSamples() {
 	}()
 
 	nGramMaps, _ := makeBillNgrams(dOC_PATHS)
-	compareMatrix, _ := compareFiles(nGramMaps)
+	compareMatrix, _ := compareFiles(nGramMaps, dOC_PATHS)
 	fmt.Println(compareMatrix)
 	ticker.Stop()
 	done <- true
@@ -221,7 +215,7 @@ func CompareBills(parentPath string, billList []string) [][]CompareItem {
 	}
 	// fmt.Println(docPathsToCompare)
 	nGramMaps, _ := makeBillNgrams(docPathsToCompare)
-	compareMatrix, _ := compareFiles(nGramMaps)
+	compareMatrix, _ := compareFiles(nGramMaps, docPathsToCompare)
 	compareMatrixJson, _ := json.Marshal(compareMatrix)
 	fmt.Print(":compareMatrix:", string(compareMatrixJson), ":compareMatrix:")
 	//fmt.Print("compareMatrix:", compareMatrix, ":compareMatrix")
