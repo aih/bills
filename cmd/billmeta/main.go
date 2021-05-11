@@ -122,7 +122,9 @@ func makeBillMeta(parentPath string) {
 
 	//titles := getKeys(titleNoYearSyncMap)
 	bills.TitleNoYearSyncMap.Range(func(billTitle, titleBills interface{}) bool {
+		fmt.Println(titleBills)
 		for _, titleBill := range titleBills.([]string) {
+			fmt.Println("titleBill ", titleBill)
 			if billItem, ok := bills.BillMetaSyncMap.Load(titleBill); ok {
 				relatedBills := billItem.(bills.BillMeta).RelatedBillsByBillnumber
 				if relatedBills != nil && len(relatedBills) > 0 {
@@ -134,17 +136,20 @@ func makeBillMeta(parentPath string) {
 				// If it's not, add it with 'title match'
 				for _, titleBillRelated := range titleBills.([]string) {
 					if relatedBillItem, ok := relatedBills[titleBillRelated]; ok {
+						//fmt.Println("Bill with Related Title ", titleBillRelated)
 						relatedBillItem.Reason = strings.Join(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), bills.TitleMatchReason)), ", ")
 						relatedBillItem.Titles = bills.RemoveDuplicates(append(relatedBillItem.Titles, titleBillRelated))
+						//fmt.Println("Related Titles: ", relatedBillItem.Titles)
 					} else {
 						newRelatedBillItem := new(bills.RelatedBillItem)
-						newRelatedBillItem.BillCongressTypeNumber = titleBill
+						newRelatedBillItem.BillCongressTypeNumber = titleBillRelated
 						newRelatedBillItem.Titles = []string{billTitle.(string)}
 						newRelatedBillItem.Reason = bills.TitleMatchReason
-						relatedBills[titleBill] = *newRelatedBillItem
+						relatedBills[titleBillRelated] = *newRelatedBillItem
 						// TODO add sponsor and cosponsor information to newRelatedBillItem
 					}
 				}
+				fmt.Println("RelatedBills: ", relatedBills)
 				// TODO Store new relatedbills
 			} else {
 				fmt.Printf("No metadata in BillMetaSyncMap for bill: %s", titleBill)
