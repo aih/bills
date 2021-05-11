@@ -26,10 +26,12 @@ var (
 		path.Join(pATH_TO_CONGRESSDATA_DIR_116_HR, "hr133", eNR_PATH), // incorporates 7617
 		path.Join(pATH_TO_CONGRESSDATA_DIR_116_HR, "hr7617", rH_PATH), // incorporated in 133
 	}
-	incorporateThreshold = .5
-	scoreThreshold       = .1
-	similarThreshold     = .9
-	minimumTotal         = 200
+	incorporateThreshold  = .8
+	incorporateRatio      = .2
+	scoreThreshold        = .1
+	similarThreshold      = .8
+	similarScoreThreshold = .1
+	minimumTotal          = 150
 )
 
 type docMap struct {
@@ -48,17 +50,22 @@ func getExplanation(scorei, scorej float64, iTotal, jTotal int) string {
 	if scorei == 1 && scorej == 1 {
 		return "_identical_"
 	}
+	//fmt.Println(iTotal)
+	//fmt.Println(jTotal)
+	//fmt.Println(scorei)
+	//fmt.Println(scorej)
+	//fmt.Println("----")
 
 	// minimumTotal avoids small bills being counted as nearly identical
-	if iTotal > minimumTotal && jTotal > minimumTotal && scorei > similarThreshold && scorej > similarThreshold {
+	if ((iTotal > minimumTotal && jTotal > minimumTotal) || ((1 - scorei/scorej) < similarScoreThreshold)) && scorei > similarThreshold && scorej > similarThreshold {
 		return "_nearly_identical_"
 	}
 	if scorei < scoreThreshold && scorej < scoreThreshold {
 		return "_unrelated_"
 	}
-	if (scorei > incorporateThreshold) && scorei > scorej {
+	if (scorei > incorporateThreshold) && scorej/scorei < incorporateRatio {
 		return "_incorporated_by_"
-	} else if (scorej > incorporateThreshold) && scorej > scorei {
+	} else if (scorej > incorporateThreshold) && scorei/scorej < incorporateRatio {
 		return "_incorporates_"
 	} else {
 		return "_some_similarity_"
@@ -108,36 +115,47 @@ func compareFiles(nGramMaps docMaps) (compareMatrix [][]CompareItem, err error) 
 			iTotal := 0
 			jTotal := 0
 
-			allKeys := RemoveDuplicates(append(nGramMaps[docpath1].keys, nGramMaps[docpath2].keys...))
-			scoreTotal := 0
-			for _, key := range allKeys {
+			iKeys := nGramMaps[docpath1].keys
+			//fmt.Println(docpath1)
+			//fmt.Println(iKeys)
+			jKeys := nGramMaps[docpath2].keys
+			iScore := 0
+			for _, key := range jKeys {
 				iValue := nGramMaps[docpath1].nGramMap[key]
-				jValue := nGramMaps[docpath2].nGramMap[key]
-				iTotal = iTotal + iValue
-				jTotal = jTotal + jValue
-				score := int(math.Min(float64(iValue), float64(jValue)))
-				scoreTotal = scoreTotal + score
+				//fmt.Println(iValue)
+				//jValuea := nGramMaps[docpath2].nGramMap[key]
+				//fmt.Println(jValuea)
+				iScore += iValue
+				jTotal += nGramMaps[docpath2].nGramMap[key]
 			}
+			jScore := 0
+			for _, key := range iKeys {
+				jValue := nGramMaps[docpath2].nGramMap[key]
+				//fmt.Println(iValue)
+				//jValuea := nGramMaps[docpath2].nGramMap[key]
+				//fmt.Println(jValuea)
+				jScore += jValue
+				iTotal += nGramMaps[docpath1].nGramMap[key]
+			}
+
 			//if docpath1 != docpath2 {
 			// fmt.Printf("Keys:\n%v", nGramMaps[docpath1].keys)
-			//	fmt.Printf("Keys 2:\n%v", nGramMaps[docpath2].keys)
-			fmt.Printf("scoreTotal: %d\n", scoreTotal)
-			fmt.Printf("scoreTotal: %d\n", scoreTotal)
-			fmt.Printf("iTotal: %d\n", iTotal)
-			fmt.Printf("jTotal: %d\n", jTotal)
+			// fmt.Printf("Keys 2:\n%v", nGramMaps[docpath2].keys)
+			// fmt.Printf("scoreTotal: %d\n", scoreTotal)
+			// fmt.Printf("scoreTotal: %d\n", scoreTotal)
+			// fmt.Printf("iTotal: %d\n", iTotal)
+			// fmt.Printf("jTotal: %d\n", jTotal)
 			//}
-			scorei := math.Round(100*float64(scoreTotal)/float64(iTotal)) / 100
-			scorej := math.Round(100*float64(scoreTotal)/float64(jTotal)) / 100
+			scorei := math.Round(100*float64(iScore)/float64(jTotal)) / 100
+			scorej := math.Round(100*float64(jScore)/float64(iTotal)) / 100
 			exi := getExplanation(scorei, scorej, iTotal, jTotal)
 			exj := getExplanation(scorej, scorei, iTotal, jTotal)
 			//if exi == "incorporated by" || exj == "incorporated by" {
 			//	fmt.Printf("i,j docpath1/docpath2 scorei scorej: %d,%d %d/%d %f %f\n", i, j, iTotal, jTotal, scorei, scorej)
 			//}
-			newItemi := CompareItem{scorei, exi}
-			newItemj := CompareItem{scorej, exj}
 
-			compareMatrix[i][j] = newItemi
-			compareMatrix[j][i] = newItemj
+			compareMatrix[i][j] = CompareItem{scorei, exi}
+			compareMatrix[j][i] = CompareItem{scorej, exj}
 		}
 	}
 

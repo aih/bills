@@ -25,6 +25,7 @@ func CustomTokenize(text string) (wordList []string) {
 }
 
 // Creates a map with ngrams as keys and number of occurences as values
+// n is the number of words in each n-gram
 func MakeNgramMap(text string, n int) (wordMap map[string]int) {
 	wordListAll := CustomTokenize(text)
 	nGramLen := len(wordListAll) - n
