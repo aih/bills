@@ -42,8 +42,9 @@ type docMap struct {
 type docMaps map[string]*docMap
 
 type CompareItem struct {
-	Score       float64
-	Explanation string
+	Score        float64
+	Explanation  string
+	ComparedDocs string
 }
 
 func getExplanation(scorei, scorej float64, iTotal, jTotal int) string {
@@ -82,7 +83,10 @@ func makeBillNgrams(docPaths []string) (nGramMaps docMaps, err error) {
 		file, err := os.ReadFile(docpath)
 		if err != nil {
 			log.Printf("Error reading document: %s\n", err)
-			return nGramMaps, err
+			var docMapItem *docMap = new(docMap)
+			docMapItem.nGramMap = MakeNgramMap("error error error error error error error error", 4)
+			docMapItem.keys = MapNgramKeys(docMapItem.nGramMap)
+			nGramMaps[docpath] = docMapItem
 		} else {
 			fileText := removeXMLRegexCompiled.ReplaceAllString(string(file), " ")
 			var docMapItem *docMap = new(docMap)
@@ -154,8 +158,8 @@ func compareFiles(nGramMaps docMaps) (compareMatrix [][]CompareItem, err error) 
 			//	fmt.Printf("i,j docpath1/docpath2 scorei scorej: %d,%d %d/%d %f %f\n", i, j, iTotal, jTotal, scorei, scorej)
 			//}
 
-			compareMatrix[i][j] = CompareItem{scorei, exi}
-			compareMatrix[j][i] = CompareItem{scorej, exj}
+			compareMatrix[i][j] = CompareItem{scorei, exi, BillNumberFromPath(docpath1) + "-" + BillNumberFromPath(docpath2)}
+			compareMatrix[j][i] = CompareItem{scorej, exj, BillNumberFromPath(docpath2) + "-" + BillNumberFromPath(docpath1)}
 		}
 	}
 
