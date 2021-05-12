@@ -93,9 +93,10 @@ func makeBillMeta(parentPath string) {
 			for _, title := range billMeta.Titles {
 				// titleSyncMap.Store(title, billMeta.BillCongressTypeNumber)
 				titleNoYear := bills.TitleNoYearRegexCompiled.ReplaceAllString(title, "")
-				if titleBills, loaded := bills.TitleNoYearSyncMap.LoadOrStore(titleNoYear, []string{billMeta.BillCongressTypeNumber}); loaded {
+				titleNoYearNoPrefix := bills.TitlePrefixRegexCompiled.ReplaceAllString(titleNoYear, "")
+				if titleBills, loaded := bills.TitleNoYearSyncMap.LoadOrStore(titleNoYearNoPrefix, []string{billMeta.BillCongressTypeNumber}); loaded {
 					titleBills = bills.RemoveDuplicates(append(titleBills.([]string), billMeta.BillCongressTypeNumber))
-					bills.TitleNoYearSyncMap.Store(titleNoYear, titleBills)
+					bills.TitleNoYearSyncMap.Store(titleNoYearNoPrefix, titleBills)
 				}
 
 			}
