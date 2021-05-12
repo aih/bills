@@ -2,6 +2,7 @@ package bills
 
 import (
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/jdkato/prose/tokenize"
@@ -61,6 +62,16 @@ func MapNgramKeys(nGramMap map[string]int) (keys []string) {
 		i++
 	}
 	return
+}
+
+var REASON_ORDER = map[string]int{"_identical_": 1, "_nearly_identical_": 2, "_title_match_": 3, "_includes_": 4, "_included_by_": 5, "related": 6, "_some_similarity_": 7, "_unrelated_": 8}
+
+func SortReasons(reasons []string) []string {
+
+	sort.Slice(reasons, func(i, j int) bool {
+		return REASON_ORDER[reasons[i]] < REASON_ORDER[reasons[j]]
+	})
+	return reasons
 }
 
 // Removes duplicates in a list of strings

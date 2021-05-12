@@ -137,7 +137,7 @@ func makeBillMeta(parentPath string) {
 				for _, titleBillRelated := range titleBills.([]string) {
 					if relatedBillItem, ok := relatedBills[titleBillRelated]; ok {
 						//fmt.Println("Bill with Related Title ", titleBillRelated)
-						relatedBillItem.Reason = strings.Join(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), bills.TitleMatchReason)), ", ")
+						relatedBillItem.Reason = strings.Join(bills.SortReasons(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), bills.TitleMatchReason))), ", ")
 						relatedBillItem.Titles = bills.RemoveDuplicates(append(relatedBillItem.Titles, titleBillRelated))
 						//fmt.Println("Related Titles: ", relatedBillItem.Titles)
 					} else {
