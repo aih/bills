@@ -150,7 +150,7 @@ func makeBillMeta(parentPath string) {
 						// TODO add sponsor and cosponsor information to newRelatedBillItem
 					}
 				}
-				fmt.Println("RelatedBills: ", relatedBills)
+				//fmt.Println("RelatedBills: ", relatedBills)
 				// TODO Store new relatedbills
 			} else {
 				fmt.Printf("No metadata in BillMetaSyncMap for bill: %s", titleBill)
