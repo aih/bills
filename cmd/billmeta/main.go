@@ -90,7 +90,8 @@ func makeBillMeta(parentPath string) {
 			fmt.Printf("[%d] Storing metadata for %s.\n", billCounter, billMeta.BillCongressTypeNumber)
 			// Get related bill data
 			bills.BillMetaSyncMap.Store(billMeta.BillCongressTypeNumber, billMeta)
-			// Add 	billMeta.ShortTitle to billMeta.Titles?
+
+			// Add 	billMeta.ShortTitle to billMeta.Titles
 			titlesPlus := append(billMeta.Titles, billMeta.ShortTitle)
 			for _, title := range titlesPlus {
 				titleNoYear := bills.TitleNoYearRegexCompiled.ReplaceAllString(title, "")
