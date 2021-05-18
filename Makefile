@@ -12,6 +12,7 @@
 	    if [ ! -d "cmd/bin" ]; then \
 			mkdir cmd/bin; \
 		fi
+	    $(GOBUILD) -o cmd/bin/badgerkv -v cmd/badgerkv/main.go
 	    $(GOBUILD) -o cmd/bin/billmeta -v cmd/billmeta/main.go
 	    $(GOBUILD) -o cmd/bin/committees -v cmd/committees/main.go
 	    $(GOBUILD) -o cmd/bin/comparematrix -v cmd/comparematrix/main.go
