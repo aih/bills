@@ -22,16 +22,18 @@ var (
 	ParentPathDefault     = path.Join("..", "..", "..")
 	CongressDir           = "congress"
 	BillMetaFile          = "billMetaGo.json"
+	BillSimilarityFile    = "billSimilarityGo.json"
 	TitleNoYearIndex      = "titleNoYearIndexGo.json"
 	BillsFile             = "billsGo.json"
 	PathToCongressDataDir = path.Join(ParentPathDefault, CongressDir)
 	BillMetaPath          = path.Join(ParentPathDefault, BillMetaFile)
+	BillSimilarityPath    = path.Join(ParentPathDefault, BillSimilarityFile)
 	TitleNoYearIndexPath  = path.Join(ParentPathDefault, TitleNoYearIndex)
 	BillsPath             = path.Join(ParentPathDefault, BillsFile)
 	BillMetaSyncMap       = new(sync.Map)
 	// titleSyncMap                = new(sync.Map)
 	TitleNoYearSyncMap = new(sync.Map)
-	TitleMatchReason   = "_title_match_"
+	TitleMatchReason   = "bills-title_match"
 )
 
 func LoadEnv() (err error) {

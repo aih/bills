@@ -64,7 +64,7 @@ func MapNgramKeys(nGramMap map[string]int) (keys []string) {
 	return
 }
 
-var REASON_ORDER = map[string]int{"_identical_": 1, "_nearly_identical_": 2, "_title_match_": 3, "_includes_": 4, "_included_by_": 5, "related": 6, "_some_similarity_": 7, "_unrelated_": 8}
+var REASON_ORDER = map[string]int{"bills-identical": 1, "bills-nearly_identical": 2, "bills-title_match": 3, "bills-includes": 4, "bills-included_by": 5, "related": 6, "bills-some_similarity": 7, "bills-unrelated": 8}
 
 func SortReasons(reasons []string) []string {
 

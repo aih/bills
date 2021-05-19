@@ -36,6 +36,16 @@ func MarshalJSONBillMeta(m *sync.Map) ([]byte, error) {
 	return json.Marshal(tmpMap)
 }
 
+func MarshalJSONBillSimilarity(m *sync.Map) ([]byte, error) {
+
+	tmpMap := make(map[string][]bills.RelatedBillItem)
+	m.Range(func(k interface{}, v interface{}) bool {
+		tmpMap[k.(string)] = v.(bills.BillMeta).RelatedBills
+		return true
+	})
+	return json.Marshal(tmpMap)
+}
+
 // Marshals a sync.Map object of the type map[string]string
 // see https://stackoverflow.com/a/46390611/628748
 // and https://stackoverflow.com/a/65442862/628748
@@ -144,6 +154,8 @@ func makeBillMeta(parentPath string) {
 				// Add the billTitle to Titles, if it is not already there
 				// If it's not, add it with 'title match'
 				for _, titleBillRelated := range titleBills.([]string) {
+					//fmt.Println("titleBillRelated: ", titleBillRelated)
+					//fmt.Println("relatedBills: ", relatedBills)
 					if relatedBillItem, ok := relatedBills[titleBillRelated]; ok {
 						fmt.Println("Bill with Related Title ", titleBillRelated)
 						relatedBillItem.Reason = strings.Join(bills.SortReasons(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), bills.TitleMatchReason))), ", ")
@@ -174,6 +186,14 @@ func makeBillMeta(parentPath string) {
 	}
 	fmt.Println("Writing billMeta JSON data to file")
 	os.WriteFile(pathToBillMeta, []byte(jsonString), 0666)
+
+	jsonSimString, err := MarshalJSONBillSimilarity(bills.BillMetaSyncMap)
+	if err != nil {
+		fmt.Printf("Error making JSON data for billSimilarity file: %s", err)
+	}
+	fmt.Println("Writing billSimilarity JSON data to file")
+	os.WriteFile(bills.BillSimilarityPath, []byte(jsonSimString), 0666)
+
 	jsonTitleNoYearString, err := MarshalJSONStringArray(bills.TitleNoYearSyncMap)
 	if err != nil {
 		fmt.Printf("Error making JSON data for billMetaMap: %s", err)
