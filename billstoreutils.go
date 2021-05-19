@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"strings"
+
+	bh "github.com/timshannon/badgerhold"
 )
 
 // Saves bill metadata to billMeta.json
@@ -33,4 +36,20 @@ func SaveBillJson(billCongressTypeNumber string, billMetaItem BillMeta) error {
 	}
 
 	return nil
+}
+
+// Saves bill metadata to db (badger or bolt) via bh
+func SaveBillJsonToDB(billCongressTypeNumber string, billMetaItem BillMeta) error {
+	var options = bh.DefaultOptions
+	options.Dir = "data"
+	options.ValueDir = "data"
+
+	store, err := bh.Open(options)
+	if err != nil {
+		// handle error
+		log.Fatal(err)
+	}
+	defer store.Close()
+
+	return store.Insert(billCongressTypeNumber, billMetaItem)
 }

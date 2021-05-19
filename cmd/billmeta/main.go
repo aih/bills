@@ -104,6 +104,12 @@ func makeBillMeta(parentPath string) {
 			if saveErr != nil {
 				fmt.Println(saveErr)
 			}
+			/* Saves each bill JSON to an item in db
+			saveDbErr := bills.SaveBillJsonToDB(billMeta.BillCongressTypeNumber, billMeta)
+			if saveDbErr != nil {
+				fmt.Println(saveDbErr)
+			}
+			*/
 
 			// Add 	billMeta.ShortTitle to billMeta.Titles
 			//titlesPlus := append(billMeta.Titles, billMeta.ShortTitle)
