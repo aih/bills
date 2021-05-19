@@ -49,7 +49,7 @@ type CompareItem struct {
 
 func getExplanation(scorei, scorej float64, iTotal, jTotal int) string {
 	if scorei == 1 && scorej == 1 {
-		return "_identical_"
+		return "bills-identical"
 	}
 	//fmt.Println(iTotal)
 	//fmt.Println(jTotal)
@@ -59,17 +59,17 @@ func getExplanation(scorei, scorej float64, iTotal, jTotal int) string {
 
 	// minimumTotal avoids small bills being counted as nearly identical
 	if ((iTotal > minimumTotal && jTotal > minimumTotal) || ((1 - scorei/scorej) < similarScoreThreshold)) && scorei > nearlyIdenticalThreshold && scorej > nearlyIdenticalThreshold {
-		return "_nearly_identical_"
+		return "bills-nearly_identical"
 	}
 	if scorei < scoreThreshold && scorej < scoreThreshold {
-		return "_unrelated_"
+		return "bills-unrelated"
 	}
 	if (scorei > incorporateThreshold) && scorej/scorei < incorporateRatio {
-		return "_incorporated_by_"
+		return "bills-incorporated_by"
 	} else if (scorej > incorporateThreshold) && scorei/scorej < incorporateRatio {
-		return "_incorporates_"
+		return "bills-incorporates"
 	} else {
-		return "_some_similarity_"
+		return "bills-some_similarity"
 	}
 }
 

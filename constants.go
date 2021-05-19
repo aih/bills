@@ -4,6 +4,9 @@ import (
 	"path"
 	"regexp"
 	"sync"
+
+	"github.com/aih/bills/internal/projectpath"
+	"github.com/joho/godotenv"
 )
 
 // Constants for this package
@@ -13,21 +16,26 @@ var (
 	UsCongressPathRegexCompiled = regexp.MustCompile(`data\/(?P<congress>[1-9][0-9]*)\/(?P<doctype>[a-z]+)\/(?P<stage>[a-z]{1,8})\/(?P<billnumber>[a-z]{1,8}[1-9][0-9]*)\/?(text-versions\/?P<version>[a-z]+)?`)
 	// matches strings of the form '...of 1979', where the year is a 4-digit number
 	TitleNoYearRegexCompiled = regexp.MustCompile(`of\s[0-9]{4}$`)
-	TitlePrefixRegexCompiled = regexp.MustCompile(`[0-9]{3}\s[A-Z]+\s[0-9]{1,4}\s[A-Z]\:\s`)
 	removeXMLRegexCompiled   = regexp.MustCompile(`<[^>]+>`)
 	// Set to ../../congress
 	PathToDataDir         = path.Join("/", "data")
 	ParentPathDefault     = path.Join("..", "..", "..")
 	CongressDir           = "congress"
 	BillMetaFile          = "billMetaGo.json"
+	BillSimilarityFile    = "billSimilarityGo.json"
 	TitleNoYearIndex      = "titleNoYearIndexGo.json"
 	BillsFile             = "billsGo.json"
 	PathToCongressDataDir = path.Join(ParentPathDefault, CongressDir)
 	BillMetaPath          = path.Join(ParentPathDefault, BillMetaFile)
+	BillSimilarityPath    = path.Join(ParentPathDefault, BillSimilarityFile)
 	TitleNoYearIndexPath  = path.Join(ParentPathDefault, TitleNoYearIndex)
 	BillsPath             = path.Join(ParentPathDefault, BillsFile)
 	BillMetaSyncMap       = new(sync.Map)
 	// titleSyncMap                = new(sync.Map)
 	TitleNoYearSyncMap = new(sync.Map)
-	TitleMatchReason   = "_title_match_"
+	TitleMatchReason   = "bills-title_match"
 )
+
+func LoadEnv() (err error) {
+	return godotenv.Load(path.Join(projectpath.Root, ".env"))
+}
