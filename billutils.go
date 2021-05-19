@@ -30,7 +30,7 @@ func BillNumberFromPath(billPath string) string {
 }
 
 //  Gets bill path from the billnumber + version
-//  E.g. billnumber of the form 116hr1500rh returns [path]/data/116/bills/hr/hr1/text-versions
+//  E.g. billnumber of the form 116hr1500rh returns [path]/data/116/bills/hr/hr1/text-versions/rh
 func PathFromBillNumber(billNumber string) (string, error) {
 	var matchMap = FindNamedMatches(BillnumberRegexCompiled, billNumber)
 	fmt.Println(matchMap)

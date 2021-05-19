@@ -90,10 +90,16 @@ func makeBillMeta(parentPath string) {
 			fmt.Printf("[%d] Storing metadata for %s.\n", billCounter, billMeta.BillCongressTypeNumber)
 			// Get related bill data
 			bills.BillMetaSyncMap.Store(billMeta.BillCongressTypeNumber, billMeta)
+			saveErr := bills.SaveBillJson(billMeta.BillCongressTypeNumber, billMeta)
+			if saveErr != nil {
+				fmt.Println(saveErr)
+			}
 
 			// Add 	billMeta.ShortTitle to billMeta.Titles
-			titlesPlus := append(billMeta.Titles, billMeta.ShortTitle)
-			for _, title := range titlesPlus {
+			//titlesPlus := append(billMeta.Titles, billMeta.ShortTitle)
+			//for _, title := range titlesPlus {
+			for _, title := range billMeta.Titles {
+				fmt.Printf("[%d] Getting titles for %s.\n", billCounter, billMeta.BillCongressTypeNumber)
 				titleNoYear := bills.TitleNoYearRegexCompiled.ReplaceAllString(title, "")
 				if titleBills, loaded := bills.TitleNoYearSyncMap.LoadOrStore(titleNoYear, []string{billMeta.BillCongressTypeNumber}); loaded {
 					titleBills = bills.RemoveDuplicates(append(titleBills.([]string), billMeta.BillCongressTypeNumber))
@@ -122,6 +128,7 @@ func makeBillMeta(parentPath string) {
 	//  * If the related bill already exists, add the title to the titles array
 	//  * Update the "reason" to add "title match"
 
+	fmt.Println("***** Processing title matches ******")
 	//titles := getKeys(titleNoYearSyncMap)
 	bills.TitleNoYearSyncMap.Range(func(billTitle, titleBills interface{}) bool {
 		//fmt.Println(titleBills)
@@ -138,7 +145,7 @@ func makeBillMeta(parentPath string) {
 				// If it's not, add it with 'title match'
 				for _, titleBillRelated := range titleBills.([]string) {
 					if relatedBillItem, ok := relatedBills[titleBillRelated]; ok {
-						//fmt.Println("Bill with Related Title ", titleBillRelated)
+						fmt.Println("Bill with Related Title ", titleBillRelated)
 						relatedBillItem.Reason = strings.Join(bills.SortReasons(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), bills.TitleMatchReason))), ", ")
 						relatedBillItem.Titles = bills.RemoveDuplicates(append(relatedBillItem.Titles, titleBillRelated))
 						//fmt.Println("Related Titles: ", relatedBillItem.Titles)
@@ -160,6 +167,7 @@ func makeBillMeta(parentPath string) {
 		}
 		return true
 	})
+	fmt.Println("Creating string from  billMetaSyncMap")
 	jsonString, err := MarshalJSONBillMeta(bills.BillMetaSyncMap)
 	if err != nil {
 		fmt.Printf("Error making JSON data for billMetaMap: %s", err)
