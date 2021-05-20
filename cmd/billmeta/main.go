@@ -112,9 +112,14 @@ func makeBillMeta(parentPath string) {
 			*/
 
 			// Add 	billMeta.ShortTitle to billMeta.Titles
-			//titlesPlus := append(billMeta.Titles, billMeta.ShortTitle)
-			//for _, title := range titlesPlus {
-			for _, title := range billMeta.Titles {
+			shortTitle := billMeta.ShortTitle
+			titles := billMeta.Titles
+			if shortTitle != "" {
+				fmt.Println("%%%%%%%%%%%%%%%%%", shortTitle, "%%%%%%%%%%%%%%5")
+				titles = append(billMeta.Titles, billMeta.ShortTitle)
+			}
+			for _, title := range titles {
+				//for _, title := range billMeta.Titles {
 				fmt.Printf("[%d] Getting titles for %s.\n", billCounter, billMeta.BillCongressTypeNumber)
 				titleNoYear := bills.TitleNoYearRegexCompiled.ReplaceAllString(title, "")
 				if titleBills, loaded := bills.TitleNoYearSyncMap.LoadOrStore(titleNoYear, []string{billMeta.BillCongressTypeNumber}); loaded {
