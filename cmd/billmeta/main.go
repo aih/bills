@@ -59,17 +59,15 @@ func loadTitles(titleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 					if relatedBillItem, ok := relatedBills[titleBillRelated]; ok {
 						log.Debug().Msgf("Bill with Related Title: %s", titleBillRelated)
 						relatedBillItem.Reason = strings.Join(bills.SortReasons(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), bills.TitleMatchReason))), ", ")
-						// TODO deduplicate IdentifiedBy
-						relatedBillItem.IdentifiedBy = strings.Join(append(strings.Split(relatedBillItem.IdentifiedBy, ", "), "BillMap"), ", ")
+						relatedBillItem.IdentifiedBy = strings.Join(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.IdentifiedBy, ", "), bills.IdentifiedByBillMap)), ", ")
 						relatedBillItem.Titles = bills.RemoveDuplicates(append(relatedBillItem.Titles, titleBillRelated))
 						relatedBills[titleBillRelated] = relatedBillItem
 					} else {
 						newRelatedBillItem := new(bills.RelatedBillItem)
 						newRelatedBillItem.BillCongressTypeNumber = titleBillRelated
-						newRelatedBillItem.Titles = []string{billTitle.(string)}
+						newRelatedBillItem.Titles = []string{titleBillRelated}
 						newRelatedBillItem.Reason = bills.TitleMatchReason
-						// TODO deduplicate IdentifiedBy
-						relatedBillItem.IdentifiedBy = strings.Join(append(strings.Split(relatedBillItem.IdentifiedBy, ", "), "BillMap"), ", ")
+						relatedBillItem.IdentifiedBy = strings.Join(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.IdentifiedBy, ", "), bills.IdentifiedByBillMap)), ", ")
 						relatedBills[titleBillRelated] = *newRelatedBillItem
 					}
 				}

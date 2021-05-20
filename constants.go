@@ -32,8 +32,9 @@ var (
 	BillsPath             = path.Join(ParentPathDefault, BillsFile)
 	BillMetaSyncMap       = new(sync.Map)
 	// titleSyncMap                = new(sync.Map)
-	TitleNoYearSyncMap = new(sync.Map)
-	TitleMatchReason   = "bills-title_match"
+	TitleNoYearSyncMap  = new(sync.Map)
+	TitleMatchReason    = "bills-title_match"
+	IdentifiedByBillMap = "BillMap"
 )
 
 func LoadEnv() (err error) {
