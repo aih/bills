@@ -34,8 +34,6 @@ func main() {
 
 	debug := flag.Bool("debug", false, "sets log level to debug")
 
-	flag.Parse()
-
 	// Default level for this example is info, unless debug flag is present
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
