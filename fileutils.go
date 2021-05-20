@@ -84,10 +84,10 @@ func ListDataJsonFiles(pathToCongressDataDir string) (dataJsonFiles []string, er
 // Make local tmp directory if it doesn't exist
 func MakeTempDir() {
 	log.Info().Msg("Making tmp directory")
-	path := "./tmp"
+	tmpPath := "./tmp"
 	mode := os.ModePerm
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		os.Mkdir(path, mode)
+	if _, err := os.Stat(tmpPath); os.IsNotExist(err) {
+		os.Mkdir(tmpPath, mode)
 	}
 }
 

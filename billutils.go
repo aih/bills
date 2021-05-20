@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -64,14 +65,76 @@ func getBillTitles(dataJson DataJson) map[string][]string {
 
 }
 
+// Unmarshals from JSON to a syncMap
+// See https://stackoverflow.com/a/65442862/628748
+func UnmarshalJson(data []byte) (*sync.Map, error) {
+	var tmpMap map[interface{}]interface{}
+	m := &sync.Map{}
+
+	if err := json.Unmarshal(data, &tmpMap); err != nil {
+		return m, err
+	}
+
+	for key, value := range tmpMap {
+		m.Store(key, value)
+	}
+	return m, nil
+}
+
+func UnmarshalJsonFile(jpath string) (*sync.Map, error) {
+	jsonFile, err := os.Open("users.json")
+	if err != nil {
+		log.Error().Err(err)
+	}
+
+	defer jsonFile.Close()
+
+	jsonByte, _ := ioutil.ReadAll(jsonFile)
+	return UnmarshalJson(jsonByte)
+}
+
+// Marshals a sync.Map object of the type map[string]BillMeta
+// see https://stackoverflow.com/a/46390611/628748
+// and https://stackoverflow.com/a/65442862/628748
+func MarshalJSONBillMeta(m *sync.Map) ([]byte, error) {
+	tmpMap := make(map[string]BillMeta)
+	m.Range(func(k interface{}, v interface{}) bool {
+		tmpMap[k.(string)] = v.(BillMeta)
+		return true
+	})
+	return json.Marshal(tmpMap)
+}
+
+func MarshalJSONBillSimilarity(m *sync.Map) ([]byte, error) {
+
+	tmpMap := make(map[string][]RelatedBillItem)
+	m.Range(func(k interface{}, v interface{}) bool {
+		tmpMap[k.(string)] = v.(BillMeta).RelatedBills
+		return true
+	})
+	return json.Marshal(tmpMap)
+}
+
+// Marshals a sync.Map object of the type map[string]string
+// see https://stackoverflow.com/a/46390611/628748
+// and https://stackoverflow.com/a/65442862/628748
+func MarshalJSONStringArray(m *sync.Map) ([]byte, error) {
+	tmpMap := make(map[string][]string)
+	m.Range(func(k interface{}, v interface{}) bool {
+		tmpMap[k.(string)] = v.([]string)
+		return true
+	})
+	return json.Marshal(tmpMap)
+}
+
 // Extracts bill metadata from a path to a data.json file; sends it to the billMetaStorageChannel
 // as part of a WaitGroup passed as wg
-func ExtractBillMeta(path string, billMetaStorageChannel chan BillMeta, sem chan bool, wg *sync.WaitGroup) error {
+func ExtractBillMeta(billPath string, billMetaStorageChannel chan BillMeta, sem chan bool, wg *sync.WaitGroup) error {
 	defer wg.Done()
 
-	billCongressTypeNumber := BillNumberFromPath(path)
+	billCongressTypeNumber := BillNumberFromPath(billPath)
 	log.Info().Msgf("Processing: %s\n", billCongressTypeNumber)
-	file, err := os.ReadFile(path)
+	file, err := os.ReadFile(billPath)
 	defer func() {
 		log.Info().Msgf("Finished processing: %s\n", billCongressTypeNumber)
 		<-sem
