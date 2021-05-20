@@ -216,18 +216,12 @@ func makeBillMeta(parentPath string) {
 func main() {
 	debug := flag.Bool("debug", false, "sets log level to debug")
 
-	flag.Parse()
-
 	// Default level for this example is info, unless debug flag is present
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	if *debug {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	}
 
 	// UNIX Time is faster and smaller than most timestamps
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	log.Debug().Msg("Log level set to Debug")
 
 	flagUsage := "Absolute path to the parent directory for 'congress' and json metadata files"
 	flagValue := string(bills.ParentPathDefault)
@@ -235,5 +229,10 @@ func main() {
 	flag.StringVar(&parentPath, "parentPath", flagValue, flagUsage)
 	flag.StringVar(&parentPath, "p", flagValue, flagUsage+" (shorthand)")
 	flag.Parse()
+
+	if *debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+	log.Debug().Msg("Log level set to Debug")
 	makeBillMeta(parentPath)
 }

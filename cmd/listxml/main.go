@@ -12,18 +12,12 @@ import (
 func main() {
 	debug := flag.Bool("debug", false, "sets log level to debug")
 
-	flag.Parse()
-
 	// Default level for this example is info, unless debug flag is present
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	if *debug {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	}
 
 	// UNIX Time is faster and smaller than most timestamps
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	log.Debug().Msg("Log level set to Debug")
 
 	flagUsage := "Absolute path to the 'congress' directory, where govinfo data is downloaded"
 	flagValue := string(bills.PathToCongressDataDir)
@@ -31,5 +25,10 @@ func main() {
 	flag.StringVar(&pathToCongressDataDir, "congressPath", flagValue, flagUsage)
 	flag.StringVar(&pathToCongressDataDir, "c", string(bills.PathToCongressDataDir), flagUsage+" (shorthand)")
 	flag.Parse()
+
+	if *debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+	log.Debug().Msg("Log level set to Debug")
 	bills.ListDocumentXMLFiles(pathToCongressDataDir)
 }

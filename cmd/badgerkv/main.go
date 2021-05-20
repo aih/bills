@@ -3,10 +3,13 @@ package main
 import (
 	//"context"
 
+	"flag"
 	"fmt"
-	"log"
+	"os"
 	"time"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	bh "github.com/timshannon/badgerhold"
 )
 
@@ -18,6 +21,20 @@ type Item struct {
 }
 
 func main() {
+	debug := flag.Bool("debug", false, "sets log level to debug")
+
+	// Default level for this example is info, unless debug flag is present
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if *debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+
+	// UNIX Time is faster and smaller than most timestamps
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	log.Debug().Msg("Log level set to Debug")
+	flag.Parse()
+
 	options := bh.DefaultOptions
 	options.Dir = "data"
 	options.ValueDir = "data"
@@ -25,7 +42,7 @@ func main() {
 	store, err := bh.Open(options)
 	if err != nil {
 		// handle error
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 	defer store.Close()
 
@@ -36,7 +53,7 @@ func main() {
 
 	if err != nil {
 		// handle error
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
 	var result []Item
@@ -46,7 +63,7 @@ func main() {
 
 	if err != nil {
 		// handle error
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
 	fmt.Println(result)
