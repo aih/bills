@@ -84,7 +84,7 @@ func RemoveDuplicates(elements []string) []string { // change string to int here
 
 	for v := range elements {
 		currentElement := strings.TrimSpace(elements[v])
-		if encountered[currentElement] {
+		if currentElement == "" || encountered[currentElement] {
 			// Do not add duplicate.
 		} else {
 			// Record this element as an encountered element.
