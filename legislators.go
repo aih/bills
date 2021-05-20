@@ -1,7 +1,6 @@
 package bills
 
 import (
-	"fmt"
 	"io/ioutil"
 
 	"gopkg.in/yaml.v2"
@@ -70,7 +69,7 @@ func DownloadLegislatorsYaml() (downloadpath string, err error) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Downloaded: " + legislatorYamlUrl)
+	log.Info().Msgf("Downloaded: %s", legislatorYamlUrl)
 	if err != nil {
 		panic(err)
 	}

@@ -1,7 +1,6 @@
 package bills
 
 import (
-	"fmt"
 	"io/ioutil"
 
 	"gopkg.in/yaml.v2"
@@ -50,7 +49,7 @@ func DownloadCommitteesYaml() (downloadpath string, err error) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Prepended 'committees:' to file")
+	log.Info().Msg("Prepended 'committees:' to file")
 	return
 }
 

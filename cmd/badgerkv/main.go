@@ -66,6 +66,6 @@ func main() {
 		log.Fatal().Err(err)
 	}
 
-	fmt.Println(result)
+	log.Info().Msg(fmt.Sprint(result))
 
 }

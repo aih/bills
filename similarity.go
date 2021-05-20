@@ -178,7 +178,7 @@ func CompareSamples() {
 
 	nGramMaps, _ := makeBillNgrams(dOC_PATHS)
 	compareMatrix, _ := compareFiles(nGramMaps, dOC_PATHS)
-	fmt.Print(compareMatrix)
+	log.Info().Msg(fmt.Sprint(compareMatrix))
 	ticker.Stop()
 	done <- true
 	log.Info().Msg("Ticker stopped")

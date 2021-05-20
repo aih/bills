@@ -35,7 +35,7 @@ func BillNumberFromPath(billPath string) string {
 //  E.g. billnumber of the form 116hr1500rh returns [path]/data/116/bills/hr/hr1/text-versions/rh
 func PathFromBillNumber(billNumber string) (string, error) {
 	var matchMap = FindNamedMatches(BillnumberRegexCompiled, billNumber)
-	fmt.Println(matchMap)
+	log.Debug().Msg(fmt.Sprint(matchMap))
 	doctypes := "bills"
 	stage, ok := matchMap["stage"]
 	if ok && stage[1:] == "amdt" {

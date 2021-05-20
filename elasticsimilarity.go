@@ -59,7 +59,7 @@ func getAllDocs() {
 			item := make(map[string]interface{})
 			err := json.Unmarshal(*hit.Source, &item)
 			if err != nil {
-				fmt.Println(err)
+				log.Err().Err(err)
 			}
 			docs++
 		}

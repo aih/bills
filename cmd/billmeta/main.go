@@ -26,7 +26,15 @@ func getSyncMapKeys(m *sync.Map) (s string) {
 	return
 }
 
-func writeBillMetaFiles() {}
+func writeBillMetaFiles(billMetaSyncMap *sync.Map) {
+	billMetaSyncMap.Range(func(billCongressTypeNumber, billMeta interface{}) bool {
+		saveErr := bills.SaveBillJson(billCongressTypeNumber.(string), billMeta.(bills.BillMeta))
+		if saveErr != nil {
+			log.Print(saveErr)
+		}
+		return true
+	})
+}
 
 func loadTitles(titleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 	log.Info().Msg("***** Processing title matches ******")
@@ -36,31 +44,40 @@ func loadTitles(titleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 		for _, titleBill := range titleBills.([]string) {
 			//log.Info().Msg("titleBill ", titleBill)
 			if billItem, ok := billMetaSyncMap.Load(titleBill); ok {
-				relatedBills := billItem.(bills.BillMeta).RelatedBillsByBillnumber
-				if relatedBills != nil && len(relatedBills) > 0 {
-					relatedBills = bills.RelatedBillMap{}
-				}
+				billItemStruct := billItem.(bills.BillMeta)
+				relatedBills := billItemStruct.RelatedBillsByBillnumber
+				/*
+					if relatedBills != nil && len(relatedBills) > 0 {
+						relatedBills = bills.RelatedBillMap{}
+					}
+				*/
 				// TODO check that each of titleBills is in relatedBills
 				// If it is, make sure 'title match' is one of the reasons
 				// Add the billTitle to Titles, if it is not already there
 				// If it's not, add it with 'title match'
 				for _, titleBillRelated := range titleBills.([]string) {
 					if relatedBillItem, ok := relatedBills[titleBillRelated]; ok {
-						log.Info().Msgf("Bill with Related Title: %s", titleBillRelated)
+						log.Debug().Msgf("Bill with Related Title: %s", titleBillRelated)
 						relatedBillItem.Reason = strings.Join(bills.SortReasons(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), bills.TitleMatchReason))), ", ")
+						// TODO deduplicate IdentifiedBy
+						relatedBillItem.IdentifiedBy = strings.Join(append(strings.Split(relatedBillItem.IdentifiedBy, ", "), "BillMap"), ", ")
 						relatedBillItem.Titles = bills.RemoveDuplicates(append(relatedBillItem.Titles, titleBillRelated))
+						relatedBills[titleBillRelated] = relatedBillItem
 					} else {
 						newRelatedBillItem := new(bills.RelatedBillItem)
 						newRelatedBillItem.BillCongressTypeNumber = titleBillRelated
 						newRelatedBillItem.Titles = []string{billTitle.(string)}
 						newRelatedBillItem.Reason = bills.TitleMatchReason
+						// TODO deduplicate IdentifiedBy
+						relatedBillItem.IdentifiedBy = strings.Join(append(strings.Split(relatedBillItem.IdentifiedBy, ", "), "BillMap"), ", ")
 						relatedBills[titleBillRelated] = *newRelatedBillItem
-						// TODO add sponsor and cosponsor information to newRelatedBillItem
 					}
 				}
-				// TODO Store new relatedbills
+				// Store new relatedbills
+				billItemStruct.RelatedBillsByBillnumber = relatedBills
+				billMetaSyncMap.Store(titleBill, billItemStruct)
 			} else {
-				log.Info().Msgf("No metadata in BillMetaSyncMap for bill: %s", titleBill)
+				log.Error().Msgf("No metadata in BillMetaSyncMap for bill: %s", titleBill)
 			}
 
 		}
@@ -207,6 +224,7 @@ func main() {
 	log.Debug().Msg("Log level set to Debug")
 	makeBillMeta(parentPath)
 	loadTitles(bills.TitleNoYearSyncMap, bills.BillMetaSyncMap)
+	writeBillMetaFiles(bills.BillMetaSyncMap)
 	pathToBillMeta := bills.BillMetaPath
 	if parentPath != "" {
 		pathToBillMeta = path.Join(parentPath, bills.BillMetaFile)
