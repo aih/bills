@@ -3,9 +3,10 @@ package bills
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 
 	"gopkg.in/yaml.v2"
+
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -44,7 +45,7 @@ func DownloadCommitteesYaml() (downloadpath string, err error) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Downloaded: " + committeesYamlUrl)
+	log.Info().Msg("Downloaded: " + committeesYamlUrl)
 	Prepend(downloadpath, "committees:")
 	if err != nil {
 		panic(err)
@@ -65,13 +66,13 @@ func ReadCommitteesYaml() {
 	pathToYaml := "tmp/committees.yaml"
 	yamlFile, err := ioutil.ReadFile(pathToYaml)
 	if err != nil {
-		log.Printf("Error reading %s   #%v ", pathToYaml, err)
+		log.Error().Msgf("Error reading %s   #%v ", pathToYaml, err)
 	}
 	var committees Committees
 	if err := committees.ParseCommitteeYaml(yamlFile); err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
-	//fmt.Printf("%+v\n", committees)
+	log.Debug().Msgf("%+v\n", committees)
 
 }

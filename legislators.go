@@ -3,9 +3,10 @@ package bills
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 
 	"gopkg.in/yaml.v2"
+
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -36,7 +37,7 @@ type Legislator struct {
 	Icpsr          string   `yaml:"icpsr,omitempty,flow"`
 	Wikidata       string   `yaml:"wikidata,omitempty,flow"`
 	GoogleEntityId string   `yaml:"google_entity_id,omitempty,flow"`
-	name           struct {
+	Name           struct {
 		First        string `yaml:"first,omitempty,flow"`
 		Last         string `yaml:"last,omitempty,flow"`
 		OfficialFull string `yaml:"official_full,omitempty,flow"`
@@ -89,11 +90,11 @@ func ReadLegislatorsYaml() {
 	pathToYaml := "tmp/legislators.yaml"
 	yamlFile, err := ioutil.ReadFile(pathToYaml)
 	if err != nil {
-		log.Printf("Error reading %s   #%v ", pathToYaml, err)
+		log.Error().Msgf("Error reading %s   #%v ", pathToYaml, err)
 	}
 	var legislators Legislators
 	if err := legislators.ParseLegislatorsYaml(yamlFile); err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
 	//fmt.Printf("%+v\n", legislators)

@@ -3,11 +3,12 @@ package bills
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"path"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -51,11 +52,11 @@ func getExplanation(scorei, scorej float64, iTotal, jTotal int) string {
 	if scorei == 1 && scorej == 1 {
 		return "bills-identical"
 	}
-	//fmt.Println(iTotal)
-	//fmt.Println(jTotal)
-	//fmt.Println(scorei)
-	//fmt.Println(scorej)
-	//fmt.Println("----")
+	//log.Info().Msg(iTotal)
+	//log.Info().Msg(jTotal)
+	//log.Info().Msg(scorei)
+	//log.Info().Msg(scorej)
+	//log.Info().Msg("----")
 
 	// minimumTotal avoids small bills being counted as nearly identical
 	if ((iTotal > minimumTotal && jTotal > minimumTotal) || ((1 - scorei/scorej) < similarScoreThreshold)) && scorei > nearlyIdenticalThreshold && scorej > nearlyIdenticalThreshold {
@@ -79,10 +80,10 @@ func getExplanation(scorei, scorej float64, iTotal, jTotal int) string {
 func makeBillNgrams(docPaths []string) (nGramMaps docMaps, err error) {
 	nGramMaps = make(docMaps)
 	for i, docpath := range docPaths {
-		fmt.Printf("Getting Ngrams for file: %d\n", i)
+		log.Info().Msgf("Getting Ngrams for file: %d\n", i)
 		file, err := os.ReadFile(docpath)
 		if err != nil {
-			log.Printf("Error reading document: %s\n", err)
+			log.Error().Msgf("Error reading document: %s\n", err)
 			var docMapItem *docMap = new(docMap)
 			docMapItem.nGramMap = MakeNgramMap("error error error error error error error error", 4)
 			docMapItem.keys = MapNgramKeys(docMapItem.nGramMap)
@@ -102,10 +103,10 @@ func makeBillNgrams(docPaths []string) (nGramMaps docMaps, err error) {
 
 // Compares all of the documents in a docMaps object, returns a matrix of the comparison values
 func compareFiles(nGramMaps docMaps, docPaths []string) (compareMatrix [][]CompareItem, err error) {
-	fmt.Println("Comparing files")
+	log.Info().Msg("Comparing files")
 	compareMatrix = make([][]CompareItem, len(docPaths))
 	for i, docpath1 := range docPaths {
-		fmt.Printf("Comparison for file: %d\n", i)
+		log.Info().Msgf("Comparison for file: %d\n", i)
 		compareMatrix[i] = make([]CompareItem, len(docPaths))
 		for j := 0; j < (i + 1); j++ {
 			docpath2 := docPaths[j]
@@ -114,42 +115,42 @@ func compareFiles(nGramMaps docMaps, docPaths []string) (compareMatrix [][]Compa
 			jTotal := 0
 
 			iKeys := nGramMaps[docpath1].keys
-			//fmt.Println(docpath1)
-			//fmt.Println(iKeys)
+			//log.Info().Msg(docpath1)
+			//log.Info().Msg(iKeys)
 			jKeys := nGramMaps[docpath2].keys
 			iScore := 0
 			for _, key := range jKeys {
 				iValue := nGramMaps[docpath1].nGramMap[key]
-				//fmt.Println(iValue)
+				//log.Info().Msg(iValue)
 				//jValuea := nGramMaps[docpath2].nGramMap[key]
-				//fmt.Println(jValuea)
+				//log.Info().Msg(jValuea)
 				iScore += iValue
 				jTotal += nGramMaps[docpath2].nGramMap[key]
 			}
 			jScore := 0
 			for _, key := range iKeys {
 				jValue := nGramMaps[docpath2].nGramMap[key]
-				//fmt.Println(iValue)
+				//log.Info().Msg(iValue)
 				//jValuea := nGramMaps[docpath2].nGramMap[key]
-				//fmt.Println(jValuea)
+				//log.Info().Msg(jValuea)
 				jScore += jValue
 				iTotal += nGramMaps[docpath1].nGramMap[key]
 			}
 
 			//if docpath1 != docpath2 {
-			// fmt.Printf("Keys:\n%v", nGramMaps[docpath1].keys)
-			// fmt.Printf("Keys 2:\n%v", nGramMaps[docpath2].keys)
-			// fmt.Printf("scoreTotal: %d\n", scoreTotal)
-			// fmt.Printf("scoreTotal: %d\n", scoreTotal)
-			// fmt.Printf("iTotal: %d\n", iTotal)
-			// fmt.Printf("jTotal: %d\n", jTotal)
+			// log.Info().Msgf("Keys:\n%v", nGramMaps[docpath1].keys)
+			// log.Info().Msgf("Keys 2:\n%v", nGramMaps[docpath2].keys)
+			// log.Info().Msgf("scoreTotal: %d\n", scoreTotal)
+			// log.Info().Msgf("scoreTotal: %d\n", scoreTotal)
+			// log.Info().Msgf("iTotal: %d\n", iTotal)
+			// log.Info().Msgf("jTotal: %d\n", jTotal)
 			//}
 			scorei := math.Round(100*float64(iScore)/float64(jTotal)) / 100
 			scorej := math.Round(100*float64(jScore)/float64(iTotal)) / 100
 			exi := getExplanation(scorei, scorej, iTotal, jTotal)
 			exj := getExplanation(scorej, scorei, iTotal, jTotal)
 			//if exi == "incorporated by" || exj == "incorporated by" {
-			//	fmt.Printf("i,j docpath1/docpath2 scorei scorej: %d,%d %d/%d %f %f\n", i, j, iTotal, jTotal, scorei, scorej)
+			//	log.Info().Msgf("i,j docpath1/docpath2 scorei scorej: %d,%d %d/%d %f %f\n", i, j, iTotal, jTotal, scorei, scorej)
 			//}
 
 			compareMatrix[i][j] = CompareItem{scorei, exi, BillNumberFromPath(docpath1) + "-" + BillNumberFromPath(docpath2)}
@@ -170,17 +171,17 @@ func CompareSamples() {
 			case <-done:
 				return
 			case t := <-ticker.C:
-				fmt.Println("Ticker: ", t)
+				log.Info().Msgf("Ticker: %s", t)
 			}
 		}
 	}()
 
 	nGramMaps, _ := makeBillNgrams(dOC_PATHS)
 	compareMatrix, _ := compareFiles(nGramMaps, dOC_PATHS)
-	fmt.Println(compareMatrix)
+	fmt.Print(compareMatrix)
 	ticker.Stop()
 	done <- true
-	fmt.Println("Ticker stopped")
+	log.Info().Msg("Ticker stopped")
 	// NOTE if [i][j] > [j][i] then i is incorporated in j and j incorporates i
 	// Returns:
 	//[
@@ -207,17 +208,16 @@ func CompareBills(parentPath string, billList []string) [][]CompareItem {
 	for _, billNumber := range billList {
 		billPath, err := PathFromBillNumber(billNumber)
 		if err != nil {
-			fmt.Println("Could not get path for " + billNumber)
+			log.Info().Msg("Could not get path for " + billNumber)
 		} else {
-			// fmt.Println(path.Join(parentPath, billPath))
+			// log.Info().Msg(path.Join(parentPath, billPath))
 			docPathsToCompare = append(docPathsToCompare, path.Join(parentPath, billPath, "document.xml"))
 		}
 	}
-	// fmt.Println(docPathsToCompare)
+	// log.Info().Msg(docPathsToCompare)
 	nGramMaps, _ := makeBillNgrams(docPathsToCompare)
 	compareMatrix, _ := compareFiles(nGramMaps, docPathsToCompare)
 	compareMatrixJson, _ := json.Marshal(compareMatrix)
 	fmt.Print(":compareMatrix:", string(compareMatrixJson), ":compareMatrix:")
-	//fmt.Print("compareMatrix:", compareMatrix, ":compareMatrix")
 	return compareMatrix
 }

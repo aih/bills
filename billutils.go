@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"strings"
 	"sync"
+
+	"github.com/rs/zerolog/log"
 )
 
 // Converts a bill_id of the form `hr299-116` into `116hr299`
@@ -69,14 +70,14 @@ func ExtractBillMeta(path string, billMetaStorageChannel chan BillMeta, sem chan
 	defer wg.Done()
 
 	billCongressTypeNumber := BillNumberFromPath(path)
-	fmt.Printf("Processing: %s\n", billCongressTypeNumber)
+	log.Info().Msgf("Processing: %s\n", billCongressTypeNumber)
 	file, err := os.ReadFile(path)
 	defer func() {
-		fmt.Printf("Finished processing: %s\n", billCongressTypeNumber)
+		log.Info().Msgf("Finished processing: %s\n", billCongressTypeNumber)
 		<-sem
 	}()
 	if err != nil {
-		log.Printf("Error reading data.json: %s", err)
+		log.Error().Msgf("Error reading data.json: %s", err)
 		return err
 	}
 
@@ -100,14 +101,14 @@ func ExtractBillMeta(path string, billMetaStorageChannel chan BillMeta, sem chan
 	billMeta.RelatedBillsByBillnumber = make(map[string]RelatedBillItem)
 	for i, billItem := range billMeta.RelatedBills {
 		if len(billItem.BillId) > 0 {
-			// fmt.Printf("BCTN: %s\n", BillIdToBillNumber(billItem.BillId))
+			log.Debug().Msgf("BCTN: %s\n", BillIdToBillNumber(billItem.BillId))
 			billMeta.RelatedBills[i].BillCongressTypeNumber = BillIdToBillNumber(billItem.BillId)
 			billMeta.RelatedBillsByBillnumber[billMeta.RelatedBills[i].BillCongressTypeNumber] = billItem
 		} else {
 			billMeta.RelatedBills[i].BillCongressTypeNumber = ""
 		}
 	}
-	//fmt.Printf("billMeta: %v\n", billMeta)
+	log.Debug().Msgf("billMeta: %v\n", billMeta)
 	billMetaStorageChannel <- billMeta
 	return nil
 }

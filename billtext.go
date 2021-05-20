@@ -2,14 +2,15 @@ package bills
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"math"
 	"math/rand"
 	"os"
 	"path"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -25,12 +26,12 @@ func CollectWordSample(fpath string, wordSampleStorageChannel chan WordSample, w
 	defer wg.Done()
 	var wordSampleItem WordSample
 	billCongressTypeNumber := BillNumberFromPath(fpath)
-	fmt.Printf("Getting a sample of words for: %s\n", billCongressTypeNumber)
+	log.Info().Msgf("Getting a sample of words for: %s\n", billCongressTypeNumber)
 	wordSampleItem.BillCongressTypeNumber = billCongressTypeNumber
 	// Add an item of the form {billCongressTypeNumber: [list of sampled words]} to the channel
 	file, err := os.ReadFile(fpath)
 	if err != nil {
-		log.Printf("Error reading document: %s", err)
+		log.Error().Msgf("Error reading document: %s", err)
 		return err
 	} else {
 		fileText := removeXMLRegexCompiled.ReplaceAllString(string(file), " ")
@@ -40,8 +41,8 @@ func CollectWordSample(fpath string, wordSampleStorageChannel chan WordSample, w
 		rand.Shuffle(wordListLen, func(i, j int) { wordList[i], wordList[j] = wordList[j], wordList[i] })
 		sliceNum := int(math.Round(sampleFraction * float64(wordListLen)))
 		wordSampleItem.WordList = wordList[:sliceNum]
-		fmt.Printf("Got a sample of %d words for: %s\n", sliceNum, billCongressTypeNumber)
-		fmt.Println("Sample words: \n", wordList[:3])
+		log.Info().Msgf("Got a sample of %d words for: %s\n", sliceNum, billCongressTypeNumber)
+		log.Info().Msgf("Sample words: \n %s", strings.Join(wordList[:3], " "))
 		wordSampleStorageChannel <- wordSampleItem
 	}
 	return nil
@@ -54,8 +55,8 @@ func CollectWordSamplesFromBills(pathToCongressDataDir string) {
 	if pathToCongressDataDir == "" {
 		pathToCongressDataDir = PathToCongressDataDir
 	}
-	defer fmt.Println("Done collecting word samples")
-	fmt.Printf("Getting all files in %s.  This may take a while.\n", pathToCongressDataDir)
+	defer log.Info().Msg("Done collecting word samples")
+	log.Info().Msgf("Getting all files in %s.  This may take a while.\n", pathToCongressDataDir)
 	documentXMLFiles, _ := ListDocumentXMLFiles(pathToCongressDataDir)
 	wordSampleStorageChannel := make(chan WordSample)
 	wgWordSample := &sync.WaitGroup{}
@@ -74,13 +75,13 @@ func CollectWordSamplesFromBills(pathToCongressDataDir string) {
 	for wordSampleItem := range wordSampleStorageChannel {
 		billCounter++
 		// Subsample and save to total list
-		fmt.Printf("Sampling and storing word sample for %s.\n", wordSampleItem.BillCongressTypeNumber)
+		log.Info().Msgf("Sampling and storing word sample for %s.\n", wordSampleItem.BillCongressTypeNumber)
 		allWords = append(allWords, wordSampleItem.WordList...)
 	}
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(allWords), func(i, j int) { allWords[i], allWords[j] = allWords[j], allWords[i] })
-	fmt.Println("Writing word list to file")
-	fmt.Println("First 100 words: \n", allWords[:100])
+	log.Info().Msg("Writing word list to file")
+	log.Info().Msgf("First 100 words: \n %s", strings.Join(allWords[:100], " "))
 	wordSampleList := make([]string, 0)
 	if len(allWords) > wordSampleListLen {
 		wordSampleList = allWords[:wordSampleListLen]
@@ -89,7 +90,7 @@ func CollectWordSamplesFromBills(pathToCongressDataDir string) {
 	}
 	wordSampleJson, err := json.Marshal(wordSampleList)
 	if err != nil {
-		log.Printf("Error converting list to JSON: %s", err)
+		log.Error().Msgf("Error converting list to JSON: %s", err)
 	} else {
 		os.WriteFile(wordSamplePath, wordSampleJson, 0666)
 	}

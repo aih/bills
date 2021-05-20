@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"os"
 	"path"
 	"strings"
 	"sync"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	"github.com/aih/bills"
 )
@@ -77,13 +79,13 @@ func makeBillMeta(parentPath string) {
 		pathToBillMeta = path.Join(parentPath, bills.BillMetaFile)
 		pathToCongressDir = path.Join(parentPath, bills.CongressDir)
 	}
-	defer fmt.Println("Done")
+	defer log.Info().Msg("Done")
 	// Limiting openfiles prevents memory issues
 	// See http://jmoiron.net/blog/limiting-concurrency-in-go/
 	maxopenfiles := 100
 	sem := make(chan bool, maxopenfiles)
 	billMetaStorageChannel := make(chan bills.BillMeta)
-	fmt.Printf("Getting all files in %s.  This may take a while.\n", pathToCongressDir)
+	log.Info().Msgf("Getting all files in %s.  This may take a while.", pathToCongressDir)
 	dataJsonFiles, _ := bills.ListDataJsonFiles(pathToCongressDir)
 	reverse(dataJsonFiles)
 	wg := &sync.WaitGroup{}
@@ -97,17 +99,17 @@ func makeBillMeta(parentPath string) {
 		for range dataJsonFiles {
 			billMeta := <-billMetaStorageChannel
 			billCounter++
-			fmt.Printf("[%d] Storing metadata for %s.\n", billCounter, billMeta.BillCongressTypeNumber)
+			log.Info().Msgf("[%d] Storing metadata for %s.", billCounter, billMeta.BillCongressTypeNumber)
 			// Get related bill data
 			bills.BillMetaSyncMap.Store(billMeta.BillCongressTypeNumber, billMeta)
 			saveErr := bills.SaveBillJson(billMeta.BillCongressTypeNumber, billMeta)
 			if saveErr != nil {
-				fmt.Println(saveErr)
+				log.Print(saveErr)
 			}
 			/* Saves each bill JSON to an item in db
 			saveDbErr := bills.SaveBillJsonToDB(billMeta.BillCongressTypeNumber, billMeta)
 			if saveDbErr != nil {
-				fmt.Println(saveDbErr)
+				log.Info().Msg(saveDbErr)
 			}
 			*/
 
@@ -115,12 +117,11 @@ func makeBillMeta(parentPath string) {
 			shortTitle := billMeta.ShortTitle
 			titles := billMeta.Titles
 			if shortTitle != "" {
-				fmt.Println("%%%%%%%%%%%%%%%%%", shortTitle, "%%%%%%%%%%%%%%5")
 				titles = append(billMeta.Titles, billMeta.ShortTitle)
 			}
 			for _, title := range titles {
 				//for _, title := range billMeta.Titles {
-				fmt.Printf("[%d] Getting titles for %s.\n", billCounter, billMeta.BillCongressTypeNumber)
+				log.Info().Msgf("[%d] Getting titles for %s.", billCounter, billMeta.BillCongressTypeNumber)
 				titleNoYear := bills.TitleNoYearRegexCompiled.ReplaceAllString(title, "")
 				if titleBills, loaded := bills.TitleNoYearSyncMap.LoadOrStore(titleNoYear, []string{billMeta.BillCongressTypeNumber}); loaded {
 					titleBills = bills.RemoveDuplicates(append(titleBills.([]string), billMeta.BillCongressTypeNumber))
@@ -139,9 +140,9 @@ func makeBillMeta(parentPath string) {
 	billslist := getSyncMapKeys(bills.BillMetaSyncMap)
 	billsString, err := json.Marshal(billslist)
 	if err != nil {
-		fmt.Printf("Error making JSON data for bills: %s", err)
+		log.Error().Msgf("Error making JSON data for bills: %s", err)
 	}
-	fmt.Println("Writing bills JSON data to file")
+	log.Info().Msg("Writing bills JSON data to file")
 	os.WriteFile(bills.BillsPath, []byte(billsString), 0666)
 
 	// Loop through titles and for each bill update relatedbills:
@@ -149,12 +150,12 @@ func makeBillMeta(parentPath string) {
 	//  * If the related bill already exists, add the title to the titles array
 	//  * Update the "reason" to add "title match"
 
-	fmt.Println("***** Processing title matches ******")
+	log.Info().Msg("***** Processing title matches ******")
 	//titles := getKeys(titleNoYearSyncMap)
 	bills.TitleNoYearSyncMap.Range(func(billTitle, titleBills interface{}) bool {
-		//fmt.Println(titleBills)
+		//log.Info().Msg(titleBills)
 		for _, titleBill := range titleBills.([]string) {
-			//fmt.Println("titleBill ", titleBill)
+			//log.Info().Msg("titleBill ", titleBill)
 			if billItem, ok := bills.BillMetaSyncMap.Load(titleBill); ok {
 				relatedBills := billItem.(bills.BillMeta).RelatedBillsByBillnumber
 				if relatedBills != nil && len(relatedBills) > 0 {
@@ -165,13 +166,10 @@ func makeBillMeta(parentPath string) {
 				// Add the billTitle to Titles, if it is not already there
 				// If it's not, add it with 'title match'
 				for _, titleBillRelated := range titleBills.([]string) {
-					//fmt.Println("titleBillRelated: ", titleBillRelated)
-					//fmt.Println("relatedBills: ", relatedBills)
 					if relatedBillItem, ok := relatedBills[titleBillRelated]; ok {
-						fmt.Println("Bill with Related Title ", titleBillRelated)
+						log.Print("Bill with Related Title ", titleBillRelated)
 						relatedBillItem.Reason = strings.Join(bills.SortReasons(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), bills.TitleMatchReason))), ", ")
 						relatedBillItem.Titles = bills.RemoveDuplicates(append(relatedBillItem.Titles, titleBillRelated))
-						//fmt.Println("Related Titles: ", relatedBillItem.Titles)
 					} else {
 						newRelatedBillItem := new(bills.RelatedBillItem)
 						newRelatedBillItem.BillCongressTypeNumber = titleBillRelated
@@ -181,35 +179,34 @@ func makeBillMeta(parentPath string) {
 						// TODO add sponsor and cosponsor information to newRelatedBillItem
 					}
 				}
-				//fmt.Println("RelatedBills: ", relatedBills)
 				// TODO Store new relatedbills
 			} else {
-				fmt.Printf("No metadata in BillMetaSyncMap for bill: %s", titleBill)
+				log.Info().Msgf("No metadata in BillMetaSyncMap for bill: %s", titleBill)
 			}
 
 		}
 		return true
 	})
-	fmt.Println("Creating string from  billMetaSyncMap")
+	log.Info().Msg("Creating string from  billMetaSyncMap")
 	jsonString, err := MarshalJSONBillMeta(bills.BillMetaSyncMap)
 	if err != nil {
-		fmt.Printf("Error making JSON data for billMetaMap: %s", err)
+		log.Error().Msgf("Error making JSON data for billMetaMap: %s", err)
 	}
-	fmt.Println("Writing billMeta JSON data to file")
+	log.Info().Msg("Writing billMeta JSON data to file")
 	os.WriteFile(pathToBillMeta, []byte(jsonString), 0666)
 
 	jsonSimString, err := MarshalJSONBillSimilarity(bills.BillMetaSyncMap)
 	if err != nil {
-		fmt.Printf("Error making JSON data for billSimilarity file: %s", err)
+		log.Error().Msgf("Error making JSON data for billSimilarity file: %s", err)
 	}
-	fmt.Println("Writing billSimilarity JSON data to file")
+	log.Info().Msg("Writing billSimilarity JSON data to file")
 	os.WriteFile(bills.BillSimilarityPath, []byte(jsonSimString), 0666)
 
 	jsonTitleNoYearString, err := MarshalJSONStringArray(bills.TitleNoYearSyncMap)
 	if err != nil {
-		fmt.Printf("Error making JSON data for billMetaMap: %s", err)
+		log.Error().Msgf("Error making JSON data for billMetaMap: %s", err)
 	}
-	fmt.Println("Writing titleNoYearIndex JSON data to file")
+	log.Info().Msg("Writing titleNoYearIndex JSON data to file")
 	os.WriteFile(bills.TitleNoYearIndexPath, []byte(jsonTitleNoYearString), 0666)
 	for i := 0; i < cap(sem); i++ {
 		sem <- true
@@ -217,6 +214,21 @@ func makeBillMeta(parentPath string) {
 }
 
 func main() {
+	debug := flag.Bool("debug", false, "sets log level to debug")
+
+	flag.Parse()
+
+	// Default level for this example is info, unless debug flag is present
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if *debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+
+	// UNIX Time is faster and smaller than most timestamps
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	log.Debug().Msg("Log level set to Debug")
+
 	flagUsage := "Absolute path to the parent directory for 'congress' and json metadata files"
 	flagValue := string(bills.ParentPathDefault)
 	var parentPath string
