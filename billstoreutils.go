@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	bh "github.com/timshannon/badgerhold"
 )
 
@@ -20,9 +20,9 @@ func SaveBillJson(billCongressTypeNumber string, billMetaItem BillMeta) error {
 	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
 		return fmt.Errorf("error getting path for: %s\nErr: %s", billCongressTypeNumber, err)
 	}
-	fmt.Printf("Saving metadata to file for: %s; %s\n", billCongressTypeNumber, dataPath)
+	log.Info().Msgf("Saving metadata to file for: %s; %s\n", billCongressTypeNumber, dataPath)
 	defer func() {
-		fmt.Printf("Finished saving metadata for: %s\n", billCongressTypeNumber)
+		log.Info().Msgf("Finished saving metadata for: %s\n", billCongressTypeNumber)
 	}()
 	file, marshalErr := json.MarshalIndent(billMetaItem, "", " ")
 	if marshalErr != nil {
@@ -47,7 +47,7 @@ func SaveBillJsonToDB(billCongressTypeNumber string, billMetaItem BillMeta) erro
 	store, err := bh.Open(options)
 	if err != nil {
 		// handle error
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 	defer store.Close()
 

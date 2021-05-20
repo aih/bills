@@ -1,14 +1,14 @@
 package bills
 
 import (
-	"fmt"
 	"io"
 	"io/fs"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/rs/zerolog/log"
 )
 
 type FilterFunc func(string) bool
@@ -16,12 +16,12 @@ type FilterFunc func(string) bool
 // Walk directory with a filter. Returns the filepaths that
 // pass the 'testPath' function
 func WalkDirFilter(root string, testPath FilterFunc) (filePaths []string, err error) {
-	defer fmt.Println("Done collecting filepaths.")
-	fmt.Printf("Getting all file paths in %s.  This may take a while.\n", root)
+	defer log.Info().Msg("Done collecting filepaths.")
+	log.Info().Msgf("Getting all file paths in %s.  This may take a while.\n", root)
 	filePaths = make([]string, 0)
 	accumulate := func(fpath string, entry fs.DirEntry, err error) error {
 		if err != nil {
-			log.Println(err)
+			log.Error().Err(err)
 			return err
 		}
 		if testPath(fpath) {
@@ -45,13 +45,13 @@ func ListDocumentXMLFiles(pathToCongressDataDir string) (documentXMLFiles []stri
 	}
 	documentXMLFiles, err = WalkDirFilter(pathToCongressDataDir, isDocumentXML)
 	if err == nil {
-		fmt.Printf("Got %d files!\n", len(documentXMLFiles))
+		log.Info().Msgf("Got %d files!\n", len(documentXMLFiles))
 	}
 	if len(documentXMLFiles) == 0 {
-		fmt.Printf("Retrying on %s\n", PathToDataDir)
+		log.Info().Msgf("Retrying on %s\n", PathToDataDir)
 		documentXMLFiles, err = WalkDirFilter(PathToDataDir, isDocumentXML)
 		if err == nil {
-			fmt.Printf("Got %d files!\n", len(documentXMLFiles))
+			log.Info().Msgf("Got %d files!\n", len(documentXMLFiles))
 		}
 	}
 	return
@@ -69,13 +69,13 @@ func ListDataJsonFiles(pathToCongressDataDir string) (dataJsonFiles []string, er
 	}
 	dataJsonFiles, err = WalkDirFilter(pathToCongressDataDir, isDataJson)
 	if err == nil {
-		fmt.Printf("Got %d files!\n", len(dataJsonFiles))
+		log.Info().Msgf("Got %d files!\n", len(dataJsonFiles))
 	}
 	if len(dataJsonFiles) == 0 {
-		fmt.Printf("Retrying on %s\n", PathToDataDir)
+		log.Info().Msgf("Retrying on %s\n", PathToDataDir)
 		dataJsonFiles, err = WalkDirFilter(PathToDataDir, isDataJson)
 		if err == nil {
-			fmt.Printf("Got %d files!\n", len(dataJsonFiles))
+			log.Info().Msgf("Got %d files!\n", len(dataJsonFiles))
 		}
 	}
 	return
@@ -83,7 +83,7 @@ func ListDataJsonFiles(pathToCongressDataDir string) (dataJsonFiles []string, er
 
 // Make local tmp directory if it doesn't exist
 func MakeTempDir() {
-	fmt.Println("Making tmp directory")
+	log.Info().Msg("Making tmp directory")
 	path := "./tmp"
 	mode := os.ModePerm
 	if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -142,27 +142,27 @@ func Prepend(filepath string, text string) error {
 	tmpcopy, err := os.Create(tmpname)
 	defer os.Remove(tmpname)
 	if err != nil {
-		fmt.Println(err)
+		log.Error().Err(err)
 		return err
 	}
 	_, err = tmpcopy.WriteString(text + "\n")
 	if err != nil {
-		fmt.Println(err)
+		log.Error().Err(err)
 		tmpcopy.Close()
 		return err
 	}
 	data, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 	_, err = tmpcopy.Write(data)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
 	e := CopyFile(tmpname, filepath)
 	if e != nil {
-		log.Fatal(e)
+		log.Fatal().Err(e)
 	}
 
 	return nil
