@@ -97,12 +97,51 @@ func reverse(ss []string) {
 	}
 }
 
+func makeBillMeta(parentPath, billDirPath string) {
+
+	defer log.Info().Msg("Done")
+	maxopenfiles := 100
+	sem := make(chan bool, maxopenfiles)
+	//pathToBillMeta := bills.BillMetaPath
+	pathToCongressDir := bills.PathToCongressDataDir
+	if parentPath != "" {
+		//pathToBillMeta = path.Join(parentPath, bills.BillMetaFile)
+		pathToCongressDir = path.Join(parentPath, bills.CongressDir)
+	}
+	billMetaStorageChannel := make(chan bills.BillMeta)
+	billDirFullPath := path.Join(pathToCongressDir, "data", billDirPath)
+	log.Info().Msgf("Getting Json for bill: %s", billDirFullPath)
+	dataJsonFiles, _ := bills.ListDataJsonFiles(billDirFullPath)
+	wg := &sync.WaitGroup{}
+	wg.Add(len(dataJsonFiles))
+	go func() {
+		wg.Wait()
+		close(billMetaStorageChannel)
+	}()
+
+	go func() {
+		for range dataJsonFiles {
+			billMeta := <-billMetaStorageChannel
+			log.Debug().Msgf("Got billMeta from Channel: %v\n", billMeta)
+		}
+	}()
+
+	for _, jpath := range dataJsonFiles {
+		sem <- true
+		go bills.ExtractBillMeta(jpath, billMetaStorageChannel, sem, wg)
+	}
+	for i := 0; i < cap(sem); i++ {
+		sem <- true
+	}
+
+}
+
 // Walks the 'congress' directory
 // Creates three metadata files: bills, titlesJson and billMeta
 // bills is the list of bill numbers (billCongressTypeNumber)
 // titles is a list of titles (no year)
 // billMeta collects metadata from data.json files
-func makeBillMeta(parentPath string) {
+func makeBillsMeta(parentPath string) {
 	//pathToBillMeta := bills.BillMetaPath
 	pathToCongressDir := bills.PathToCongressDataDir
 	if parentPath != "" {
@@ -210,6 +249,7 @@ func main() {
 
 	flagDefs := map[string]flagDef{
 		"parentPath": {string(bills.ParentPathDefault), "Absolute path to the parent directory for 'congress' and json metadata files"},
+		"billNumber": {"117s126", "Get and print billMeta for one bill"},
 		"log":        {"Info", "Sets Log level. Options: Error, Info, Debug"},
 	}
 
@@ -229,6 +269,9 @@ func main() {
 	flag.StringVar(&logLevel, "logLevel", flagDefs["log"].value, flagDefs["log"].usage)
 	flag.StringVar(&logLevel, "l", flagDefs["log"].value, flagDefs["log"].usage+" (shorthand)")
 
+	var billNumber string
+	flag.StringVar(&billNumber, "billNumber", flagDefs["billNumber"].value, flagDefs["billNumber"].usage)
+
 	flag.Parse()
 
 	zLogLevel := bills.ZLogLevels[logLevel]
@@ -241,7 +284,18 @@ func main() {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 	log.Debug().Msg("Log level set to Debug")
-	makeBillMeta(parentPath)
+	if billNumber != "" {
+		billPath, err := bills.PathFromBillNumber(billNumber)
+		if err != nil {
+			log.Error().Msgf("Error getting path from billnumber: %s", billNumber)
+			return
+		}
+		billPath = strings.ReplaceAll(billPath, "/text-versions", "")
+		makeBillMeta(parentPath, billPath)
+		return
+	}
+
+	makeBillsMeta(parentPath)
 	loadTitles(bills.TitleNoYearSyncMap, bills.BillMetaSyncMap)
 	writeBillMetaFiles(bills.BillMetaSyncMap)
 	pathToBillMeta := bills.BillMetaPath
