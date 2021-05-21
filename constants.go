@@ -7,7 +7,12 @@ import (
 
 	"github.com/aih/bills/internal/projectpath"
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
 )
+
+type LogLevel int8
+
+type LogLevels map[string]zerolog.Level
 
 // Constants for this package
 var (
@@ -35,6 +40,7 @@ var (
 	TitleNoYearSyncMap  = new(sync.Map)
 	TitleMatchReason    = "bills-title_match"
 	IdentifiedByBillMap = "BillMap"
+	ZLogLevels          = LogLevels{"Debug": zerolog.DebugLevel, "Info": zerolog.InfoLevel, "Error": zerolog.ErrorLevel}
 )
 
 func LoadEnv() (err error) {

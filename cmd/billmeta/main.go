@@ -14,6 +14,11 @@ import (
 	"github.com/aih/bills"
 )
 
+type flagDef struct {
+	value string
+	usage string
+}
+
 // Gets keys of a sync.Map
 func getSyncMapKeys(m *sync.Map) (s string) {
 	m.Range(func(k, v interface{}) bool {
@@ -202,7 +207,11 @@ func makeBillMeta(parentPath string) {
 }
 
 func main() {
-	debug := flag.Bool("debug", false, "sets log level to debug")
+
+	flagDefs := map[string]flagDef{
+		"parentPath": flagDef{string(bills.ParentPathDefault), "Absolute path to the parent directory for 'congress' and json metadata files"},
+		"log":        flagDef{"Info", "Sets Log level. Options: Error, Info, Debug"},
+	}
 
 	// Default level for this example is info, unless debug flag is present
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -211,12 +220,22 @@ func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
-	flagUsage := "Absolute path to the parent directory for 'congress' and json metadata files"
-	flagValue := string(bills.ParentPathDefault)
 	var parentPath string
-	flag.StringVar(&parentPath, "parentPath", flagValue, flagUsage)
-	flag.StringVar(&parentPath, "p", flagValue, flagUsage+" (shorthand)")
+	flag.StringVar(&parentPath, "parentPath", flagDefs["parentPath"].value, flagDefs["parentPath"].usage)
+	flag.StringVar(&parentPath, "p", flagDefs["parentPath"].value, flagDefs["parentPath"].usage+" (shorthand)")
+	debug := flag.Bool("debug", false, "sets log level to debug")
+
+	var logLevel string
+	flag.StringVar(&logLevel, "logLevel", flagDefs["log"].value, flagDefs["log"].usage)
+	flag.StringVar(&logLevel, "l", flagDefs["log"].value, flagDefs["log"].usage+" (shorthand)")
+
 	flag.Parse()
+
+	zLogLevel := bills.ZLogLevels[logLevel]
+	log.Info().Msgf("Log Level entered: %s", logLevel)
+	log.Info().Msgf("Log Level: %d", zLogLevel)
+	// Default is Info (1); Any invalid string will generate Debug (0) level
+	zerolog.SetGlobalLevel(zLogLevel)
 
 	if *debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
