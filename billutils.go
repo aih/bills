@@ -32,7 +32,7 @@ func BillNumberFromPath(billPath string) string {
 }
 
 //  Gets bill path from the billnumber + version
-//  E.g. billnumber of the form 116hr1500rh returns [path]/data/116/bills/hr/hr1/text-versions/rh
+//  E.g. billnumber of the form 116hr1500rh returns [path]/116/bills/hr/hr1/text-versions/rh
 func PathFromBillNumber(billNumber string) (string, error) {
 	var matchMap = FindNamedMatches(BillnumberRegexCompiled, billNumber)
 	log.Debug().Msg(fmt.Sprint(matchMap))
@@ -152,6 +152,12 @@ func ExtractBillMeta(billPath string, billMetaStorageChannel chan BillMeta, sem 
 	billMeta.Number = dat.Number
 	billMeta.BillType = dat.BillType
 	billMeta.Congress = dat.Congress
+	if billMeta.Congress == "" {
+		msg := "wrong data in data.json (no Congress field)"
+		log.Error().Msg(msg)
+		err = errors.New(msg)
+		return err
+	}
 	billMeta.BillCongressTypeNumber = billCongressTypeNumber
 	billMeta.Committees = dat.Committees
 	billMeta.Cosponsors = dat.Cosponsors

@@ -167,6 +167,9 @@ func makeBillsMeta(parentPath string) {
 		billCounter := 0
 		for range dataJsonFiles {
 			billMeta := <-billMetaStorageChannel
+			if billMeta.Congress == "" {
+				continue
+			}
 			billCounter++
 			log.Info().Msgf("[%d] Storing metadata for %s.", billCounter, billMeta.BillCongressTypeNumber)
 			// Get related bill data
