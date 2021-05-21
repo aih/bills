@@ -252,7 +252,7 @@ func main() {
 
 	flagDefs := map[string]flagDef{
 		"parentPath": {string(bills.ParentPathDefault), "Absolute path to the parent directory for 'congress' and json metadata files"},
-		"billNumber": {"117s126", "Get and print billMeta for one bill"},
+		"billNumber": {"", "Get and print billMeta for one bill"},
 		"log":        {"Info", "Sets Log level. Options: Error, Info, Debug"},
 	}
 
