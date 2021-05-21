@@ -209,8 +209,8 @@ func makeBillMeta(parentPath string) {
 func main() {
 
 	flagDefs := map[string]flagDef{
-		"parentPath": flagDef{string(bills.ParentPathDefault), "Absolute path to the parent directory for 'congress' and json metadata files"},
-		"log":        flagDef{"Info", "Sets Log level. Options: Error, Info, Debug"},
+		"parentPath": {string(bills.ParentPathDefault), "Absolute path to the parent directory for 'congress' and json metadata files"},
+		"log":        {"Info", "Sets Log level. Options: Error, Info, Debug"},
 	}
 
 	// Default level for this example is info, unless debug flag is present
