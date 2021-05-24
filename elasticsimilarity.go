@@ -5,14 +5,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/tidwall/gjson"
 
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
 var (
 	r             map[string]interface{}
+	batchNum      int
+	scrollID      string
 	searchIndices = []string{"billsections"}
 )
 
@@ -36,8 +43,7 @@ func SampleQuery() {
 		log.Fatal().Msgf("Error creating the client: %s", err)
 	}
 
-	// 3. Search for the indexed documents
-	//
+	// Search for the indexed documents
 	// Build the request body.
 	var buf bytes.Buffer
 	query := map[string]interface{}{
@@ -93,4 +99,112 @@ func SampleQuery() {
 		fmt.Printf(" * ID=%s, %s", hit.(map[string]interface{})["_id"], hit.(map[string]interface{})["_source"])
 	}
 
+}
+
+func billNumbersScrollQuery(billNumberChan chan gjson.Result) {
+	defer close(billNumberChan)
+	es, err := elasticsearch.NewDefaultClient()
+	if err != nil {
+		log.Fatal().Msgf("Error creating the client: %s", err)
+	}
+
+	// Search indexed documents with a `match_all` query to retrieve all
+	// Build the request body.
+	var buf bytes.Buffer
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"match_all": map[string]interface{}{},
+		},
+		"fields":  []string{"id"},
+		"_source": false,
+	}
+	if err := json.NewEncoder(&buf).Encode(query); err != nil {
+		log.Fatal().Msgf("Error encoding query: %s", err)
+	}
+
+	// Perform the initial search request to get
+	// the first batch of data and the scroll ID
+	//
+	log.Info().Msg("Scrolling the index...")
+	log.Info().Msg(strings.Repeat("-", 80))
+	res, _ := es.Search(
+		es.Search.WithIndex(searchIndices...),
+		es.Search.WithBody(&buf),
+		es.Search.WithSort("_doc"),
+		es.Search.WithSize(10000),
+		es.Search.WithScroll(time.Minute),
+	)
+
+	// Handle the first batch of data and extract the scrollID
+	//
+	json := read(res.Body)
+	res.Body.Close()
+	fmt.Println(json)
+
+	scrollID = gjson.Get(json, "_scroll_id").String()
+
+	log.Debug().Msg("Batch   " + strconv.Itoa(batchNum))
+	log.Debug().Msg("ScrollID: " + scrollID)
+	billNumbers := gjson.Get(json, "hits.hits.#fields.id")
+	//log.Debug().Msg("IDs:     " + strings.Join(billNumbers, ", "))
+	billNumberChan <- billNumbers
+	log.Debug().Msg(strings.Repeat("-", 80))
+
+	// Perform the scroll requests in sequence
+	//
+	for {
+		batchNum++
+
+		// Perform the scroll request and pass the scrollID and scroll duration
+		//
+		res, err := es.Scroll(es.Scroll.WithScrollID(scrollID), es.Scroll.WithScroll(time.Minute))
+		if err != nil {
+			log.Fatal().Msgf("Error: %s", err)
+		}
+		if res.IsError() {
+			log.Fatal().Msgf("Error response: %s", res)
+		}
+
+		json := read(res.Body)
+		res.Body.Close()
+
+		// Extract the scrollID from response
+		//
+		scrollID = gjson.Get(json, "_scroll_id").String()
+
+		// Extract the search results
+		//
+		hits := gjson.Get(json, "hits.hits")
+
+		// Break out of the loop when there are no results
+		//
+		if len(hits.Array()) < 1 {
+			log.Info().Msg("Finished scrolling")
+			break
+		} else {
+			log.Debug().Msg("Batch   " + strconv.Itoa(batchNum))
+			log.Debug().Msg("ScrollID: " + scrollID)
+			billNumbers := gjson.Get(json, "hits.hits.#.fields.id")
+			//log.Debug().Msg("IDs:     " + strings.Join(billNumbers, ", "))
+			billNumberChan <- billNumbers
+			log.Info().Msg(strings.Repeat("-", 80))
+		}
+	}
+}
+
+func GetAllBillNumbers() {
+	var billNumbers []gjson.Result
+	billNumberChan := make(chan gjson.Result)
+	go billNumbersScrollQuery(billNumberChan)
+	for newBillNumbers := range billNumberChan {
+		fmt.Println(newBillNumbers)
+		billNumbers = append(billNumbers, newBillNumbers)
+	}
+	fmt.Println(billNumbers)
+}
+
+func read(r io.Reader) string {
+	var b bytes.Buffer
+	b.ReadFrom(r)
+	return b.String()
 }

@@ -6,6 +6,7 @@ type TitlesJson struct {
 	Title        string `json:"title"`
 	IsForPortion bool   `json:"is_for_portion"`
 }
+
 type BillMeta struct {
 	Actions                  []ActionItem      `json:"actions"`
 	Congress                 string            `json:"congress"`
