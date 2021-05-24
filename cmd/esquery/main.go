@@ -24,7 +24,9 @@ func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	log.Debug().Msg("Log level set to Debug")
-	bills.PrintESInfo()
-	bills.SampleQuery()
-	bills.GetAllBillNumbers()
+	//bills.PrintESInfo()
+	//bills.SampleQuery()
+	billNumbers := bills.GetAllBillNumbers()
+	log.Info().Msgf("Length of billNumbers: %d", len(billNumbers))
+	// fmt.Print(billNumbers)
 }

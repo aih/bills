@@ -101,7 +101,7 @@ func SampleQuery() {
 
 }
 
-func billNumbersScrollQuery(billNumberChan chan gjson.Result) {
+func billNumbersScrollQuery(billNumberChan chan []gjson.Result) {
 	defer close(billNumberChan)
 	es, err := elasticsearch.NewDefaultClient()
 	if err != nil {
@@ -139,13 +139,13 @@ func billNumbersScrollQuery(billNumberChan chan gjson.Result) {
 	//
 	json := read(res.Body)
 	res.Body.Close()
-	fmt.Println(json)
+	//fmt.Println(json)
 
 	scrollID = gjson.Get(json, "_scroll_id").String()
 
 	log.Debug().Msg("Batch   " + strconv.Itoa(batchNum))
 	log.Debug().Msg("ScrollID: " + scrollID)
-	billNumbers := gjson.Get(json, "hits.hits.#fields.id")
+	billNumbers := gjson.Get(json, "hits.hits.#fields.id").Array()
 	//log.Debug().Msg("IDs:     " + strings.Join(billNumbers, ", "))
 	billNumberChan <- billNumbers
 	log.Debug().Msg(strings.Repeat("-", 80))
@@ -184,23 +184,37 @@ func billNumbersScrollQuery(billNumberChan chan gjson.Result) {
 		} else {
 			log.Debug().Msg("Batch   " + strconv.Itoa(batchNum))
 			log.Debug().Msg("ScrollID: " + scrollID)
-			billNumbers := gjson.Get(json, "hits.hits.#.fields.id")
+			billNumbers := gjson.Get(json, "hits.hits.#.fields.id").Array()
 			//log.Debug().Msg("IDs:     " + strings.Join(billNumbers, ", "))
 			billNumberChan <- billNumbers
-			log.Info().Msg(strings.Repeat("-", 80))
+			log.Debug().Msg(strings.Repeat("-", 80))
 		}
 	}
 }
 
-func GetAllBillNumbers() {
+func GetAllBillNumbers() []string {
 	var billNumbers []gjson.Result
-	billNumberChan := make(chan gjson.Result)
+	billNumberChan := make(chan []gjson.Result)
 	go billNumbersScrollQuery(billNumberChan)
 	for newBillNumbers := range billNumberChan {
-		fmt.Println(newBillNumbers)
-		billNumbers = append(billNumbers, newBillNumbers)
+		billNumbers = append(billNumbers, newBillNumbers...)
 	}
-	fmt.Println(billNumbers)
+	//fmt.Println(billNumbers)
+	// billNumbers is an Array of gjson.Result;
+	// each result is itself an array of string of the formo
+	//["117hr141ih"]
+	log.Info().Msgf("Length of billNumbers: %d", len(billNumbers))
+	var billNumberStrings []string
+	for _, b := range billNumbers {
+		bRes := b.Array()
+		for _, bItem := range bRes {
+			billNumber := bItem.String()
+			if billNumber != "" {
+				billNumberStrings = append(billNumberStrings, billNumber)
+			}
+		}
+	}
+	return billNumberStrings
 }
 
 func read(r io.Reader) string {
