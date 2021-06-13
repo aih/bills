@@ -14,6 +14,8 @@ type LogLevel int8
 
 type LogLevels map[string]zerolog.Level
 
+type billVersions map[string]int
+
 // Constants for this package
 var (
 	BillnumberRegexCompiled = regexp.MustCompile(`(?P<congress>[1-9][0-9]*)(?P<stage>[a-z]{1,8})(?P<billnumber>[1-9][0-9]*)(?P<version>[a-z]+)?`)
@@ -40,6 +42,7 @@ var (
 	TitleNoYearSyncMap  = new(sync.Map)
 	TitleMatchReason    = "bills-title_match"
 	IdentifiedByBillMap = "BillMap"
+	BillVersionsOrdered = billVersions{"ih": 0, "rh": 1, "rfs": 2, "eh": 3, "es": 4, "enr": 5}
 	ZLogLevels          = LogLevels{"Debug": zerolog.DebugLevel, "Info": zerolog.InfoLevel, "Error": zerolog.ErrorLevel}
 )
 

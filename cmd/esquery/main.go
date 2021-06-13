@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	"github.com/aih/bills"
@@ -27,6 +26,9 @@ func main() {
 	log.Debug().Msg("Log level set to Debug")
 	//bills.PrintESInfo()
 	//bills.SampleQuery()
-	billNumbers := bills.GetAllBillNumbers()
-	fmt.Print(billNumbers)
+
+	r := bills.BillQuery("116hr1500")
+	bills.GetLatestBill(r)
+	// billNumbers := bills.GetAllBillNumbers()
+	// fmt.Print(billNumbers)
 }

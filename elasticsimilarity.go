@@ -37,7 +37,44 @@ func PrintESInfo() {
 	}
 }
 
-func SampleQuery() {
+func GetLatestBill(r map[string]interface{}) (latestbill map[string]interface{}) {
+	latestdate, _ := time.Parse(time.RFC3339, time.RFC3339)
+	latestbillversion := "ih"
+	latestbillversion_val := 0
+	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
+		billversion := hit.(map[string]interface{})["_source"].(map[string]interface{})["billversion"].(string)
+		datestring := hit.(map[string]interface{})["_source"].(map[string]interface{})["date"]
+		if datestring == nil {
+			datestring = ""
+		}
+		if datestring != "" {
+			date, err := time.Parse(time.RFC3339, datestring.(string)+"T15:04:05Z")
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			// Use the date if the latest version is not an "e" version
+			if date.After(latestdate) && !strings.HasPrefix(latestbillversion, "e") {
+				latestdate = date
+				latestbillversion = billversion
+				latestbillversion_val = BillVersionsOrdered[latestbillversion]
+				latestbill = hit.(map[string]interface{})
+			}
+		}
+		if billversion_val, ok := BillVersionsOrdered[billversion]; ok {
+			if strings.HasPrefix(billversion, "e") && (billversion_val > latestbillversion_val) {
+				fmt.Println("now here")
+				latestbillversion = billversion
+				latestbill = hit.(map[string]interface{})
+			}
+		}
+		log.Debug().Msgf("bill=%s; date=%s", billversion, datestring)
+	}
+	log.Debug().Msgf("latestbillversion=%s; latestdate=%s", latestbillversion, latestdate.String())
+	return latestbill
+}
+
+func BillQuery(billnumber string) map[string]interface{} {
 	es, err := elasticsearch.NewDefaultClient()
 	if err != nil {
 		log.Fatal().Msgf("Error creating the client: %s", err)
@@ -49,7 +86,7 @@ func SampleQuery() {
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"match": map[string]interface{}{
-				"billnumber": "115hr4134",
+				"billnumber": billnumber,
 			},
 		},
 	}
@@ -88,16 +125,18 @@ func SampleQuery() {
 		log.Fatal().Msgf("Error parsing the response body: %s", err)
 	}
 	// Print the response status, number of results, and request duration.
-	fmt.Printf(
-		"[%s] %d hits; took: %dms",
+	log.Info().Msgf(
+		"ES bill search for %s: [%s] %d hits; took %dms",
+		billnumber,
 		res.Status(),
 		int(r["hits"].(map[string]interface{})["total"].(map[string]interface{})["value"].(float64)),
 		int(r["took"].(float64)),
 	)
 	// Print the ID and document source for each hit.
 	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-		fmt.Printf(" * ID=%s, %s", hit.(map[string]interface{})["_id"], hit.(map[string]interface{})["_source"])
+		log.Debug().Msgf(" * ID=%s, %s", hit.(map[string]interface{})["_id"], hit.(map[string]interface{})["_source"])
 	}
+	return r
 
 }
 
