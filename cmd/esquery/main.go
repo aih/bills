@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/aih/bills"
@@ -27,6 +28,5 @@ func main() {
 	//bills.PrintESInfo()
 	//bills.SampleQuery()
 	billNumbers := bills.GetAllBillNumbers()
-	log.Info().Msgf("Length of billNumbers: %d", len(billNumbers))
-	// fmt.Print(billNumbers)
+	fmt.Print(billNumbers)
 }

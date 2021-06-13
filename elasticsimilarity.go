@@ -101,12 +101,7 @@ func SampleQuery() {
 
 }
 
-func billNumbersScrollQuery(billNumberChan chan []gjson.Result) {
-	defer close(billNumberChan)
-	es, err := elasticsearch.NewDefaultClient()
-	if err != nil {
-		log.Fatal().Msgf("Error creating the client: %s", err)
-	}
+func getIdQuery() bytes.Buffer {
 
 	// Search indexed documents with a `match_all` query to retrieve all
 	// Build the request body.
@@ -121,12 +116,24 @@ func billNumbersScrollQuery(billNumberChan chan []gjson.Result) {
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
 		log.Fatal().Msgf("Error encoding query: %s", err)
 	}
+	return buf
+
+}
+
+// Performs scroll query over indices in `searchIndices`; sends result to the resultChan for processing
+func scrollQuery(buf bytes.Buffer, resultChan chan []gjson.Result) {
+	defer close(resultChan)
+	es, err := elasticsearch.NewDefaultClient()
+	if err != nil {
+		log.Fatal().Msgf("Error creating the client: %s", err)
+	}
 
 	// Perform the initial search request to get
 	// the first batch of data and the scroll ID
 	//
 	log.Info().Msg("Scrolling the index...")
 	log.Info().Msg(strings.Repeat("-", 80))
+	//buf := queryFunc(es)
 	res, _ := es.Search(
 		es.Search.WithIndex(searchIndices...),
 		es.Search.WithBody(&buf),
@@ -147,7 +154,7 @@ func billNumbersScrollQuery(billNumberChan chan []gjson.Result) {
 	log.Debug().Msg("ScrollID: " + scrollID)
 	billNumbers := gjson.Get(json, "hits.hits.#fields.id").Array()
 	//log.Debug().Msg("IDs:     " + strings.Join(billNumbers, ", "))
-	billNumberChan <- billNumbers
+	resultChan <- billNumbers
 	log.Debug().Msg(strings.Repeat("-", 80))
 
 	// Perform the scroll requests in sequence
@@ -186,7 +193,7 @@ func billNumbersScrollQuery(billNumberChan chan []gjson.Result) {
 			log.Debug().Msg("ScrollID: " + scrollID)
 			billNumbers := gjson.Get(json, "hits.hits.#.fields.id").Array()
 			//log.Debug().Msg("IDs:     " + strings.Join(billNumbers, ", "))
-			billNumberChan <- billNumbers
+			resultChan <- billNumbers
 			log.Debug().Msg(strings.Repeat("-", 80))
 		}
 	}
@@ -194,9 +201,10 @@ func billNumbersScrollQuery(billNumberChan chan []gjson.Result) {
 
 func GetAllBillNumbers() []string {
 	var billNumbers []gjson.Result
-	billNumberChan := make(chan []gjson.Result)
-	go billNumbersScrollQuery(billNumberChan)
-	for newBillNumbers := range billNumberChan {
+	resultChan := make(chan []gjson.Result)
+	buf := getIdQuery()
+	go scrollQuery(buf, resultChan)
+	for newBillNumbers := range resultChan {
 		billNumbers = append(billNumbers, newBillNumbers...)
 	}
 	//fmt.Println(billNumbers)
