@@ -9,6 +9,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	num_results   = 5
+	min_sim_score = 20
+)
+
 func main() {
 	debug := flag.Bool("debug", false, "sets log level to debug")
 
@@ -41,7 +46,7 @@ func main() {
 			//sectionHeader := sectionItem.(map[string]interface{})["section_header"]
 			//sectionNumber := sectionItem.(map[string]interface{})["section_number"]
 			sectionText := sectionItem.(map[string]interface{})["section_text"]
-			similars := bills.GetMoreLikeThisQuery(5, 20, sectionText.(string))
+			similars := bills.GetMoreLikeThisQuery(num_results, min_sim_score, sectionText.(string))
 			hits := similars["hits"].(map[string]interface{})["hits"].([]interface{})
 			if len(hits) > 0 {
 				log.Info().Msgf("Number of matches: %d, Score (first match): %f", len(hits), hits[0].(map[string]interface{})["_score"])
