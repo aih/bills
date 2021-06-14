@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/aih/bills"
@@ -13,6 +14,23 @@ const (
 	num_results   = 5
 	min_sim_score = 20
 )
+
+func getTopHit(hits []interface{}) (topHit map[string]interface{}) {
+
+	var topScore float64
+	var score float64
+	topScore = 0
+	fmt.Println(len(hits))
+	for _, item := range hits {
+		score = item.(map[string]interface{})["_score"].(float64)
+		if score > topScore {
+			topScore = score
+			topHit = item.(map[string]interface{})
+		}
+
+	}
+	return topHit
+}
 
 func main() {
 	debug := flag.Bool("debug", false, "sets log level to debug")
@@ -49,7 +67,9 @@ func main() {
 			similars := bills.GetMoreLikeThisQuery(num_results, min_sim_score, sectionText.(string))
 			hits := similars["hits"].(map[string]interface{})["hits"].([]interface{})
 			if len(hits) > 0 {
-				log.Info().Msgf("Number of matches: %d, Score (first match): %f", len(hits), hits[0].(map[string]interface{})["_score"])
+				topHit := getTopHit(hits)
+
+				log.Info().Msgf("Number of matches: %d, Top Match: %s, Score: %f", len(hits), topHit["_source"].(map[string]interface{})["billnumber"], topHit["_score"])
 			}
 		}
 	}
