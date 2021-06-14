@@ -51,7 +51,7 @@ func PrintESInfo() {
 
 func makeMLTQuery(size, minscore int, searchtext string) (mltquery map[string]interface{}) {
 	mltquery = map[string]interface{}{
-		"size":      5,
+		"size":      20,
 		"min_score": 15,
 		"query": map[string]interface{}{
 			"nested": map[string]interface{}{

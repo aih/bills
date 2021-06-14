@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	num_results   = 5
-	min_sim_score = 15
+	num_results   = 20
+	min_sim_score = 20
 )
 
 func getTopHit(hits []interface{}) (topHit map[string]interface{}) {
