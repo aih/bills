@@ -17,36 +17,10 @@ import (
 )
 
 var (
-	batchNum          int
-	scrollID          string
-	searchIndices     = []string{"billsections"}
-	moreLikeThisQuery = map[string]interface{}{
-		"size":      5,
-		"min_score": 15,
-		"query": map[string]interface{}{
-			"nested": map[string]interface{}{
-				"path": "sections",
-				"query": map[string]interface{}{
-					"more_like_this": map[string]interface{}{
-						"fields":          []string{"sections.section_text"},
-						"like":            `SEC. 102. COLORADO WILDERNESS ADDITIONS. (a) Designation.—Section 2(a) of the Colorado Wilderness Act of 1993 (16 U.S.C. 1132 note; Public Law 103–77) is amended— (1) in paragraph (18), by striking “1993,” and inserting “1993, and certain Federal land within the White River National Forest that comprises approximately 6,896 acres, as generally depicted as ‘Proposed Ptarmigan Peak Wilderness Additions’ on the map entitled ‘Proposed Ptarmigan Peak Wilderness Additions’ and dated June 24, 2019,”; and (2) by adding at the end the following:`,
-						"min_term_freq":   2,
-						"max_query_terms": 10,
-						"min_doc_freq":    1,
-					},
-				},
-				"inner_hits": map[string]interface{}{
-					"highlight": map[string]interface{}{
-						"fields": map[string]interface{}{
-							"sections.section_text": map[string]interface{}{},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	idQuery = map[string]interface{}{
+	batchNum      int
+	scrollID      string
+	searchIndices = []string{"billsections"}
+	idQuery       = map[string]interface{}{
 		"query": map[string]interface{}{
 			"match_all": map[string]interface{}{},
 		},
@@ -73,6 +47,39 @@ func PrintESInfo() {
 		log.Info().Msg(fmt.Sprint(res))
 		log.Info().Msg(fmt.Sprint(elasticsearch.Version))
 	}
+}
+
+func makeMLTQuery(size, minscore int, searchtext string) (mltquery map[string]interface{}) {
+	mltquery = map[string]interface{}{
+		"size":      5,
+		"min_score": 15,
+		"query": map[string]interface{}{
+			"nested": map[string]interface{}{
+				"path": "sections",
+				"query": map[string]interface{}{
+					"more_like_this": map[string]interface{}{
+						"fields":          []string{"sections.section_text"},
+						"like":            `SEC. 102. COLORADO WILDERNESS ADDITIONS. (a) Designation.—Section 2(a) of the Colorado Wilderness Act of 1993 (16 U.S.C. 1132 note; Public Law 103–77) is amended— (1) in paragraph (18), by striking “1993,” and inserting “1993, and certain Federal land within the White River National Forest that comprises approximately 6,896 acres, as generally depicted as ‘Proposed Ptarmigan Peak Wilderness Additions’ on the map entitled ‘Proposed Ptarmigan Peak Wilderness Additions’ and dated June 24, 2019,”; and (2) by adding at the end the following:`,
+						"min_term_freq":   1,
+						"max_query_terms": 5,
+						"min_doc_freq":    1,
+					},
+				},
+				"inner_hits": map[string]interface{}{
+					"highlight": map[string]interface{}{
+						"fields": map[string]interface{}{
+							"sections.section_text": map[string]interface{}{},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	mltquery["size"] = size
+	mltquery["min_score"] = minscore
+	mltquery["query"].(map[string]interface{})["nested"].(map[string]interface{})["query"].(map[string]interface{})["more_like_this"].(map[string]interface{})["like"] = searchtext
+	return mltquery
 }
 
 func makeBillQuery(billnumber string) (billquery map[string]interface{}) {
@@ -155,10 +162,8 @@ func GetBill_ES(billnumber string) map[string]interface{} {
 }
 
 func GetMoreLikeThisQuery(size, minscore int, searchtext string) map[string]interface{} {
-	moreLikeThisQuery["size"] = size
-	moreLikeThisQuery["min_score"] = minscore
-	moreLikeThisQuery["query"].(map[string]interface{})["nested"].(map[string]interface{})["query"].(map[string]interface{})["more_like_this"].(map[string]interface{})["like"] = searchtext
-	return runQuery(moreLikeThisQuery)
+	mltQuery := makeMLTQuery(size, minscore, searchtext)
+	return runQuery(mltQuery)
 }
 
 // Performs scroll query over indices in `searchIndices`; sends result to the resultChan for processing to extract billnumbers

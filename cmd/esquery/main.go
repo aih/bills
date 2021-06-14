@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
+	"strings"
 
 	"github.com/aih/bills"
 	"github.com/rs/zerolog"
@@ -12,7 +12,7 @@ import (
 
 const (
 	num_results   = 5
-	min_sim_score = 20
+	min_sim_score = 15
 )
 
 func getTopHit(hits []interface{}) (topHit map[string]interface{}) {
@@ -20,7 +20,6 @@ func getTopHit(hits []interface{}) (topHit map[string]interface{}) {
 	var topScore float64
 	var score float64
 	topScore = 0
-	fmt.Println(len(hits))
 	for _, item := range hits {
 		score = item.(map[string]interface{})["_score"].(float64)
 		if score > topScore {
@@ -30,6 +29,16 @@ func getTopHit(hits []interface{}) (topHit map[string]interface{}) {
 
 	}
 	return topHit
+}
+
+func getMatchingBills(hits []interface{}) (billnumbers []string) {
+
+	for _, item := range hits {
+		source := item.(map[string]interface{})["_source"].(map[string]interface{})
+		billnumber := source["billnumber"].(string)
+		billnumbers = append(billnumbers, billnumber)
+	}
+	return billnumbers
 }
 
 func main() {
@@ -68,8 +77,9 @@ func main() {
 			hits := similars["hits"].(map[string]interface{})["hits"].([]interface{})
 			if len(hits) > 0 {
 				topHit := getTopHit(hits)
+				matchingBills := strings.Join(getMatchingBills(hits), ", ")
 
-				log.Info().Msgf("Number of matches: %d, Top Match: %s, Score: %f", len(hits), topHit["_source"].(map[string]interface{})["billnumber"], topHit["_score"])
+				log.Info().Msgf("Number of matches: %d, Matches: %s, Top Match: %s, Score: %f", len(hits), matchingBills, topHit["_source"].(map[string]interface{})["billnumber"], topHit["_score"])
 			}
 		}
 	}
