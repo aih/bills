@@ -60,7 +60,7 @@ func main() {
 	//bills.SampleQuery()
 
 	billNumbers := bills.GetAllBillNumbers()
-	billNumbers = []string{"116hr1500"}
+	billNumbers = []string{"116hr299"}
 	for _, billnumber := range billNumbers {
 		log.Info().Msgf("Get versions of: %s", billnumber)
 		r := bills.GetBill_ES(billnumber)
