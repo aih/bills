@@ -181,14 +181,27 @@ func makeBillsMeta(parentPath string) {
 			}
 			*/
 
-			// Add 	billMeta.ShortTitle to billMeta.Titles
+			var mainTitles []string
+			// The bill may have one or more of: OfficialTitle, PopularTitle, ShortTitle
+			officialTitle := billMeta.OfficialTitle
 			shortTitle := billMeta.ShortTitle
+			popularTitle := billMeta.PopularTitle
 			titles := billMeta.Titles
 
-			// The bill may have one or more of: OfficialTitle, PopularTitle, ShortTitle
-			if shortTitle != "" {
-				titles = append(billMeta.Titles, billMeta.ShortTitle)
+			if officialTitle != "" {
+				mainTitles = append(mainTitles, officialTitle)
 			}
+
+			if shortTitle != "" {
+				mainTitles = append(mainTitles, shortTitle)
+				// Add 	billMeta.ShortTitle to billMeta.Titles
+				titles = append(billMeta.Titles, shortTitle)
+			}
+
+			if popularTitle != "" {
+				mainTitles = append(mainTitles, popularTitle)
+			}
+
 			for _, title := range titles {
 				//for _, title := range billMeta.Titles {
 				log.Info().Msgf("[%d] Getting titles for %s.", billCounter, billMeta.BillCongressTypeNumber)
@@ -196,6 +209,16 @@ func makeBillsMeta(parentPath string) {
 				if titleBills, loaded := bills.TitleNoYearSyncMap.LoadOrStore(titleNoYear, []string{billMeta.BillCongressTypeNumber}); loaded {
 					titleBills = bills.RemoveDuplicates(append(titleBills.([]string), billMeta.BillCongressTypeNumber))
 					bills.TitleNoYearSyncMap.Store(titleNoYear, titleBills)
+				}
+
+			}
+
+			for _, title := range mainTitles {
+				log.Info().Msgf("[%d] Getting main titles for %s.", billCounter, billMeta.BillCongressTypeNumber)
+				mainTitleNoYear := bills.TitleNoYearRegexCompiled.ReplaceAllString(title, "")
+				if mainTitleBills, loaded := bills.MainTitleNoYearSyncMap.LoadOrStore(mainTitleNoYear, []string{billMeta.BillCongressTypeNumber}); loaded {
+					mainTitleBills = bills.RemoveDuplicates(append(mainTitleBills.([]string), billMeta.BillCongressTypeNumber))
+					bills.MainTitleNoYearSyncMap.Store(mainTitleNoYear, mainTitleBills)
 				}
 
 			}
@@ -241,10 +264,17 @@ func makeBillsMeta(parentPath string) {
 
 	jsonTitleNoYearString, err := bills.MarshalJSONStringArray(bills.TitleNoYearSyncMap)
 	if err != nil {
-		log.Error().Msgf("Error making JSON data for billMetaMap: %s", err)
+		log.Error().Msgf("Error making JSON data for TitleNoYearSyncMap: %s", err)
 	}
 	log.Info().Msg("Writing titleNoYearIndex JSON data to file")
 	os.WriteFile(bills.TitleNoYearIndexPath, []byte(jsonTitleNoYearString), 0666)
+	jsonMainTitleNoYearString, err := bills.MarshalJSONStringArray(bills.MainTitleNoYearSyncMap)
+
+	if err != nil {
+		log.Error().Msgf("Error making JSON data for MainTitleNoYearMap: %s", err)
+	}
+	log.Info().Msg("Writing maintitleNoYearIndex JSON data to file")
+	os.WriteFile(bills.MainTitleNoYearIndexPath, []byte(jsonMainTitleNoYearString), 0666)
 	for i := 0; i < cap(sem); i++ {
 		sem <- true
 	}
