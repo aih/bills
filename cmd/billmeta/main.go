@@ -185,7 +185,6 @@ func makeBillsMeta(parentPath string) {
 			// The bill may have one or more of: OfficialTitle, PopularTitle, ShortTitle
 			officialTitle := billMeta.OfficialTitle
 			shortTitle := billMeta.ShortTitle
-			popularTitle := billMeta.PopularTitle
 			titles := billMeta.Titles
 
 			if officialTitle != "" {
@@ -196,10 +195,6 @@ func makeBillsMeta(parentPath string) {
 				mainTitles = append(mainTitles, shortTitle)
 				// Add 	billMeta.ShortTitle to billMeta.Titles
 				titles = append(billMeta.Titles, shortTitle)
-			}
-
-			if popularTitle != "" {
-				mainTitles = append(mainTitles, popularTitle)
 			}
 
 			for _, title := range titles {
