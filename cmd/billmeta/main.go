@@ -184,6 +184,8 @@ func makeBillsMeta(parentPath string) {
 			// Add 	billMeta.ShortTitle to billMeta.Titles
 			shortTitle := billMeta.ShortTitle
 			titles := billMeta.Titles
+
+			// The bill may have one or more of: OfficialTitle, PopularTitle, ShortTitle
 			if shortTitle != "" {
 				titles = append(billMeta.Titles, billMeta.ShortTitle)
 			}

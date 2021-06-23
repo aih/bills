@@ -14,6 +14,8 @@ type BillMeta struct {
 	Number                   string            `json:"number"`
 	BillCongressTypeNumber   string            `json:"bill_congress_type_number"`
 	History                  interface{}       `json:"history"`
+	OfficialTitle            string            `json:"official_title"`
+	PopularTitle             string            `json:"popular_title"`
 	ShortTitle               string            `json:"short_title"`
 	Titles                   []string          `json:"titles"`
 	TitlesWholeBill          []string          `json:"titles_whole_bill"`
