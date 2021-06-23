@@ -43,6 +43,7 @@ var (
 	// titleSyncMap                = new(sync.Map)
 	MainTitleNoYearSyncMap = new(sync.Map)
 	TitleNoYearSyncMap     = new(sync.Map)
+	MainTitleMatchReason   = "bills-title_match_main"
 	TitleMatchReason       = "bills-title_match"
 	IdentifiedByBillMap    = "BillMap"
 	BillVersionsOrdered    = billVersions{"ih": 0, "rh": 1, "rfs": 2, "eh": 3, "es": 4, "enr": 5}
