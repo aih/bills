@@ -28,5 +28,7 @@ func main() {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 	log.Debug().Msg("Log level set to Debug")
-	bills.ParseBill(sampleFilePath)
+	parsedBill := bills.ParseBill(sampleFilePath)
+	log.Debug().Msgf("Parsed bill, first section: %s", parsedBill.Sections[1].OutputXML(true))
+
 }

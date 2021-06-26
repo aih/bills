@@ -16,11 +16,11 @@ func TestParseBill(t *testing.T) {
 	log.Info().Msg("Test bill parsing (to sections and levels)")
 	setLogLevel()
 	billLevels := ParseBill(sampleFilePath)
-	gotnumsections := len(billLevels.sections)
+	gotnumsections := len(billLevels.Sections)
 	if gotnumsections != 18 {
 		t.Errorf("Got %d sections; want 18", gotnumsections)
 	}
-	gotsection12 := billLevels.sections[11].OutputXML(true)
+	gotsection12 := billLevels.Sections[11].OutputXML(true)
 	if gotsection12 != section12 {
 		t.Errorf("For section 12 got: " + gotsection12)
 	}

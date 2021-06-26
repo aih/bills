@@ -9,8 +9,8 @@ import (
 )
 
 type BillLevels struct {
-	sections []*xmlquery.Node
-	levels   []*xmlquery.Node
+	Sections []*xmlquery.Node
+	Levels   []*xmlquery.Node
 }
 
 func ParseBill(sampleFilePath string) (parsedBill BillLevels) {
