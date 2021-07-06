@@ -11,10 +11,11 @@ import (
 )
 
 const samplesPath = "./samples"
+const samplesPathHR1500 = "samples/congress/data/116/bills/hr/hr1500"
 
 var senateFilesList = []string{"samples/congress/data/117/bills/s/s100", "samples/congress/data/117/bills/s/s100/billMeta.json", "samples/congress/data/117/bills/s/s100/data-fromfdsys-lastmod.txt", "samples/congress/data/117/bills/s/s100/data.json", "samples/congress/data/117/bills/s/s100/data.xml", "samples/congress/data/117/bills/s/s100/fdsys_billstatus-lastmod.txt", "samples/congress/data/117/bills/s/s100/fdsys_billstatus.xml", "samples/congress/data/117/bills/s/s101", "samples/congress/data/117/bills/s/s101/billMeta.json", "samples/congress/data/117/bills/s/s101/data-fromfdsys-lastmod.txt", "samples/congress/data/117/bills/s/s101/data.json", "samples/congress/data/117/bills/s/s101/data.xml", "samples/congress/data/117/bills/s/s101/fdsys_billstatus-lastmod.txt", "samples/congress/data/117/bills/s/s101/fdsys_billstatus.xml"}
-var documentXMLFilesSample = []string{"samples/congress/data/116/bills/hr/hr1500/text-versions/eh/document.xml", "samples/congress/data/116/bills/hr/hr1500/text-versions/ih/document.xml", "samples/congress/data/116/bills/hr/hr1500/text-versions/rfs/document.xml", "samples/congress/data/116/bills/hr/hr1500/text-versions/rh/document.xml", "samples/congress/data/117/bills/hr/hr100/text-versions/ih/document.xml"}
-var dataJsonFilesSample = []string{"samples/congress/data/116/bills/hr/hr1500/data.json", "samples/congress/data/117/bills/hr/hr100/data.json", "samples/congress/data/117/bills/hr/hr100/text-versions/ih/data.json", "samples/congress/data/117/bills/hr/hr200/data.json", "samples/congress/data/117/bills/s/s100/data.json", "samples/congress/data/117/bills/s/s101/data.json"}
+var documentXMLFilesSample = []string{"samples/congress/data/116/bills/hr/hr1500/text-versions/eh/document.xml", "samples/congress/data/116/bills/hr/hr1500/text-versions/ih/document.xml", "samples/congress/data/116/bills/hr/hr1500/text-versions/rfs/document.xml", "samples/congress/data/116/bills/hr/hr1500/text-versions/rh/document.xml"}
+var dataJsonFilesSample = []string{"samples/congress/data/116/bills/hr/hr1500/data.json"}
 
 var senateBillsFilter = func(testPath string) bool {
 	matched, err := regexp.MatchString(`/s[0-9]`, testPath)
@@ -35,14 +36,14 @@ func TestWalkDirFilter(t *testing.T) {
 
 }
 func TestListDocumentXMLFiles(t *testing.T) {
-	documentXMLFiles, err := ListDocumentXMLFiles(samplesPath)
+	documentXMLFiles, err := ListDocumentXMLFiles(samplesPathHR1500)
 	if err != nil {
 		t.Errorf("Error getting document.xml files: %v", err)
 	}
 	assert.ElementsMatch(t, documentXMLFilesSample, documentXMLFiles)
 }
 func TestDataJsonFiles(t *testing.T) {
-	dataJsonFiles, err := ListDataJsonFiles(samplesPath)
+	dataJsonFiles, err := ListDataJsonFiles(samplesPathHR1500)
 	if err != nil {
 		t.Errorf("Error getting data.json files: %v", err)
 	}
