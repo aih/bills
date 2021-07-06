@@ -324,11 +324,22 @@ func makeBillsMeta(parentPath string) {
 }
 
 func main() {
+	// See https://stackoverflow.com/a/55324723/628748
+	// Ensure we exit with an error code and log message
+	// when needed after deferred cleanups have run.
+	// Credit: https://medium.com/@matryer/golang-advent-calendar-day-three-fatally-exiting-a-command-line-tool-with-grace-874befeb64a4
+	var err error
+	defer func() {
+		if err != nil {
+			log.Fatal()
+		}
+	}()
 
 	flagDefs := map[string]flagDef{
-		"parentPath": {string(bills.ParentPathDefault), "Absolute path to the parent directory for 'congress' and json metadata files"},
-		"billNumber": {"", "Get and print billMeta for one bill"},
-		"log":        {"Info", "Sets Log level. Options: Error, Info, Debug"},
+		"billMetaPath": {string(bills.BillMetaPath), "Absolute path to store the bill json metadata file"},
+		"parentPath":   {string(bills.ParentPathDefault), "Absolute path to the parent directory for 'congress' and json metadata files"},
+		"billNumber":   {"", "Get and print billMeta for one bill"},
+		"log":          {"Info", "Sets Log level. Options: Error, Info, Debug"},
 	}
 
 	// Default level for this example is info, unless debug flag is present
@@ -339,8 +350,10 @@ func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 	var parentPath string
+	var pathToBillMeta string
 	flag.StringVar(&parentPath, "parentPath", flagDefs["parentPath"].value, flagDefs["parentPath"].usage)
 	flag.StringVar(&parentPath, "p", flagDefs["parentPath"].value, flagDefs["parentPath"].usage+" (shorthand)")
+	flag.StringVar(&pathToBillMeta, "billMetaPath", flagDefs["billMetaPath"].value, flagDefs["billMetaPath"].usage)
 	debug := flag.Bool("debug", false, "sets log level to debug")
 
 	var logLevel string
@@ -377,9 +390,13 @@ func main() {
 	loadTitles(bills.TitleNoYearSyncMap, bills.BillMetaSyncMap)
 	loadMainTitles(bills.MainTitleNoYearSyncMap, bills.BillMetaSyncMap)
 	writeBillMetaFiles(bills.BillMetaSyncMap)
-	pathToBillMeta := bills.BillMetaPath
-	if parentPath != "" {
-		pathToBillMeta = path.Join(parentPath, bills.BillMetaFile)
+	log.Info().Msgf("pathToBillMeta: %v", pathToBillMeta)
+	if pathToBillMeta == "" {
+		if parentPath != "" {
+			pathToBillMeta = path.Join(parentPath, bills.BillMetaFile)
+		} else {
+			pathToBillMeta = bills.BillMetaPath
+		}
 	}
 	log.Info().Msg("Creating string from  billMetaSyncMap")
 	jsonString, err := bills.MarshalJSONBillMeta(bills.BillMetaSyncMap)
