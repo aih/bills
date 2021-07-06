@@ -1,0 +1,50 @@
+package bills
+
+import (
+	"regexp"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/aih/bills/internal/testutils"
+	"github.com/rs/zerolog/log"
+)
+
+const samplesPath = "./samples"
+
+var senateFilesList = []string{"samples/bills/s/s100", "samples/bills/s/s100/billMeta.json", "samples/bills/s/s100/data-fromfdsys-lastmod.txt", "samples/bills/s/s100/data.json", "samples/bills/s/s100/data.xml", "samples/bills/s/s100/fdsys_billstatus-lastmod.txt", "samples/bills/s/s100/fdsys_billstatus.xml", "samples/bills/s/s101", "samples/bills/s/s101/billMeta.json", "samples/bills/s/s101/data-fromfdsys-lastmod.txt", "samples/bills/s/s101/data.json", "samples/bills/s/s101/data.xml", "samples/bills/s/s101/fdsys_billstatus-lastmod.txt", "samples/bills/s/s101/fdsys_billstatus.xml"}
+var documentXMLFilesSample = []string{"samples/bills/hr/hr100/text-versions/ih/document.xml"}
+var dataJsonFilesSample = []string{"samples/bills/hr/hr100/data.json", "samples/bills/hr/hr100/text-versions/ih/data.json", "samples/bills/hr/hr200/data.json", "samples/bills/s/s100/data.json", "samples/bills/s/s101/data.json"}
+
+var senateBillsFilter = func(testPath string) bool {
+	matched, err := regexp.MatchString(`/s[0-9]`, testPath)
+	if err != nil {
+		return false
+	}
+	return matched
+}
+
+func TestWalkDirFilter(t *testing.T) {
+	log.Info().Msg("Test Walking Directory with Filter")
+	testutils.SetLogLevel()
+	filePaths, err := WalkDirFilter(samplesPath, senateBillsFilter)
+	if err != nil {
+		t.Errorf("Error walking directory: %v", err)
+	}
+	assert.ElementsMatch(t, senateFilesList, filePaths)
+
+}
+func TestListDocumentXMLFiles(t *testing.T) {
+	documentXMLFiles, err := ListDocumentXMLFiles(samplesPath)
+	if err != nil {
+		t.Errorf("Error getting document.xml files: %v", err)
+	}
+	assert.ElementsMatch(t, documentXMLFilesSample, documentXMLFiles)
+}
+func TestDataJsonFiles(t *testing.T) {
+	dataJsonFiles, err := ListDataJsonFiles(samplesPath)
+	if err != nil {
+		t.Errorf("Error getting data.json files: %v", err)
+	}
+	assert.ElementsMatch(t, dataJsonFilesSample, dataJsonFiles)
+}

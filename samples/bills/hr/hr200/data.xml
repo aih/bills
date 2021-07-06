@@ -1,0 +1,31 @@
+<bill session="117" type="h" number="200" updated="2021-01-07T13:48:29Z">
+  <state datetime="2021-01-05">REFERRED</state>
+  <status>
+    <introduced datetime="2021-01-05"/>
+  </status>
+  <introduced datetime="2021-01-05"/>
+  <titles>
+    <title type="official" as="introduced">To direct the Secretary of Transportation to establish a national intersection and interchange safety construction program, and for other purposes.</title>
+    <title type="display">To direct the Secretary of Transportation to establish a national intersection and interchange safety construction program, and for other purposes.</title>
+  </titles>
+  <sponsor bioguide_id="E000294"/>
+  <cosponsors/>
+  <actions>
+    <action datetime="2021-01-05">
+      <text>Introduced in House</text>
+    </action>
+    <action datetime="2021-01-05" state="REFERRED">
+      <text>Referred to the House Committee on Transportation and Infrastructure.</text>
+    </action>
+    <action datetime="2021-01-06">
+      <text>Referred to the Subcommittee on Highways and Transit.</text>
+    </action>
+  </actions>
+  <committees>
+    <committee code="HSPW" name="House Transportation and Infrastructure" subcommittee="" activity="Referral"/>
+    <committee code="HSPW12" name="House Transportation and Infrastructure" subcommittee="Highways and Transit" activity="Referral"/>
+  </committees>
+  <relatedbills/>
+  <subjects/>
+  <amendments/>
+</bill>

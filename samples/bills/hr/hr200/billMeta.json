@@ -1,0 +1,112 @@
+{
+ "actions": [
+  {
+   "acted_at": "2021-01-05",
+   "action_code": "Intro-H",
+   "references": [],
+   "text": "Introduced in House",
+   "type": "action"
+  },
+  {
+   "acted_at": "2021-01-05",
+   "action_code": "H11100",
+   "references": [],
+   "text": "Referred to the House Committee on Transportation and Infrastructure.",
+   "type": "referral"
+  },
+  {
+   "acted_at": "2021-01-06",
+   "action_code": "",
+   "references": [],
+   "text": "Referred to the Subcommittee on Highways and Transit.",
+   "type": "referral"
+  }
+ ],
+ "congress": "117",
+ "bill_type": "hr",
+ "number": "200",
+ "bill_congress_type_number": "117hr200",
+ "history": {
+  "active": false,
+  "awaiting_signature": false,
+  "enacted": false,
+  "vetoed": false
+ },
+ "short_title": "",
+ "titles": [
+  "To direct the Secretary of Transportation to establish a national intersection and interchange safety construction program, and for other purposes.",
+  "To direct the Secretary of Transportation to establish a national intersection and interchange safety construction program, and for other purposes."
+ ],
+ "titles_whole_bill": [
+  "To direct the Secretary of Transportation to establish a national intersection and interchange safety construction program, and for other purposes.",
+  "To direct the Secretary of Transportation to establish a national intersection and interchange safety construction program, and for other purposes."
+ ],
+ "cosponsors": [],
+ "committees": [
+  {
+   "activity": [
+    "referral"
+   ],
+   "committee": "House Transportation and Infrastructure",
+   "committee_id": "HSPW",
+   "subcommittee": "",
+   "subcomittee_id": ""
+  },
+  {
+   "activity": [
+    "referral"
+   ],
+   "committee": "House Transportation and Infrastructure",
+   "committee_id": "HSPW",
+   "subcommittee": "Subcommittee on Highways and Transit",
+   "subcomittee_id": ""
+  }
+ ],
+ "related_bills": [],
+ "related_dict": {
+  "114hr1606": {
+   "bill_id": "",
+   "identified_by": "",
+   "reason": "bills-title_match",
+   "type": "",
+   "bill_congress_type_number": "114hr1606",
+   "titles": [
+    "To direct the Secretary of Transportation to establish a national intersection and interchange safety construction program, and for other purposes."
+   ],
+   "titles_whole_bill": null
+  },
+  "115hr2529": {
+   "bill_id": "",
+   "identified_by": "",
+   "reason": "bills-title_match",
+   "type": "",
+   "bill_congress_type_number": "115hr2529",
+   "titles": [
+    "To direct the Secretary of Transportation to establish a national intersection and interchange safety construction program, and for other purposes."
+   ],
+   "titles_whole_bill": null
+  },
+  "116hr529": {
+   "bill_id": "",
+   "identified_by": "",
+   "reason": "bills-title_match",
+   "type": "",
+   "bill_congress_type_number": "116hr529",
+   "titles": [
+    "To direct the Secretary of Transportation to establish a national intersection and interchange safety construction program, and for other purposes."
+   ],
+   "titles_whole_bill": null
+  },
+  "117hr200": {
+   "bill_id": "",
+   "identified_by": "",
+   "reason": "bills-title_match",
+   "type": "",
+   "bill_congress_type_number": "117hr200",
+   "titles": [
+    "To direct the Secretary of Transportation to establish a national intersection and interchange safety construction program, and for other purposes."
+   ],
+   "titles_whole_bill": null
+  }
+ }
+}

@@ -17,7 +17,7 @@
 	    	$(GOBUILD) -o cmd/bin/ $$go_pkg ; \
 	    done
     test: 
-	    $(GOTEST) -v ./...
+	    $(GOTEST) -v .
     clean: 
 	    $(GOCLEAN)
 	    rm -f $(BINARY_NAME)

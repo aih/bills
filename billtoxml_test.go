@@ -4,7 +4,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/rs/zerolog"
+	"github.com/aih/bills/internal/testutils"
 	"github.com/rs/zerolog/log"
 )
 
@@ -14,7 +14,7 @@ const section12 = `<section id="HC417BF8D57CF48F3841216EC05FBD460"><enum>12.</en
 
 func TestParseBill(t *testing.T) {
 	log.Info().Msg("Test bill parsing (to sections and levels)")
-	setLogLevel()
+	testutils.SetLogLevel()
 	billLevels := ParseBill(sampleFilePath)
 	gotnumsections := len(billLevels.Sections)
 	if gotnumsections != 18 {
@@ -25,9 +25,4 @@ func TestParseBill(t *testing.T) {
 		t.Errorf("For section 12 got: " + gotsection12)
 	}
 
-}
-
-func setLogLevel() {
-	// Log level set to info
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 }

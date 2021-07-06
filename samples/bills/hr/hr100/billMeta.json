@@ -1,0 +1,121 @@
+{
+ "actions": [
+  {
+   "acted_at": "2021-01-04",
+   "action_code": "Intro-H",
+   "references": [],
+   "text": "Introduced in House",
+   "type": "action"
+  },
+  {
+   "acted_at": "2021-01-04",
+   "action_code": "H11100",
+   "references": [],
+   "text": "Referred to the Committee on House Administration, and in addition to the Committee on the Judiciary, for a period to be subsequently determined by the Speaker, in each case for consideration of such provisions as fall within the jurisdiction of the committee concerned.",
+   "type": "referral"
+  },
+  {
+   "acted_at": "2021-01-04",
+   "action_code": "H11100",
+   "references": [],
+   "text": "Referred to the Committee on House Administration, and in addition to the Committee on the Judiciary, for a period to be subsequently determined by the Speaker, in each case for consideration of such provisions as fall within the jurisdiction of the committee concerned.",
+   "type": "referral"
+  }
+ ],
+ "congress": "117",
+ "bill_type": "hr",
+ "number": "100",
+ "bill_congress_type_number": "117hr100",
+ "history": {
+  "active": false,
+  "awaiting_signature": false,
+  "enacted": false,
+  "vetoed": false
+ },
+ "short_title": "Citizen Legislature Anti-Corruption Reform of Elections Act",
+ "titles": [
+  "CLEAN Elections Act",
+  "Citizen Legislature Anti-Corruption Reform of Elections Act",
+  "CLEAN Elections Act",
+  "To require the use of independent nonpartisan commissions to carry out congressional redistricting and to require States to hold open primaries for elections for Federal office."
+ ],
+ "titles_whole_bill": [
+  "CLEAN Elections Act",
+  "Citizen Legislature Anti-Corruption Reform of Elections Act",
+  "CLEAN Elections Act",
+  "To require the use of independent nonpartisan commissions to carry out congressional redistricting and to require States to hold open primaries for elections for Federal office."
+ ],
+ "cosponsors": [
+  {
+   "bioguide_id": "L000579",
+   "thomas_id": "",
+   "district": "47",
+   "name": "Lowenthal, Alan S.",
+   "original_cosponsor": true,
+   "sponsored_at": "2021-01-04",
+   "state": "CA",
+   "title": "Rep"
+  }
+ ],
+ "committees": [
+  {
+   "activity": [
+    "referral"
+   ],
+   "committee": "House Judiciary",
+   "committee_id": "HSJU",
+   "subcommittee": "",
+   "subcomittee_id": ""
+  },
+  {
+   "activity": [
+    "referral"
+   ],
+   "committee": "House Committee on House Administration",
+   "committee_id": "HSHA",
+   "subcommittee": "",
+   "subcomittee_id": ""
+  }
+ ],
+ "related_bills": [],
+ "related_dict": {
+  "116hr1612": {
+   "bill_id": "",
+   "identified_by": "BillMap",
+   "reason": "bills-title_match",
+   "type": "",
+   "bill_congress_type_number": "116hr1612",
+   "titles": [
+    "CLEAN Elections Act",
+    "Citizen Legislature Anti-Corruption Reform of Elections Act"
+   ],
+   "titles_whole_bill": null
+  },
+  "116hr163": {
+   "bill_id": "",
+   "identified_by": "BillMap",
+   "reason": "bills-title_match",
+   "type": "",
+   "bill_congress_type_number": "116hr163",
+   "titles": [
+    "CLEAN Elections Act",
+    "Citizen Legislature Anti-Corruption Reform of Elections Act",
+    "To require the use of independent nonpartisan commissions to carry out congressional redistricting and to require States to hold open primaries for elections for Federal office."
+   ],
+   "titles_whole_bill": null
+  },
+  "117hr100": {
+   "bill_id": "",
+   "identified_by": "BillMap",
+   "reason": "bills-title_match",
+   "type": "",
+   "bill_congress_type_number": "117hr100",
+   "titles": [
+    "CLEAN Elections Act",
+    "Citizen Legislature Anti-Corruption Reform of Elections Act",
+    "To require the use of independent nonpartisan commissions to carry out congressional redistricting and to require States to hold open primaries for elections for Federal office."
+   ],
+   "titles_whole_bill": null
+  }
+ }
+}
