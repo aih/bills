@@ -25,5 +25,4 @@ func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	log.Debug().Msg("Log level set to Debug")
 	bills.DownloadCommitteesYaml()
-	bills.ReadCommitteesYaml()
 }

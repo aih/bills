@@ -1,6 +1,7 @@
 package bills
 
 import (
+	"fmt"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -100,6 +101,9 @@ func DownloadFile(filepath string, url string) error {
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("%s: %s", resp.Status, resp.Status)
 	}
 	defer resp.Body.Close()
 
