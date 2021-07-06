@@ -13,6 +13,7 @@ The packages in the `cmd` directory, which build to `cmd/bin` are:
 
 badgerkv:: a test for storing data in the `badger` database. (TODO: convert this instead to a test for the `badgerkv` package.)
 billmeta:: command-line tool to create bill metadata and store it to a file. Command-line options include `-p` to specify a parent path for the bills to process, or `-billNumber` to process a specific bill. The metadata is created by makeBillsMeta and enriched by finding bills that have the same titles and main titles.
+To run a sample and store results in `testMeta.json`, run `cmd/bin/billmeta -parentPath ./samples -billMetaPath ./testMeta.json`
 committees:: command-line tool to download committees.yaml to `tmp/committees.yaml` 
 comparematrix::
 esquery::

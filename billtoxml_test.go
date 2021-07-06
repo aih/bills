@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var sampleFilePath = path.Join("samples", "BILLS-116hr1500eh.xml")
+var sampleFilePath = path.Join("samples", "congress", "data", "116", "bills", "hr", "hr1500", "text-versions", "eh", "document.xml")
 
 const section12 = `<section id="HC417BF8D57CF48F3841216EC05FBD460"><enum>12.</enum><header>Maintaining the HMDA Explorer tool and the Public Data Platform API</header><text display-inline="no-display-inline">The Consumer Financial protection Bureau may not retire the HMDA Explorer tool or the Public Data Platform API.</text></section>`
 
