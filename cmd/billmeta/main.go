@@ -69,12 +69,26 @@ func loadTitles(titleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 						relatedBillItem.IdentifiedBy = strings.Join(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.IdentifiedBy, ", "), bills.IdentifiedByBillMap)), ", ")
 						relatedBillItem.Titles = bills.RemoveDuplicates(append(relatedBillItem.Titles, billTitle.(string)))
 						relatedBills[titleBillRelated] = relatedBillItem
+						if relatedBillItem.BillId == "" && relatedBillItem.BillCongressTypeNumber != "" {
+							relatedBillItem.BillId = bills.BillNumberToBillId(relatedBillItem.BillCongressTypeNumber)
+						}
+						if relatedBillItem.BillCongressTypeNumber == "" && relatedBillItem.BillId != "" {
+							relatedBillItem.BillCongressTypeNumber = bills.BillIdToBillNumber(relatedBillItem.BillId)
+						}
 					} else {
 						newRelatedBillItem := new(bills.RelatedBillItem)
 						newRelatedBillItem.BillCongressTypeNumber = titleBillRelated
 						newRelatedBillItem.Titles = []string{billTitle.(string)}
 						newRelatedBillItem.Reason = bills.TitleMatchReason
-						relatedBillItem.IdentifiedBy = bills.IdentifiedByBillMap
+						newRelatedBillItem.IdentifiedBy = bills.IdentifiedByBillMap
+						if newRelatedBillItem.BillId == "" && newRelatedBillItem.BillCongressTypeNumber != "" {
+							newRelatedBillItem.BillId = bills.BillNumberToBillId(newRelatedBillItem.BillCongressTypeNumber)
+						}
+						if newRelatedBillItem.BillCongressTypeNumber == "" && newRelatedBillItem.BillId != "" {
+							newRelatedBillItem.BillCongressTypeNumber = bills.BillIdToBillNumber(newRelatedBillItem.BillId)
+						}
+						//if relatedBillItem.Type == "" {
+						//}
 						relatedBills[titleBillRelated] = *newRelatedBillItem
 					}
 				}
@@ -117,6 +131,12 @@ func loadMainTitles(mainTitleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 						relatedBillItem.Reason = strings.Join(bills.SortReasons(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), bills.MainTitleMatchReason))), ", ")
 						relatedBillItem.IdentifiedBy = strings.Join(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.IdentifiedBy, ", "), bills.IdentifiedByBillMap)), ", ")
 						// relatedBillItem.Titles = bills.RemoveDuplicates(append(relatedBillItem.Titles, billTitle.(string)))
+						if relatedBillItem.BillId == "" && relatedBillItem.BillCongressTypeNumber != "" {
+							relatedBillItem.BillId = bills.BillNumberToBillId(relatedBillItem.BillCongressTypeNumber)
+						}
+						if relatedBillItem.BillCongressTypeNumber == "" && relatedBillItem.BillId != "" {
+							relatedBillItem.BillCongressTypeNumber = bills.BillIdToBillNumber(relatedBillItem.BillId)
+						}
 						relatedBills[titleBillRelated] = relatedBillItem
 					} else {
 						newRelatedBillItem := new(bills.RelatedBillItem)
@@ -124,6 +144,12 @@ func loadMainTitles(mainTitleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 						newRelatedBillItem.Titles = []string{billTitle.(string)}
 						newRelatedBillItem.Reason = bills.MainTitleMatchReason
 						relatedBillItem.IdentifiedBy = bills.IdentifiedByBillMap
+						if newRelatedBillItem.BillId == "" && newRelatedBillItem.BillCongressTypeNumber != "" {
+							newRelatedBillItem.BillId = bills.BillNumberToBillId(newRelatedBillItem.BillCongressTypeNumber)
+						}
+						if newRelatedBillItem.BillCongressTypeNumber == "" && newRelatedBillItem.BillId != "" {
+							newRelatedBillItem.BillCongressTypeNumber = bills.BillIdToBillNumber(newRelatedBillItem.BillId)
+						}
 						relatedBills[titleBillRelated] = *newRelatedBillItem
 					}
 				}
