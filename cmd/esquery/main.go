@@ -15,22 +15,6 @@ const (
 	min_sim_score = 20
 )
 
-func getTopHit(hits []interface{}) (topHit map[string]interface{}) {
-
-	var topScore float64
-	var score float64
-	topScore = 0
-	for _, item := range hits {
-		score = item.(map[string]interface{})["_score"].(float64)
-		if score > topScore {
-			topScore = score
-			topHit = item.(map[string]interface{})
-		}
-
-	}
-	return topHit
-}
-
 func getMatchingBills(hits []interface{}) (billnumbers []string) {
 
 	for _, item := range hits {
@@ -43,6 +27,7 @@ func getMatchingBills(hits []interface{}) (billnumbers []string) {
 
 func main() {
 	debug := flag.Bool("debug", false, "sets log level to debug")
+	all := flag.Bool("all", false, "processes all bills-- otherwise process a sample")
 
 	flag.Parse()
 
@@ -59,8 +44,12 @@ func main() {
 	//bills.PrintESInfo()
 	//bills.SampleQuery()
 
-	billNumbers := bills.GetAllBillNumbers()
-	billNumbers = []string{"116hr299"}
+	var billNumbers []string
+	if *all {
+		billNumbers = bills.GetAllBillNumbers()
+	} else {
+		billNumbers = bills.GetSampleBillNumbers()
+	}
 	for _, billnumber := range billNumbers {
 		log.Info().Msgf("Get versions of: %s", billnumber)
 		r := bills.GetBill_ES(billnumber)
@@ -76,7 +65,7 @@ func main() {
 			similars := bills.GetMoreLikeThisQuery(num_results, min_sim_score, sectionText.(string))
 			hits := similars["hits"].(map[string]interface{})["hits"].([]interface{})
 			if len(hits) > 0 {
-				topHit := getTopHit(hits)
+				topHit := bills.GetTopHit(hits)
 				matchingBills := strings.Join(getMatchingBills(hits), ", ")
 
 				log.Info().Msgf("Number of matches: %d, Matches: %s, Top Match: %s, Score: %f", len(hits), matchingBills, topHit["_source"].(map[string]interface{})["billnumber"], topHit["_score"])

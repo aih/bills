@@ -283,6 +283,11 @@ func GetLatestBill(r map[string]interface{}) (latestbill map[string]interface{})
 	return latestbill
 }
 
+func GetSampleBillNumbers() []string {
+	// TODO: set number of bills to get and get them at random
+	return []string{"116hr299"}
+}
+
 func GetAllBillNumbers() []string {
 	var billNumbers []gjson.Result
 	resultChan := make(chan []gjson.Result)
