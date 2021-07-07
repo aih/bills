@@ -29,6 +29,8 @@ func main() {
 	debug := flag.Bool("debug", false, "sets log level to debug")
 	all := flag.Bool("all", false, "processes all bills-- otherwise process a sample")
 
+	// TODO allow user to pass billnumbers as argument
+
 	flag.Parse()
 
 	// Default level for this example is info, unless debug flag is present
