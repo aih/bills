@@ -1,3 +1,5 @@
+:toc: auto
+
 ## Process Bills with Golang
 
 This repository (`bills`) defines a module (`github.com/aih/bills`) with a number of packages defined in the `/cmd` directory.
@@ -22,5 +24,14 @@ legislators::
 listxml::
 unitedstates::
 
-
 Note: Some of these commands process many files in parallel. In order to prevent problems on systems that limit open files (e.g. Ubuntu), we've added a max open files parameter (see, e.g.  `billmeta`). In addition, to prevent crashes due to system memory limitations, on the production server, I increased file swap size to 4Gb (see https://askubuntu.com/a/1075516/686037).
+
+## Bill Processing Pipeline
+
+1. Download documents to `congress` directory (using `unitedstates` repository) 
+TODO: develop a Go alternative for downloads.
+2. Process bill metadata (using `billmeta`) and store in `billMetaGo.json`
+3. Index bill xml to Elasticsearch (currently, this is done in Python)
+TODO: develop a Go alternative for indexing.
+4. For each bill, find similar bills by section
+5. For the most similar bills, calculate similarity scores and assign categories (e.g. `identical`, `nearly identical`, `includes`, `includedby`). 
