@@ -18,7 +18,7 @@ billmeta:: command-line tool to create bill metadata and store it to a file. Com
 To run a sample and store results in `testMeta.json`, run `cmd/bin/billmeta -parentPath ./samples -billMetaPath ./samples/test/results/testMeta.json`
 committees:: command-line tool to download committees.yaml to `tmp/committees.yaml` 
 comparematrix::
-esquery::
+esquery:: find the similar bills for each section of bills. This can be run on a sample of bills, or all bills. This does not yet use concurrency or store results.
 jsonpgx::
 legislators::
 unitedstates::
