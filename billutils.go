@@ -90,7 +90,7 @@ func UnmarshalJson(data []byte) (*sync.Map, error) {
 }
 
 func UnmarshalJsonFile(jpath string) (*sync.Map, error) {
-	jsonFile, err := os.Open("users.json")
+	jsonFile, err := os.Open(jpath)
 	if err != nil {
 		log.Error().Err(err)
 	}

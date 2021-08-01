@@ -274,7 +274,7 @@ func makeBillsMeta(parentPath string) {
 			for _, title := range titles {
 				//for _, title := range billMeta.Titles {
 				log.Info().Msgf("[%d] Getting titles for %s.", billCounter, billMeta.BillCongressTypeNumber)
-				titleNoYear := bills.TitleNoYearRegexCompiled.ReplaceAllString(title, "")
+				titleNoYear := strings.Trim(bills.TitleNoYearRegexCompiled.ReplaceAllString(title, ""), " ")
 				if titleBills, loaded := bills.TitleNoYearSyncMap.LoadOrStore(titleNoYear, []string{billMeta.BillCongressTypeNumber}); loaded {
 					titleBills = bills.RemoveDuplicates(append(titleBills.([]string), billMeta.BillCongressTypeNumber))
 					bills.TitleNoYearSyncMap.Store(titleNoYear, titleBills)
@@ -284,7 +284,7 @@ func makeBillsMeta(parentPath string) {
 
 			for _, title := range mainTitles {
 				log.Info().Msgf("[%d] Getting main titles for %s.", billCounter, billMeta.BillCongressTypeNumber)
-				mainTitleNoYear := bills.TitleNoYearRegexCompiled.ReplaceAllString(title, "")
+				mainTitleNoYear := strings.Trim(bills.TitleNoYearRegexCompiled.ReplaceAllString(title, ""), " ")
 				if mainTitleBills, loaded := bills.MainTitleNoYearSyncMap.LoadOrStore(mainTitleNoYear, []string{billMeta.BillCongressTypeNumber}); loaded {
 					mainTitleBills = bills.RemoveDuplicates(append(mainTitleBills.([]string), billMeta.BillCongressTypeNumber))
 					bills.MainTitleNoYearSyncMap.Store(mainTitleNoYear, mainTitleBills)
