@@ -120,10 +120,10 @@ func loadMainTitles(mainTitleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 						relatedBills = bills.RelatedBillMap{}
 					}
 				*/
-				// TODO check that each of titleBills is in relatedBills
+				// Check that each of titleBills is in relatedBills
 				// If it is, make sure 'title match' is one of the reasons
 				// Add the billTitle to Titles, if it is not already there
-				// If it's not, add it with 'title match'
+				// If it's not, add it with bills.MainTitleMatchReason
 				for _, titleBillRelated := range titleBills.([]string) {
 					// titleBillRelated is the bill number of the related bill
 					if relatedBillItem, ok := relatedBills[titleBillRelated]; ok {
