@@ -431,6 +431,6 @@ func main() {
 	if err != nil {
 		log.Error().Msgf("Error making JSON data for billMetaMap: %s", err)
 	}
-	log.Info().Msgf("Writing billMeta JSON data to file: %s", pathToBillMeta)
+	log.Info().Msgf("Writing billMeta JSON data to file: %v", pathToBillMeta)
 	os.WriteFile(pathToBillMeta, []byte(jsonString), 0666)
 }
