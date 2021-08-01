@@ -34,9 +34,10 @@ func getSyncMapKeys(m *sync.Map) (s string) {
 func writeBillMetaFiles(billMetaSyncMap *sync.Map) {
 	log.Info().Msg("***** Writing individual bill metadata to files ******")
 	billMetaSyncMap.Range(func(billCongressTypeNumber, billMeta interface{}) bool {
+		log.Info().Msgf("Writing metadata for: %s", billCongressTypeNumber)
 		saveErr := bills.SaveBillJson(billCongressTypeNumber.(string), billMeta.(bills.BillMeta))
 		if saveErr != nil {
-			log.Print(saveErr)
+			log.Error().Msgf("Error saving meta file: %s", saveErr)
 		}
 		return true
 	})
