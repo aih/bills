@@ -1,0 +1,74 @@
+{
+ "actions": [
+  {
+   "acted_at": "2021-01-28",
+   "action_code": "10000",
+   "references": [],
+   "text": "Introduced in Senate",
+   "type": "action"
+  },
+  {
+   "acted_at": "2021-01-28",
+   "action_code": "",
+   "references": [],
+   "text": "Read twice and referred to the Committee on Environment and Public Works.",
+   "type": "referral"
+  }
+ ],
+ "congress": "117",
+ "bill_type": "s",
+ "number": "101",
+ "bill_congress_type_number": "117s101",
+ "history": {
+  "active": false,
+  "awaiting_signature": false,
+  "enacted": false,
+  "vetoed": false
+ },
+ "official_title": "",
+ "popular_title": "",
+ "short_title": "",
+ "titles": [
+  "A bill to establish the Environmental Justice Mapping Committee, and for other purposes."
+ ],
+ "titles_whole_bill": [
+  "A bill to establish the Environmental Justice Mapping Committee, and for other purposes."
+ ],
+ "cosponsors": [
+  {
+   "bioguide_id": "D000622",
+   "thomas_id": "",
+   "district": "",
+   "name": "Duckworth, Tammy",
+   "original_cosponsor": true,
+   "sponsored_at": "2021-01-28",
+   "state": "IL",
+   "title": "Sen"
+  }
+ ],
+ "committees": [
+  {
+   "activity": [
+    "referral"
+   ],
+   "committee": "Senate Environment and Public Works",
+   "committee_id": "SSEV",
+   "subcommittee": "",
+   "subcomittee_id": ""
+  }
+ ],
+ "related_bills": [],
+ "related_dict": {
+  "117s101": {
+   "bill_id": "s101-117",
+   "identified_by": "BillMap",
+   "reason": "bills-title_match",
+   "type": "",
+   "bill_congress_type_number": "117s101",
+   "titles": [
+    "A bill to establish the Environmental Justice Mapping Committee, and for other purposes."
+   ],
+   "titles_whole_bill": null
+  }
+ }
+}

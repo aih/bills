@@ -61,17 +61,19 @@ func (c *Committees) ParseCommitteeYaml(data []byte) error {
 	return nil
 }
 
-func ReadCommitteesYaml() {
+func ReadCommitteesYaml() (committees Committees, err error) {
 	pathToYaml := "tmp/committees.yaml"
 	yamlFile, err := ioutil.ReadFile(pathToYaml)
 	if err != nil {
 		log.Error().Msgf("Error reading %s   #%v ", pathToYaml, err)
+		return committees, err
 	}
-	var committees Committees
 	if err := committees.ParseCommitteeYaml(yamlFile); err != nil {
 		log.Fatal().Err(err)
+		return committees, err
 	}
 
 	log.Debug().Msgf("%+v\n", committees)
+	return committees, err
 
 }

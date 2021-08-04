@@ -14,6 +14,8 @@ type LogLevel int8
 
 type LogLevels map[string]zerolog.Level
 
+type billVersions map[string]int
+
 // Constants for this package
 var (
 	BillnumberRegexCompiled = regexp.MustCompile(`(?P<congress>[1-9][0-9]*)(?P<stage>[a-z]{1,8})(?P<billnumber>[1-9][0-9]*)(?P<version>[a-z]+)?`)
@@ -23,24 +25,29 @@ var (
 	TitleNoYearRegexCompiled = regexp.MustCompile(`of\s[0-9]{4}$`)
 	removeXMLRegexCompiled   = regexp.MustCompile(`<[^>]+>`)
 	// Set to ../../congress
-	PathToDataDir         = path.Join("/", "data")
-	ParentPathDefault     = path.Join("..", "..", "..")
-	CongressDir           = "congress"
-	BillMetaFile          = "billMetaGo.json"
-	BillSimilarityFile    = "billSimilarityGo.json"
-	TitleNoYearIndex      = "titleNoYearIndexGo.json"
-	BillsFile             = "billsGo.json"
-	PathToCongressDataDir = path.Join(ParentPathDefault, CongressDir)
-	BillMetaPath          = path.Join(ParentPathDefault, BillMetaFile)
-	BillSimilarityPath    = path.Join(ParentPathDefault, BillSimilarityFile)
-	TitleNoYearIndexPath  = path.Join(ParentPathDefault, TitleNoYearIndex)
-	BillsPath             = path.Join(ParentPathDefault, BillsFile)
-	BillMetaSyncMap       = new(sync.Map)
+	PathToDataDir            = path.Join("/", "data")
+	ParentPathDefault        = path.Join("..", "..", "..")
+	CongressDir              = "congress"
+	BillMetaFile             = "billMetaGo.json"
+	BillSimilarityFile       = "billSimilarityGo.json"
+	TitleNoYearIndex         = "titleNoYearIndexGo.json"
+	MainTitleNoYearIndex     = "mainTitleNoYearIndexGo.json"
+	BillsFile                = "billsGo.json"
+	PathToCongressDataDir    = path.Join(ParentPathDefault, CongressDir)
+	BillMetaPath             = path.Join(ParentPathDefault, BillMetaFile)
+	BillSimilarityPath       = path.Join(ParentPathDefault, BillSimilarityFile)
+	TitleNoYearIndexPath     = path.Join(ParentPathDefault, TitleNoYearIndex)
+	MainTitleNoYearIndexPath = path.Join(ParentPathDefault, MainTitleNoYearIndex)
+	BillsPath                = path.Join(ParentPathDefault, BillsFile)
+	BillMetaSyncMap          = new(sync.Map)
 	// titleSyncMap                = new(sync.Map)
-	TitleNoYearSyncMap  = new(sync.Map)
-	TitleMatchReason    = "bills-title_match"
-	IdentifiedByBillMap = "BillMap"
-	ZLogLevels          = LogLevels{"Debug": zerolog.DebugLevel, "Info": zerolog.InfoLevel, "Error": zerolog.ErrorLevel}
+	MainTitleNoYearSyncMap = new(sync.Map)
+	TitleNoYearSyncMap     = new(sync.Map)
+	MainTitleMatchReason   = "bills-title_match_main"
+	TitleMatchReason       = "bills-title_match"
+	IdentifiedByBillMap    = "BillMap"
+	BillVersionsOrdered    = billVersions{"ih": 0, "rh": 1, "rfs": 2, "eh": 3, "es": 4, "enr": 5}
+	ZLogLevels             = LogLevels{"Debug": zerolog.DebugLevel, "Info": zerolog.InfoLevel, "Error": zerolog.ErrorLevel}
 )
 
 func LoadEnv() (err error) {

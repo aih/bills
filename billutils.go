@@ -19,6 +19,14 @@ func BillIdToBillNumber(billId string) string {
 	return fmt.Sprintf("%s%s", billIdParts[1], billIdParts[0])
 }
 
+// Converts a bill number of the form `116hr299` into `hr299-116`
+func BillNumberToBillId(billNumber string) string {
+	log.Debug().Msgf("Billnumber: %s\n", billNumber)
+	var matchMap = FindNamedMatches(BillnumberRegexCompiled, billNumber)
+	log.Debug().Msg(fmt.Sprint(matchMap))
+	return fmt.Sprintf("%s-%s", matchMap["stage"]+matchMap["billnumber"], matchMap["congress"])
+}
+
 //  Gets billnumber + version from the bill path
 //  E.g. bill_path of the form e.g. [path]/data/116/bills/hr/hr1/text-versions
 //    returns 116hr1500rh
@@ -82,7 +90,7 @@ func UnmarshalJson(data []byte) (*sync.Map, error) {
 }
 
 func UnmarshalJsonFile(jpath string) (*sync.Map, error) {
-	jsonFile, err := os.Open("users.json")
+	jsonFile, err := os.Open(jpath)
 	if err != nil {
 		log.Error().Err(err)
 	}
@@ -153,7 +161,7 @@ func ExtractBillMeta(billPath string, billMetaStorageChannel chan BillMeta, sem 
 	billMeta.BillType = dat.BillType
 	billMeta.Congress = dat.Congress
 	if billMeta.Congress == "" {
-		msg := "wrong data in data.json (no Congress field)"
+		msg := fmt.Sprintf("wrong data in data.json (e.g. no Congress field) for %s", billCongressTypeNumber)
 		log.Error().Msg(msg)
 		err = errors.New(msg)
 		return err
@@ -164,8 +172,8 @@ func ExtractBillMeta(billPath string, billMetaStorageChannel chan BillMeta, sem 
 	billMeta.History = dat.History
 	billMeta.ShortTitle = dat.ShortTitle
 	titlesMap := getBillTitles(dat)
-	billMeta.Titles = titlesMap["titles"]
-	billMeta.TitlesWholeBill = titlesMap["titlesWholeBill"]
+	billMeta.Titles = RemoveDuplicates(titlesMap["titles"])
+	billMeta.TitlesWholeBill = RemoveDuplicates(titlesMap["titlesWholeBill"])
 	billMeta.RelatedBills = dat.RelatedBills
 	billMeta.RelatedBillsByBillnumber = make(map[string]RelatedBillItem)
 	for i, billItem := range billMeta.RelatedBills {

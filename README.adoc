@@ -1,11 +1,36 @@
+:toc: auto
+
 ## Process Bills with Golang
 
-This repository (`bills`) defines a module (`github.com/aih/bills`) with one package (`main`).
+This repository (`bills`) defines a module (`github.com/aih/bills`) with a number of packages defined in the `/cmd` directory.
 
-To build and run this module: 
-`go run github.com/aih/bills`
+To build and create commands in the `bills/cmd` directory, run `make build` (to apply the `Makefile`).
 
-To build and create commands in the `bills/cmd` directory, run make (to apply the `Makefile`).
+To test, run `make test` (the tests are not complete).
+
+To run both, simply `make`.
 
 
-Note: These commands process many files in parallel. In order to prevent problems on systems that limit open files (e.g. Ubuntu), we've added a max open files parameter in `billmeta`. In addition, to prevent crashes due to system memory limitations, on the production server, I increased file swap size to 4Gb (see https://askubuntu.com/a/1075516/686037).
+The packages in the `cmd` directory, which build to `cmd/bin` are:
+
+badgerkv:: a test for storing data in the `badger` database. (TODO: convert this instead to a test for the `badgerkv` package.)
+billmeta:: command-line tool to create bill metadata and store it to a file. Command-line options include `-p` to specify a parent path for the bills to process, or `-billNumber` to process a specific bill. The metadata is created by makeBillsMeta and enriched by finding bills that have the same titles and main titles.
+To run a sample and store results in `testMeta.json`, run `cmd/bin/billmeta -parentPath ./samples -billMetaPath ./samples/test/results/testMeta.json`
+committees:: command-line tool to download committees.yaml to `tmp/committees.yaml` 
+comparematrix:: a command-line tool to which takes a list of bills as input and outputs a matrix of bill similarity (including the category of similarity)
+esquery:: find the similar bills for each section of bills. This can be run on a sample of bills, or all bills. This does not yet use concurrency or store results.
+jsonpgx:: a command-line tool to work with posgtresql
+legislators:: a command-line tool to download legislators.yaml to `tmp/legislators.yaml`
+unitedstates:: a stub (not currently working) that will download and process bill data and metadata
+
+Note: Some of these commands process many files in parallel. In order to prevent problems on systems that limit open files (e.g. Ubuntu), we've added a max open files parameter (see, e.g.  `billmeta`). In addition, to prevent crashes due to system memory limitations, on the production server, I increased file swap size to 4Gb (see https://askubuntu.com/a/1075516/686037).
+
+## Bill Processing Pipeline
+
+1. Download documents to `congress` directory (using `unitedstates` repository) 
+TODO: develop a Go alternative for downloads.
+2. Process bill metadata (using `billmeta`) and store in `billMetaGo.json`
+3. Index bill xml to Elasticsearch (currently, this is done in Python)
+TODO: develop a Go alternative for indexing.
+4. For each bill, find similar bills by section
+5. For the most similar bills, calculate similarity scores and assign categories (e.g. `identical`, `nearly identical`, `includes`, `includedby`). 

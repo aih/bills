@@ -51,7 +51,7 @@ func CollectWordSample(fpath string, wordSampleStorageChannel chan WordSample, w
 // Collects a random sample of tokenized words
 // for each bill in 'document.xml' files in the 'congress' directory
 // Writes the results to the wordSamplePath
-func CollectWordSamplesFromBills(pathToCongressDataDir string) {
+func CollectWordSamplesFromBills(pathToCongressDataDir string) (allWords []string) {
 	if pathToCongressDataDir == "" {
 		pathToCongressDataDir = PathToCongressDataDir
 	}
@@ -71,7 +71,6 @@ func CollectWordSamplesFromBills(pathToCongressDataDir string) {
 	}
 
 	billCounter := 0
-	allWords := make([]string, 0)
 	for wordSampleItem := range wordSampleStorageChannel {
 		billCounter++
 		// Subsample and save to total list
@@ -81,8 +80,12 @@ func CollectWordSamplesFromBills(pathToCongressDataDir string) {
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(allWords), func(i, j int) { allWords[i], allWords[j] = allWords[j], allWords[i] })
 	log.Info().Msg("Writing word list to file")
-	log.Info().Msgf("First 100 words: \n %s", strings.Join(allWords[:100], " "))
-	wordSampleList := make([]string, 0)
+	if len(allWords) > 100 {
+		log.Info().Msgf("First 100 words: \n %s", strings.Join(allWords[:100], " "))
+	} else {
+		log.Info().Msgf("Sample words: \n %s", strings.Join(allWords, " "))
+	}
+	var wordSampleList []string
 	if len(allWords) > wordSampleListLen {
 		wordSampleList = allWords[:wordSampleListLen]
 	} else {
@@ -94,5 +97,6 @@ func CollectWordSamplesFromBills(pathToCongressDataDir string) {
 	} else {
 		os.WriteFile(wordSamplePath, wordSampleJson, 0666)
 	}
+	return allWords
 
 }

@@ -13,10 +13,11 @@ import (
 )
 
 // Saves bill metadata to billMeta.json
-func SaveBillJson(billCongressTypeNumber string, billMetaItem BillMeta) error {
+func SaveBillJson(billCongressTypeNumber string, billMetaItem BillMeta, parentPath string) error {
 
 	dataPath, _ := PathFromBillNumber(billCongressTypeNumber)
-	dataPath = path.Join(PathToCongressDataDir, "data", strings.Replace(dataPath, "/text-versions", "", 1))
+
+	dataPath = path.Join(parentPath, CongressDir, "data", strings.Replace(dataPath, "/text-versions", "", 1))
 	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
 		return fmt.Errorf("error getting path for: %s\nErr: %s", billCongressTypeNumber, err)
 	}

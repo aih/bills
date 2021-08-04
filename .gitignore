@@ -12,6 +12,7 @@ vendor
 
 tmp
 tmp/*
+_testMeta.json
 
 # Test binary, built with `go test -c`
 *.test
