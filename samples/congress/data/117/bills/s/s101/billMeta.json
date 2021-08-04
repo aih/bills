@@ -25,6 +25,8 @@
   "enacted": false,
   "vetoed": false
  },
+ "official_title": "",
+ "popular_title": "",
  "short_title": "",
  "titles": [
   "A bill to establish the Environmental Justice Mapping Committee, and for other purposes.",
@@ -60,8 +62,8 @@
  "related_bills": [],
  "related_dict": {
   "117s101": {
-   "bill_id": "",
-   "identified_by": "",
+   "bill_id": "s101-117",
+   "identified_by": "BillMap",
    "reason": "bills-title_match",
    "type": "",
    "bill_congress_type_number": "117s101",

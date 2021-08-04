@@ -31,12 +31,12 @@ func getSyncMapKeys(m *sync.Map) (s string) {
 	return
 }
 
-func writeBillMetaFiles(billMetaSyncMap *sync.Map) {
+func writeBillMetaFiles(billMetaSyncMap *sync.Map, parentPath string) {
 	log.Info().Msg("***** Writing individual bill metadata to files ******")
 
 	billMetaSyncMap.Range(func(billCongressTypeNumber, billMeta interface{}) bool {
 		log.Info().Msgf("Writing metadata for: %s", billCongressTypeNumber)
-		saveErr := bills.SaveBillJson(billCongressTypeNumber.(string), billMeta.(bills.BillMeta))
+		saveErr := bills.SaveBillJson(billCongressTypeNumber.(string), billMeta.(bills.BillMeta), parentPath)
 		if saveErr != nil {
 			log.Error().Msgf("Error saving meta file: %s", saveErr)
 		}
@@ -420,7 +420,7 @@ func main() {
 	billlist := getSyncMapKeys(bills.BillMetaSyncMap)
 	log.Info().Msgf("BillMetaSyncMap keys: %v", billlist)
 	log.Info().Msgf("BillMetaSyncMap length: %v", len(strings.Split(billlist, ", ")))
-	writeBillMetaFiles(bills.BillMetaSyncMap)
+	writeBillMetaFiles(bills.BillMetaSyncMap, parentPath)
 	log.Info().Msgf("pathToBillMeta: %v", pathToBillMeta)
 	if pathToBillMeta == "" {
 		if parentPath != "" {
