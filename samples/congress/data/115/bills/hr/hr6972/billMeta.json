@@ -1,0 +1,149 @@
+{
+ "actions": [
+  {
+   "acted_at": "2018-09-28",
+   "action_code": "Intro-H",
+   "references": [],
+   "text": "Introduced in House",
+   "type": "action"
+  },
+  {
+   "acted_at": "2018-09-28",
+   "action_code": "H11100",
+   "references": [],
+   "text": "Referred to the Committee on Financial Services, and in addition to the Committee on Education and the Workforce, for a period to be subsequently determined by the Speaker, in each case for consideration of such provisions as fall within the jurisdiction of the committee concerned.",
+   "type": "referral"
+  },
+  {
+   "acted_at": "2018-09-28",
+   "action_code": "H11100",
+   "references": [],
+   "text": "Referred to the Committee on Financial Services, and in addition to the Committee on Education and the Workforce, for a period to be subsequently determined by the Speaker, in each case for consideration of such provisions as fall within the jurisdiction of the committee concerned.",
+   "type": "referral"
+  }
+ ],
+ "congress": "115",
+ "bill_type": "hr",
+ "number": "6972",
+ "bill_congress_type_number": "115hr6972",
+ "history": {
+  "active": false,
+  "awaiting_signature": false,
+  "enacted": false,
+  "vetoed": false
+ },
+ "official_title": "",
+ "popular_title": "",
+ "short_title": "Consumers First Act",
+ "titles": [
+  "To require the Consumer Financial Protection Bureau to meet its statutory purpose, and for other purposes.",
+  "Consumers First Act"
+ ],
+ "titles_whole_bill": [
+  "To require the Consumer Financial Protection Bureau to meet its statutory purpose, and for other purposes.",
+  "Consumers First Act"
+ ],
+ "cosponsors": [
+  {
+   "bioguide_id": "C001049",
+   "thomas_id": "",
+   "district": "1",
+   "name": "Clay, Wm. Lacy",
+   "original_cosponsor": true,
+   "sponsored_at": "2018-09-28",
+   "state": "MO",
+   "title": "Rep"
+  },
+  {
+   "bioguide_id": "C001061",
+   "thomas_id": "",
+   "district": "5",
+   "name": "Cleaver, Emanuel",
+   "original_cosponsor": true,
+   "sponsored_at": "2018-09-28",
+   "state": "MO",
+   "title": "Rep"
+  },
+  {
+   "bioguide_id": "G000553",
+   "thomas_id": "",
+   "district": "9",
+   "name": "Green, Al",
+   "original_cosponsor": true,
+   "sponsored_at": "2018-09-28",
+   "state": "TX",
+   "title": "Rep"
+  },
+  {
+   "bioguide_id": "M000087",
+   "thomas_id": "",
+   "district": "12",
+   "name": "Maloney, Carolyn B.",
+   "original_cosponsor": true,
+   "sponsored_at": "2018-09-28",
+   "state": "NY",
+   "title": "Rep"
+  },
+  {
+   "bioguide_id": "M001160",
+   "thomas_id": "",
+   "district": "4",
+   "name": "Moore, Gwen",
+   "original_cosponsor": true,
+   "sponsored_at": "2018-09-28",
+   "state": "WI",
+   "title": "Rep"
+  }
+ ],
+ "committees": [
+  {
+   "activity": [
+    "referral"
+   ],
+   "committee": "House Education and Labor",
+   "committee_id": "HSED",
+   "subcommittee": "",
+   "subcomittee_id": ""
+  },
+  {
+   "activity": [
+    "referral"
+   ],
+   "committee": "House Financial Services",
+   "committee_id": "HSBA",
+   "subcommittee": "",
+   "subcomittee_id": ""
+  }
+ ],
+ "related_bills": [],
+ "related_dict": {
+  "115hr6972": {
+   "bill_id": "hr6972-115",
+   "identified_by": "BillMap",
+   "reason": "bills-title_match_main, bills-title_match",
+   "type": "",
+   "bill_congress_type_number": "115hr6972",
+   "titles": [
+    "To require the Consumer Financial Protection Bureau to meet its statutory purpose, and for other purposes.",
+    "Consumers First Act"
+   ],
+   "titles_whole_bill": [
+    "Consumers First Act"
+   ]
+  },
+  "116hr1500": {
+   "bill_id": "hr1500-116",
+   "identified_by": "BillMap",
+   "reason": "bills-title_match_main, bills-title_match",
+   "type": "",
+   "bill_congress_type_number": "116hr1500",
+   "titles": [
+    "To require the Consumer Financial Protection Bureau to meet its statutory purpose, and for other purposes.",
+    "Consumers First Act"
+   ],
+   "titles_whole_bill": [
+    "Consumers First Act"
+   ]
+  }
+ }
+}

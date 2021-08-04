@@ -1,0 +1,53 @@
+<bill session="115" type="h" number="6972" updated="2019-10-18T16:07:43Z">
+  <state datetime="2018-09-28">REFERRED</state>
+  <status>
+    <introduced datetime="2018-09-28"/>
+  </status>
+  <introduced datetime="2018-09-28"/>
+  <titles>
+    <title type="official" as="introduced">To require the Consumer Financial Protection Bureau to meet its statutory purpose, and for other purposes.</title>
+    <title type="short" as="introduced">Consumers First Act</title>
+    <title type="short" as="introduced">Consumers First Act</title>
+    <title type="display">Consumers First Act</title>
+  </titles>
+  <sponsor bioguide_id="W000187"/>
+  <cosponsors>
+    <cosponsor bioguide_id="C001049" joined="2018-09-28"/>
+    <cosponsor bioguide_id="C001061" joined="2018-09-28"/>
+    <cosponsor bioguide_id="G000553" joined="2018-09-28"/>
+    <cosponsor bioguide_id="M000087" joined="2018-09-28"/>
+    <cosponsor bioguide_id="M001160" joined="2018-09-28"/>
+  </cosponsors>
+  <actions>
+    <action datetime="2018-09-28">
+      <text>Introduced in House</text>
+    </action>
+    <action datetime="2018-09-28" state="REFERRED">
+      <text>Referred to the Committee on Financial Services, and in addition to the Committee on Education and the Workforce, for a period to be subsequently determined by the Speaker, in each case for consideration of such provisions as fall within the jurisdiction of the committee concerned.</text>
+    </action>
+    <action datetime="2018-09-28">
+      <text>Referred to the Committee on Financial Services, and in addition to the Committee on Education and the Workforce, for a period to be subsequently determined by the Speaker, in each case for consideration of such provisions as fall within the jurisdiction of the committee concerned.</text>
+    </action>
+  </actions>
+  <committees>
+    <committee subcommittee="" code="HSED" name="House Education and Labor" activity="Referral"/>
+    <committee subcommittee="" code="HSBA" name="House Financial Services" activity="Referral"/>
+  </committees>
+  <relatedbills/>
+  <subjects>
+    <term name="Finance and financial sector"/>
+  </subjects>
+  <amendments/>
+  <summary date="2018-09-28T04:00:00Z" status="Introduced in House">Consumers First Act 
+
+This bill revises provisions related to the administration of the Consumer Financial Protection Bureau (CFPB), including establishing requirements for staffing levels, political appointees, and the publication of consumer complaints regarding consumer financial products or services.
+
+The bill specifically states the duties of the Office of Fair Lending and Equal Opportunity (under current law, these are delegated by the CFPB Director). It also adds the duty to implement enforcement and supervisory authority regarding the fair lending laws.
+
+Specified units, offices, and boards of the CFPB must perform their assigned duties and may not be renamed or reorganized.
+
+The bill amends all statutory references to the "Bureau of Consumer Financial Protection" to refer instead to the "Consumer Financial Protection Bureau."
+
+Membership and meeting requirements for the Consumer Advisory Board are also revised.</summary>
+  <committee-reports/>
+</bill>
