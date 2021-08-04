@@ -345,16 +345,10 @@
  "short_title": "Consumers First Act",
  "titles": [
   "To require the Consumer Financial Protection Bureau to meet its statutory purpose, and for other purposes.",
-  "Consumers First Act",
-  "Consumers First Act",
-  "Consumers First Act",
   "Consumers First Act"
  ],
  "titles_whole_bill": [
   "To require the Consumer Financial Protection Bureau to meet its statutory purpose, and for other purposes.",
-  "Consumers First Act",
-  "Consumers First Act",
-  "Consumers First Act",
   "Consumers First Act"
  ],
  "cosponsors": [
@@ -730,7 +724,9 @@
     "To require the Consumer Financial Protection Bureau to meet its statutory purpose, and for other purposes.",
     "Consumers First Act"
    ],
-   "titles_whole_bill": null
+   "titles_whole_bill": [
+    "Consumers First Act"
+   ]
   },
   "116hr4664": {
    "bill_id": "hr4664-116",

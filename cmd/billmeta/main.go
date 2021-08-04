@@ -70,6 +70,7 @@ func loadTitles(titleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 						relatedBillItem.Reason = strings.Join(bills.SortReasons(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), bills.TitleMatchReason))), ", ")
 						relatedBillItem.IdentifiedBy = strings.Join(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.IdentifiedBy, ", "), bills.IdentifiedByBillMap)), ", ")
 						relatedBillItem.Titles = bills.RemoveDuplicates(append(relatedBillItem.Titles, billTitle.(string)))
+						log.Debug().Msgf("Titles: %v", relatedBillItem.Titles)
 						relatedBills[titleBillRelated] = relatedBillItem
 						if relatedBillItem.BillId == "" && relatedBillItem.BillCongressTypeNumber != "" {
 							relatedBillItem.BillId = bills.BillNumberToBillId(relatedBillItem.BillCongressTypeNumber)
@@ -132,7 +133,7 @@ func loadMainTitles(mainTitleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 						log.Debug().Msgf("Bill with Related Main Title: %s", titleBillRelated)
 						relatedBillItem.Reason = strings.Join(bills.SortReasons(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), bills.MainTitleMatchReason))), ", ")
 						relatedBillItem.IdentifiedBy = strings.Join(bills.RemoveDuplicates(append(strings.Split(relatedBillItem.IdentifiedBy, ", "), bills.IdentifiedByBillMap)), ", ")
-						// relatedBillItem.Titles = bills.RemoveDuplicates(append(relatedBillItem.Titles, billTitle.(string)))
+						relatedBillItem.TitlesWholeBill = bills.RemoveDuplicates(append(relatedBillItem.TitlesWholeBill, billTitle.(string)))
 						if relatedBillItem.BillId == "" && relatedBillItem.BillCongressTypeNumber != "" {
 							relatedBillItem.BillId = bills.BillNumberToBillId(relatedBillItem.BillCongressTypeNumber)
 						}
@@ -143,7 +144,7 @@ func loadMainTitles(mainTitleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 					} else {
 						newRelatedBillItem := new(bills.RelatedBillItem)
 						newRelatedBillItem.BillCongressTypeNumber = titleBillRelated
-						newRelatedBillItem.Titles = []string{billTitle.(string)}
+						newRelatedBillItem.TitlesWholeBill = []string{billTitle.(string)}
 						newRelatedBillItem.Reason = bills.MainTitleMatchReason
 						relatedBillItem.IdentifiedBy = bills.IdentifiedByBillMap
 						if newRelatedBillItem.BillId == "" && newRelatedBillItem.BillCongressTypeNumber != "" {
@@ -264,13 +265,15 @@ func makeBillsMeta(parentPath string) {
 			titles := billMeta.Titles
 
 			if officialTitle != "" {
-				mainTitles = append(mainTitles, officialTitle)
+				mainTitles = bills.RemoveDuplicates(append(mainTitles, officialTitle))
 			}
 
 			if shortTitle != "" {
-				mainTitles = append(mainTitles, shortTitle)
+				mainTitles = bills.RemoveDuplicates(append(mainTitles, shortTitle))
+				log.Debug().Msgf("Main Titles: %v", mainTitles)
 				// Add 	billMeta.ShortTitle to billMeta.Titles
-				titles = append(billMeta.Titles, shortTitle)
+				titles = bills.RemoveDuplicates(append(billMeta.Titles, shortTitle))
+				log.Debug().Msgf("Titles: %v", titles)
 			}
 
 			for _, title := range titles {

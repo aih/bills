@@ -172,8 +172,8 @@ func ExtractBillMeta(billPath string, billMetaStorageChannel chan BillMeta, sem 
 	billMeta.History = dat.History
 	billMeta.ShortTitle = dat.ShortTitle
 	titlesMap := getBillTitles(dat)
-	billMeta.Titles = titlesMap["titles"]
-	billMeta.TitlesWholeBill = titlesMap["titlesWholeBill"]
+	billMeta.Titles = RemoveDuplicates(titlesMap["titles"])
+	billMeta.TitlesWholeBill = RemoveDuplicates(titlesMap["titlesWholeBill"])
 	billMeta.RelatedBills = dat.RelatedBills
 	billMeta.RelatedBillsByBillnumber = make(map[string]RelatedBillItem)
 	for i, billItem := range billMeta.RelatedBills {
