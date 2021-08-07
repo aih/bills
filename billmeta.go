@@ -11,7 +11,7 @@ import (
 )
 
 // Gets keys of a sync.Map
-func getSyncMapKeys(m *sync.Map) (s string) {
+func GetSyncMapKeys(m *sync.Map) (s string) {
 	m.Range(func(k, v interface{}) bool {
 		if s != "" {
 			s += ", "
@@ -297,7 +297,7 @@ func MakeBillsMeta(parentPath string) {
 		go ExtractBillMeta(jpath, billMetaStorageChannel, sem, wg)
 	}
 
-	billslist := getSyncMapKeys(BillMetaSyncMap)
+	billslist := GetSyncMapKeys(BillMetaSyncMap)
 	billsString, err := json.Marshal(billslist)
 	if err != nil {
 		log.Error().Msgf("Error making JSON data for bills: %s", err)
