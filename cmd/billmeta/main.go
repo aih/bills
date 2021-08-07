@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"os"
 	"path"
@@ -214,147 +213,15 @@ func makeBillMeta(parentPath, billDirPath string) {
 
 }
 
-// Walks the 'congress' directory
+// Command-line function to process and save metadta, with flags for paths.
+// Walks the 'congress' directory of the `parentPath`. Runs the following:
+// bills.MakeBillsMeta(parentPath) to create bill metadata and store it in a sync file and JSON files for: bills, titlesJson and billMeta
+// loadTitles(bills.TitleNoYearSyncMap, bills.BillMetaSyncMap) to create an index of bill titles without year info
+// loadMainTitles(bills.MainTitleNoYearSyncMap, bills.BillMetaSyncMap) to create an index of main bill titles without year info
+// writeBillMetaFiles writes `billMeta.json` in each bill directory
+// and then finally writes the whole meta sync file to a single JSON file, billMetaGo.json
+
 // Creates three metadata files: bills, titlesJson and billMeta
-// bills is the list of bill numbers (billCongressTypeNumber)
-// titles is a list of titles (no year)
-// billMeta collects metadata from data.json files
-func makeBillsMeta(parentPath string) {
-	//pathToBillMeta := bills.BillMetaPath
-	pathToCongressDir := bills.PathToCongressDataDir
-	if parentPath != "" {
-		//pathToBillMeta = path.Join(parentPath, bills.BillMetaFile)
-		pathToCongressDir = path.Join(parentPath, bills.CongressDir)
-	}
-	defer log.Info().Msg("Done")
-	// Limiting openfiles prevents memory issues
-	// See http://jmoiron.net/blog/limiting-concurrency-in-go/
-	maxopenfiles := 100
-	sem := make(chan bool, maxopenfiles)
-	billMetaStorageChannel := make(chan bills.BillMeta)
-	log.Info().Msgf("Getting all files in %s.  This may take a while.", pathToCongressDir)
-	dataJsonFiles, _ := bills.ListDataJsonFiles(pathToCongressDir)
-	reverse(dataJsonFiles)
-	wg := &sync.WaitGroup{}
-	wg.Add(len(dataJsonFiles))
-	go func() {
-		wg.Wait()
-		close(billMetaStorageChannel)
-	}()
-	go func() {
-		billCounter := 0
-		for range dataJsonFiles {
-			billMeta := <-billMetaStorageChannel
-			if billMeta.Congress == "" {
-				continue
-			}
-			billCounter++
-			log.Info().Msgf("[%d] Storing metadata for %s.", billCounter, billMeta.BillCongressTypeNumber)
-			// Get related bill data
-			bills.BillMetaSyncMap.Store(billMeta.BillCongressTypeNumber, billMeta)
-			/* Saves each bill JSON to an item in db
-			saveDbErr := bills.SaveBillJsonToDB(billMeta.BillCongressTypeNumber, billMeta)
-			if saveDbErr != nil {
-				log.Info().Msg(saveDbErr)
-			}
-			*/
-
-			var mainTitles []string
-			// The bill may have one or more of: OfficialTitle, PopularTitle, ShortTitle
-			officialTitle := billMeta.OfficialTitle
-			shortTitle := billMeta.ShortTitle
-			titles := billMeta.Titles
-
-			if officialTitle != "" {
-				mainTitles = bills.RemoveDuplicates(append(mainTitles, officialTitle))
-			}
-
-			if shortTitle != "" {
-				mainTitles = bills.RemoveDuplicates(append(mainTitles, shortTitle))
-				log.Debug().Msgf("Main Titles: %v", mainTitles)
-				// Add 	billMeta.ShortTitle to billMeta.Titles
-				titles = bills.RemoveDuplicates(append(billMeta.Titles, shortTitle))
-				log.Debug().Msgf("Titles: %v", titles)
-			}
-
-			for _, title := range titles {
-				//for _, title := range billMeta.Titles {
-				log.Info().Msgf("[%d] Getting titles for %s.", billCounter, billMeta.BillCongressTypeNumber)
-				titleNoYear := strings.Trim(bills.TitleNoYearRegexCompiled.ReplaceAllString(title, ""), " ")
-				if titleBills, loaded := bills.TitleNoYearSyncMap.LoadOrStore(titleNoYear, []string{billMeta.BillCongressTypeNumber}); loaded {
-					titleBills = bills.RemoveDuplicates(append(titleBills.([]string), billMeta.BillCongressTypeNumber))
-					bills.TitleNoYearSyncMap.Store(titleNoYear, titleBills)
-				}
-
-			}
-
-			for _, title := range mainTitles {
-				log.Info().Msgf("[%d] Getting main titles for %s.", billCounter, billMeta.BillCongressTypeNumber)
-				mainTitleNoYear := strings.Trim(bills.TitleNoYearRegexCompiled.ReplaceAllString(title, ""), " ")
-				if mainTitleBills, loaded := bills.MainTitleNoYearSyncMap.LoadOrStore(mainTitleNoYear, []string{billMeta.BillCongressTypeNumber}); loaded {
-					mainTitleBills = bills.RemoveDuplicates(append(mainTitleBills.([]string), billMeta.BillCongressTypeNumber))
-					bills.MainTitleNoYearSyncMap.Store(mainTitleNoYear, mainTitleBills)
-				}
-
-			}
-		}
-	}()
-
-	for _, jpath := range dataJsonFiles {
-		sem <- true
-		go bills.ExtractBillMeta(jpath, billMetaStorageChannel, sem, wg)
-	}
-
-	billslist := getSyncMapKeys(bills.BillMetaSyncMap)
-	billsString, err := json.Marshal(billslist)
-	if err != nil {
-		log.Error().Msgf("Error making JSON data for bills: %s", err)
-	}
-	log.Info().Msg("Writing bills JSON data to file")
-	os.WriteFile(bills.BillsPath, []byte(billsString), 0666)
-
-	// Loop through titles and for each bill update relatedbills:
-	//  * If the related bill does not already exist, create it
-	//  * If the related bill already exists, add the title to the titles array
-	//  * Update the "reason" to add "title match"
-
-	//titles := getKeys(titleNoYearSyncMap)
-
-	/*
-		log.Info().Msg("Creating string from  billMetaSyncMap")
-		jsonString, err := bills.MarshalJSONBillMeta(bills.BillMetaSyncMap)
-		if err != nil {
-			log.Error().Msgf("Error making JSON data for billMetaMap: %s", err)
-		}
-		log.Info().Msg("Writing billMeta JSON data to file")
-		os.WriteFile(pathToBillMeta, []byte(jsonString), 0666)
-	*/
-
-	jsonSimString, err := bills.MarshalJSONBillSimilarity(bills.BillMetaSyncMap)
-	if err != nil {
-		log.Error().Msgf("Error making JSON data for billSimilarity file: %s", err)
-	}
-	log.Info().Msg("Writing billSimilarity JSON data to file")
-	os.WriteFile(bills.BillSimilarityPath, []byte(jsonSimString), 0666)
-
-	jsonTitleNoYearString, err := bills.MarshalJSONStringArray(bills.TitleNoYearSyncMap)
-	if err != nil {
-		log.Error().Msgf("Error making JSON data for TitleNoYearSyncMap: %s", err)
-	}
-	log.Info().Msg("Writing titleNoYearIndex JSON data to file")
-	os.WriteFile(bills.TitleNoYearIndexPath, []byte(jsonTitleNoYearString), 0666)
-	jsonMainTitleNoYearString, err := bills.MarshalJSONStringArray(bills.MainTitleNoYearSyncMap)
-
-	if err != nil {
-		log.Error().Msgf("Error making JSON data for MainTitleNoYearMap: %s", err)
-	}
-	log.Info().Msg("Writing maintitleNoYearIndex JSON data to file")
-	os.WriteFile(bills.MainTitleNoYearIndexPath, []byte(jsonMainTitleNoYearString), 0666)
-	for i := 0; i < cap(sem); i++ {
-		sem <- true
-	}
-}
-
 func main() {
 	// See https://stackoverflow.com/a/55324723/628748
 	// Ensure we exit with an error code and log message
@@ -418,7 +285,7 @@ func main() {
 		return
 	}
 
-	makeBillsMeta(parentPath)
+	bills.MakeBillsMeta(parentPath)
 	loadTitles(bills.TitleNoYearSyncMap, bills.BillMetaSyncMap)
 	loadMainTitles(bills.MainTitleNoYearSyncMap, bills.BillMetaSyncMap)
 	billlist := getSyncMapKeys(bills.BillMetaSyncMap)
