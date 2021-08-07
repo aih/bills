@@ -29,6 +29,131 @@ func reverse(ss []string) {
 	}
 }
 
+func LoadTitles(titleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
+	log.Info().Msg("***** Processing title matches ******")
+	titleSyncMap.Range(func(billTitle, titleBills interface{}) bool {
+		//log.Info().Msg(titleBills)
+		for _, titleBill := range titleBills.([]string) {
+			//log.Info().Msg("titleBill ", titleBill)
+			// titleBill is a bill number
+			if billItem, ok := billMetaSyncMap.Load(titleBill); ok {
+				billItemStruct := billItem.(BillMeta)
+				relatedBills := billItemStruct.RelatedBillsByBillnumber
+				/*
+					if relatedBills != nil && len(relatedBills) > 0 {
+						relatedBills = bills.RelatedBillMap{}
+					}
+				*/
+				// TODO check that each of titleBills is in relatedBills
+				// If it is, make sure 'title match' is one of the reasons
+				// Add the billTitle to Titles, if it is not already there
+				// If it's not, add it with 'title match'
+				for _, titleBillRelated := range titleBills.([]string) {
+					// titleBillRelated is the bill number of the related bill
+					if relatedBillItem, ok := relatedBills[titleBillRelated]; ok {
+						log.Debug().Msgf("Bill with Related Title: %s", titleBillRelated)
+						relatedBillItem.Reason = strings.Join(SortReasons(RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), TitleMatchReason))), ", ")
+						relatedBillItem.IdentifiedBy = strings.Join(RemoveDuplicates(append(strings.Split(relatedBillItem.IdentifiedBy, ", "), IdentifiedByBillMap)), ", ")
+						relatedBillItem.Titles = RemoveDuplicates(append(relatedBillItem.Titles, billTitle.(string)))
+						log.Debug().Msgf("Titles: %v", relatedBillItem.Titles)
+						relatedBills[titleBillRelated] = relatedBillItem
+						if relatedBillItem.BillId == "" && relatedBillItem.BillCongressTypeNumber != "" {
+							relatedBillItem.BillId = BillNumberToBillId(relatedBillItem.BillCongressTypeNumber)
+						}
+						log.Debug().Msgf("relatedBillItem: %v", relatedBillItem)
+						if relatedBillItem.BillCongressTypeNumber == "" && relatedBillItem.BillId != "" {
+							relatedBillItem.BillCongressTypeNumber = BillIdToBillNumber(relatedBillItem.BillId)
+						}
+					} else {
+						newRelatedBillItem := new(RelatedBillItem)
+						newRelatedBillItem.BillCongressTypeNumber = titleBillRelated
+						newRelatedBillItem.Titles = []string{billTitle.(string)}
+						newRelatedBillItem.Reason = TitleMatchReason
+						newRelatedBillItem.IdentifiedBy = IdentifiedByBillMap
+						if newRelatedBillItem.BillId == "" && newRelatedBillItem.BillCongressTypeNumber != "" {
+							newRelatedBillItem.BillId = BillNumberToBillId(newRelatedBillItem.BillCongressTypeNumber)
+						}
+						if newRelatedBillItem.BillCongressTypeNumber == "" && newRelatedBillItem.BillId != "" {
+							newRelatedBillItem.BillCongressTypeNumber = BillIdToBillNumber(newRelatedBillItem.BillId)
+						}
+						//if relatedBillItem.Type == "" {
+						//}
+						relatedBills[titleBillRelated] = *newRelatedBillItem
+					}
+				}
+				// Store new relatedbills
+				billItemStruct.RelatedBillsByBillnumber = relatedBills
+				billMetaSyncMap.Store(titleBill, billItemStruct)
+			} else {
+				log.Error().Msgf("No metadata in BillMetaSyncMap for bill: %s", titleBill)
+			}
+
+		}
+		return true
+	})
+}
+
+func LoadMainTitles(mainTitleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
+	log.Info().Msg("***** Processing main title matches ******")
+
+	mainTitleSyncMap.Range(func(billTitle, titleBills interface{}) bool {
+		//log.Info().Msg(titleBills)
+		for _, titleBill := range titleBills.([]string) {
+			//log.Info().Msg("titleBill ", titleBill)
+			// titleBill is a bill number
+			if billItem, ok := billMetaSyncMap.Load(titleBill); ok {
+				billItemStruct := billItem.(BillMeta)
+				relatedBills := billItemStruct.RelatedBillsByBillnumber
+				/*
+					if relatedBills != nil && len(relatedBills) > 0 {
+						relatedBills = bills.RelatedBillMap{}
+					}
+				*/
+				// Check that each of titleBills is in relatedBills
+				// If it is, make sure 'title match' is one of the reasons
+				// Add the billTitle to Titles, if it is not already there
+				// If it's not, add it with bills.MainTitleMatchReason
+				for _, titleBillRelated := range titleBills.([]string) {
+					// titleBillRelated is the bill number of the related bill
+					if relatedBillItem, ok := relatedBills[titleBillRelated]; ok {
+						log.Debug().Msgf("Bill with Related Main Title: %s", titleBillRelated)
+						relatedBillItem.Reason = strings.Join(SortReasons(RemoveDuplicates(append(strings.Split(relatedBillItem.Reason, ", "), MainTitleMatchReason))), ", ")
+						relatedBillItem.IdentifiedBy = strings.Join(RemoveDuplicates(append(strings.Split(relatedBillItem.IdentifiedBy, ", "), IdentifiedByBillMap)), ", ")
+						relatedBillItem.TitlesWholeBill = RemoveDuplicates(append(relatedBillItem.TitlesWholeBill, billTitle.(string)))
+						if relatedBillItem.BillId == "" && relatedBillItem.BillCongressTypeNumber != "" {
+							relatedBillItem.BillId = BillNumberToBillId(relatedBillItem.BillCongressTypeNumber)
+						}
+						if relatedBillItem.BillCongressTypeNumber == "" && relatedBillItem.BillId != "" {
+							relatedBillItem.BillCongressTypeNumber = BillIdToBillNumber(relatedBillItem.BillId)
+						}
+						relatedBills[titleBillRelated] = relatedBillItem
+					} else {
+						newRelatedBillItem := new(RelatedBillItem)
+						newRelatedBillItem.BillCongressTypeNumber = titleBillRelated
+						newRelatedBillItem.TitlesWholeBill = []string{billTitle.(string)}
+						newRelatedBillItem.Reason = MainTitleMatchReason
+						relatedBillItem.IdentifiedBy = IdentifiedByBillMap
+						if newRelatedBillItem.BillId == "" && newRelatedBillItem.BillCongressTypeNumber != "" {
+							newRelatedBillItem.BillId = BillNumberToBillId(newRelatedBillItem.BillCongressTypeNumber)
+						}
+						if newRelatedBillItem.BillCongressTypeNumber == "" && newRelatedBillItem.BillId != "" {
+							newRelatedBillItem.BillCongressTypeNumber = BillIdToBillNumber(newRelatedBillItem.BillId)
+						}
+						relatedBills[titleBillRelated] = *newRelatedBillItem
+					}
+				}
+				// Store new relatedbills
+				billItemStruct.RelatedBillsByBillnumber = relatedBills
+				billMetaSyncMap.Store(titleBill, billItemStruct)
+			} else {
+				log.Error().Msgf("No metadata in BillMetaSyncMap for bill: %s", titleBill)
+			}
+
+		}
+		return true
+	})
+}
+
 func WriteBillMetaFiles(billMetaSyncMap *sync.Map, parentPath string) {
 	log.Info().Msg("***** Writing individual bill metadata to files ******")
 
