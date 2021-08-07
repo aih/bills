@@ -75,6 +75,7 @@ func loadTitles(titleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 						if relatedBillItem.BillId == "" && relatedBillItem.BillCongressTypeNumber != "" {
 							relatedBillItem.BillId = bills.BillNumberToBillId(relatedBillItem.BillCongressTypeNumber)
 						}
+						log.Debug().Msgf("relatedBillItem: %v", relatedBillItem)
 						if relatedBillItem.BillCongressTypeNumber == "" && relatedBillItem.BillId != "" {
 							relatedBillItem.BillCongressTypeNumber = bills.BillIdToBillNumber(relatedBillItem.BillId)
 						}
