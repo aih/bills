@@ -29,6 +29,19 @@ func reverse(ss []string) {
 	}
 }
 
+func WriteBillMetaFiles(billMetaSyncMap *sync.Map, parentPath string) {
+	log.Info().Msg("***** Writing individual bill metadata to files ******")
+
+	billMetaSyncMap.Range(func(billCongressTypeNumber, billMeta interface{}) bool {
+		log.Info().Msgf("Writing metadata for: %s", billCongressTypeNumber)
+		saveErr := SaveBillJson(billCongressTypeNumber.(string), billMeta.(BillMeta), parentPath)
+		if saveErr != nil {
+			log.Error().Msgf("Error saving meta file: %s", saveErr)
+		}
+		return true
+	})
+}
+
 func MakeBillMeta(parentPath, billDirPath string) {
 
 	defer log.Info().Msg("Done")

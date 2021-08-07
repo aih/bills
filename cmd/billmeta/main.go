@@ -30,19 +30,6 @@ func getSyncMapKeys(m *sync.Map) (s string) {
 	return
 }
 
-func writeBillMetaFiles(billMetaSyncMap *sync.Map, parentPath string) {
-	log.Info().Msg("***** Writing individual bill metadata to files ******")
-
-	billMetaSyncMap.Range(func(billCongressTypeNumber, billMeta interface{}) bool {
-		log.Info().Msgf("Writing metadata for: %s", billCongressTypeNumber)
-		saveErr := bills.SaveBillJson(billCongressTypeNumber.(string), billMeta.(bills.BillMeta), parentPath)
-		if saveErr != nil {
-			log.Error().Msgf("Error saving meta file: %s", saveErr)
-		}
-		return true
-	})
-}
-
 func loadTitles(titleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 	log.Info().Msg("***** Processing title matches ******")
 	titleSyncMap.Range(func(billTitle, titleBills interface{}) bool {
@@ -173,7 +160,7 @@ func loadMainTitles(mainTitleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 // bills.MakeBillsMeta(parentPath) to create bill metadata and store it in a sync file and JSON files for: bills, titlesJson and billMeta
 // loadTitles(bills.TitleNoYearSyncMap, bills.BillMetaSyncMap) to create an index of bill titles without year info
 // loadMainTitles(bills.MainTitleNoYearSyncMap, bills.BillMetaSyncMap) to create an index of main bill titles without year info
-// writeBillMetaFiles writes `billMeta.json` in each bill directory
+// bills.WriteBillMetaFiles writes `billMeta.json` in each bill directory
 // and then finally writes the whole meta sync file to a single JSON file, billMetaGo.json
 
 // Creates three metadata files: bills, titlesJson and billMeta
@@ -248,7 +235,7 @@ func main() {
 	billlist := getSyncMapKeys(bills.BillMetaSyncMap)
 	log.Info().Msgf("BillMetaSyncMap keys: %v", billlist)
 	log.Info().Msgf("BillMetaSyncMap length: %v", len(strings.Split(billlist, ", ")))
-	writeBillMetaFiles(bills.BillMetaSyncMap, parentPath)
+	bills.WriteBillMetaFiles(bills.BillMetaSyncMap, parentPath)
 	log.Info().Msgf("pathToBillMeta: %v", pathToBillMeta)
 	if pathToBillMeta == "" {
 		if parentPath != "" {
