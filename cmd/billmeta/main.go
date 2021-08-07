@@ -168,45 +168,6 @@ func loadMainTitles(mainTitleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 	})
 }
 
-func makeBillMeta(parentPath, billDirPath string) {
-
-	defer log.Info().Msg("Done")
-	maxopenfiles := 100
-	sem := make(chan bool, maxopenfiles)
-	//pathToBillMeta := bills.BillMetaPath
-	pathToCongressDir := bills.PathToCongressDataDir
-	if parentPath != "" {
-		//pathToBillMeta = path.Join(parentPath, bills.BillMetaFile)
-		pathToCongressDir = path.Join(parentPath, bills.CongressDir)
-	}
-	billMetaStorageChannel := make(chan bills.BillMeta)
-	billDirFullPath := path.Join(pathToCongressDir, "data", billDirPath)
-	log.Info().Msgf("Getting Json for bill: %s", billDirFullPath)
-	dataJsonFiles, _ := bills.ListDataJsonFiles(billDirFullPath)
-	wg := &sync.WaitGroup{}
-	wg.Add(len(dataJsonFiles))
-	go func() {
-		wg.Wait()
-		close(billMetaStorageChannel)
-	}()
-
-	go func() {
-		for range dataJsonFiles {
-			billMeta := <-billMetaStorageChannel
-			log.Debug().Msgf("Got billMeta from Channel: %v\n", billMeta)
-		}
-	}()
-
-	for _, jpath := range dataJsonFiles {
-		sem <- true
-		go bills.ExtractBillMeta(jpath, billMetaStorageChannel, sem, wg)
-	}
-	for i := 0; i < cap(sem); i++ {
-		sem <- true
-	}
-
-}
-
 // Command-line function to process and save metadata, with flags for paths.
 // Walks the 'congress' directory of the `parentPath`. Runs the following:
 // bills.MakeBillsMeta(parentPath) to create bill metadata and store it in a sync file and JSON files for: bills, titlesJson and billMeta
@@ -268,6 +229,8 @@ func main() {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 	log.Debug().Msg("Log level set to Debug")
+
+	// Processes a single bill, based on the bill number
 	if billNumber != "" {
 		billPath, err := bills.PathFromBillNumber(billNumber)
 		if err != nil {
@@ -275,7 +238,7 @@ func main() {
 			return
 		}
 		billPath = strings.ReplaceAll(billPath, "/text-versions", "")
-		makeBillMeta(parentPath, billPath)
+		bills.MakeBillMeta(parentPath, billPath)
 		return
 	}
 
