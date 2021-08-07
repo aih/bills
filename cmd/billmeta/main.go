@@ -167,12 +167,6 @@ func loadMainTitles(mainTitleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 		return true
 	})
 }
-func reverse(ss []string) {
-	last := len(ss) - 1
-	for i := 0; i < len(ss)/2; i++ {
-		ss[i], ss[last-i] = ss[last-i], ss[i]
-	}
-}
 
 func makeBillMeta(parentPath, billDirPath string) {
 
@@ -213,7 +207,7 @@ func makeBillMeta(parentPath, billDirPath string) {
 
 }
 
-// Command-line function to process and save metadta, with flags for paths.
+// Command-line function to process and save metadata, with flags for paths.
 // Walks the 'congress' directory of the `parentPath`. Runs the following:
 // bills.MakeBillsMeta(parentPath) to create bill metadata and store it in a sync file and JSON files for: bills, titlesJson and billMeta
 // loadTitles(bills.TitleNoYearSyncMap, bills.BillMetaSyncMap) to create an index of bill titles without year info
