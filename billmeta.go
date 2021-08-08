@@ -167,7 +167,7 @@ func WriteBillMetaFiles(billMetaSyncMap *sync.Map, parentPath string) {
 	})
 }
 
-func MakeBillMeta(parentPath, billDirPath string) {
+func MakeBillMeta(parentPath, billDirPath string) BillMeta {
 
 	defer log.Info().Msg("Done")
 	maxopenfiles := 100
@@ -189,10 +189,12 @@ func MakeBillMeta(parentPath, billDirPath string) {
 		close(billMetaStorageChannel)
 	}()
 
+	var billMetaReturn BillMeta
 	go func() {
 		for range dataJsonFiles {
 			billMeta := <-billMetaStorageChannel
 			log.Debug().Msgf("Got billMeta from Channel: %v\n", billMeta)
+			billMetaReturn = billMeta
 		}
 	}()
 
@@ -203,6 +205,7 @@ func MakeBillMeta(parentPath, billDirPath string) {
 	for i := 0; i < cap(sem); i++ {
 		sem <- true
 	}
+	return billMetaReturn
 
 }
 
