@@ -33,7 +33,7 @@ func TestMakeBillsMeta(t *testing.T) {
 	MakeBillsMeta(parentPath)
 
 	// Tests that we get a correct ShortTitle field from the metadata
-	assert.FileExists(t, parentPath+"/billMetaGo.json")
+	assert.FileExists(t, parentPath+"/billsGo.json")
 }
 
 //TODO make tests for MakeBillsMeta, LoadTitles, LoadMainTitles

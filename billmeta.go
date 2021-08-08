@@ -13,6 +13,7 @@ import (
 // Gets keys of a sync.Map
 func GetSyncMapKeys(m *sync.Map) (s string) {
 	m.Range(func(k, v interface{}) bool {
+		log.Info().Msgf("%s: %v", k, v)
 		if s != "" {
 			s += ", "
 		}
@@ -300,13 +301,16 @@ func MakeBillsMeta(parentPath string) {
 		go ExtractBillMeta(jpath, billMetaStorageChannel, sem, wg)
 	}
 
+	log.Info().Msgf("BillMetaSyncMap: %v", BillMetaSyncMap)
 	billslist := GetSyncMapKeys(BillMetaSyncMap)
 	billsString, err := json.Marshal(billslist)
+	log.Info().Msgf("Bills: %s", billsString)
 	if err != nil {
 		log.Error().Msgf("Error making JSON data for bills: %s", err)
 	}
 	log.Info().Msg("Writing bills JSON data to file")
-	os.WriteFile(BillsPath, []byte(billsString), 0666)
+	currentBillsPath := path.Join(parentPath, BillsFile)
+	os.WriteFile(currentBillsPath, []byte(billsString), 0666)
 
 	// Loop through titles and for each bill update relatedbills:
 	//  * If the related bill does not already exist, create it
@@ -330,21 +334,24 @@ func MakeBillsMeta(parentPath string) {
 		log.Error().Msgf("Error making JSON data for billSimilarity file: %s", err)
 	}
 	log.Info().Msg("Writing billSimilarity JSON data to file")
-	os.WriteFile(BillSimilarityPath, []byte(jsonSimString), 0666)
+	currentBillSimilarityPath := path.Join(parentPath, BillSimilarityFile)
+	os.WriteFile(currentBillSimilarityPath, []byte(jsonSimString), 0666)
 
 	jsonTitleNoYearString, err := MarshalJSONStringArray(TitleNoYearSyncMap)
 	if err != nil {
 		log.Error().Msgf("Error making JSON data for TitleNoYearSyncMap: %s", err)
 	}
 	log.Info().Msg("Writing titleNoYearIndex JSON data to file")
-	os.WriteFile(TitleNoYearIndexPath, []byte(jsonTitleNoYearString), 0666)
+	currentTitleNoYearIndexPath := path.Join(parentPath, TitleNoYearIndex)
+	os.WriteFile(currentTitleNoYearIndexPath, []byte(jsonTitleNoYearString), 0666)
 	jsonMainTitleNoYearString, err := MarshalJSONStringArray(MainTitleNoYearSyncMap)
 
 	if err != nil {
 		log.Error().Msgf("Error making JSON data for MainTitleNoYearMap: %s", err)
 	}
 	log.Info().Msg("Writing maintitleNoYearIndex JSON data to file")
-	os.WriteFile(MainTitleNoYearIndexPath, []byte(jsonMainTitleNoYearString), 0666)
+	currentMainTitleNoYearIndexPath := path.Join(parentPath, MainTitleNoYearIndex)
+	os.WriteFile(currentMainTitleNoYearIndexPath, []byte(jsonMainTitleNoYearString), 0666)
 	for i := 0; i < cap(sem); i++ {
 		sem <- true
 	}
