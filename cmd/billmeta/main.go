@@ -128,10 +128,10 @@ func main() {
 	log.Info().Msgf("Writing billMeta JSON data to file: %v", pathToBillMeta)
 	os.WriteFile(pathToBillMeta, []byte(jsonString), 0666)
 
-	log.Info().Msgf("BillMetaSyncMap: %v", bills.BillMetaSyncMap)
+	//log.Debug().Msgf("BillMetaSyncMap: %v", bills.BillMetaSyncMap)
 	billslist := bills.GetSyncMapKeys(bills.BillMetaSyncMap)
 	billsString, err := json.Marshal(billslist)
-	log.Info().Msgf("Bills: %s", billsString)
+	log.Debug().Msgf("Bills: %s", billsString)
 	if err != nil {
 		log.Error().Msgf("Error making JSON data for bills: %s", err)
 	}
