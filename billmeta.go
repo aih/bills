@@ -253,11 +253,11 @@ func MakeBillsMeta(parentPath string) {
 			}
 			*/
 
-			var mainTitles []string
 			// The bill may have one or more of: OfficialTitle, PopularTitle, ShortTitle
 			officialTitle := billMeta.OfficialTitle
 			shortTitle := billMeta.ShortTitle
 			titles := billMeta.Titles
+			mainTitles := billMeta.TitlesWholeBill
 
 			if officialTitle != "" {
 				mainTitles = RemoveDuplicates(append(mainTitles, officialTitle))
