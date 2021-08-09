@@ -1,8 +1,6 @@
 package bills
 
 import (
-	"encoding/json"
-	"os"
 	"path"
 	"strings"
 	"sync"
@@ -301,40 +299,6 @@ func MakeBillsMeta(parentPath string) {
 		go ExtractBillMeta(jpath, billMetaStorageChannel, sem, wg)
 	}
 
-	log.Info().Msgf("BillMetaSyncMap: %v", BillMetaSyncMap)
-	billslist := GetSyncMapKeys(BillMetaSyncMap)
-	billsString, err := json.Marshal(billslist)
-	log.Info().Msgf("Bills: %s", billsString)
-	if err != nil {
-		log.Error().Msgf("Error making JSON data for bills: %s", err)
-	}
-	log.Info().Msg("Writing bills JSON data to file")
-	currentBillsPath := path.Join(parentPath, BillsFile)
-	os.WriteFile(currentBillsPath, []byte(billsString), 0666)
-
-	jsonSimString, err := MarshalJSONBillSimilarity(BillMetaSyncMap)
-	if err != nil {
-		log.Error().Msgf("Error making JSON data for billSimilarity file: %s", err)
-	}
-	log.Info().Msg("Writing billSimilarity JSON data to file")
-	currentBillSimilarityPath := path.Join(parentPath, BillSimilarityFile)
-	os.WriteFile(currentBillSimilarityPath, []byte(jsonSimString), 0666)
-
-	jsonTitleNoYearString, err := MarshalJSONStringArray(TitleNoYearSyncMap)
-	if err != nil {
-		log.Error().Msgf("Error making JSON data for TitleNoYearSyncMap: %s", err)
-	}
-	log.Info().Msg("Writing titleNoYearIndex JSON data to file")
-	currentTitleNoYearIndexPath := path.Join(parentPath, TitleNoYearIndex)
-	os.WriteFile(currentTitleNoYearIndexPath, []byte(jsonTitleNoYearString), 0666)
-	jsonMainTitleNoYearString, err := MarshalJSONStringArray(MainTitleNoYearSyncMap)
-
-	if err != nil {
-		log.Error().Msgf("Error making JSON data for MainTitleNoYearMap: %s", err)
-	}
-	log.Info().Msg("Writing maintitleNoYearIndex JSON data to file")
-	currentMainTitleNoYearIndexPath := path.Join(parentPath, MainTitleNoYearIndex)
-	os.WriteFile(currentMainTitleNoYearIndexPath, []byte(jsonMainTitleNoYearString), 0666)
 	for i := 0; i < cap(sem); i++ {
 		sem <- true
 	}

@@ -17,6 +17,8 @@ _testMeta.json
 # Test binary, built with `go test -c`
 *.test
 
+samples/*.json
+
 # Logs 
 *.log
 

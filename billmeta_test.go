@@ -26,14 +26,4 @@ func TestMakeBillMeta(t *testing.T) {
 	assert.Equal(t, 29, len(billMeta.Cosponsors))
 }
 
-func TestMakeBillsMeta(t *testing.T) {
-	testutils.SetLogLevel()
-	log.Info().Msg("Test gathering metadata from a directory")
-	parentPath := "./samples"
-	MakeBillsMeta(parentPath)
-
-	// Tests that we get a correct ShortTitle field from the metadata
-	assert.FileExists(t, parentPath+"/billsGo.json")
-}
-
 //TODO make tests for MakeBillsMeta, LoadTitles, LoadMainTitles
