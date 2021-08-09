@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"strings"
 
@@ -14,6 +15,19 @@ const (
 	num_results   = 20
 	min_sim_score = 20
 )
+
+// BillList is a string slice
+type BillList []string
+
+func (bl *BillList) String() string {
+	return fmt.Sprintln(*bl)
+}
+
+// Set string value in MyList
+func (bl *BillList) Set(s string) error {
+	*bl = strings.Split(s, ",")
+	return nil
+}
 
 func getMatchingBills(hits []interface{}) (billnumbers []string) {
 
@@ -29,7 +43,11 @@ func main() {
 	debug := flag.Bool("debug", false, "sets log level to debug")
 	all := flag.Bool("all", false, "processes all bills-- otherwise process a sample")
 
-	// TODO allow user to pass billnumbers as argument
+	// allow user to pass billnumbers as argument
+	var billList BillList
+	flag.Var(&billList, "billnumbers", "comma-separated list of billnumbers")
+	flag.Var(&billList, "b", "comma-separated list of billnumbers")
+	flag.Parse()
 
 	flag.Parse()
 
@@ -49,6 +67,8 @@ func main() {
 	var billNumbers []string
 	if *all {
 		billNumbers = bills.GetAllBillNumbers()
+	} else if len(billList) > 0 {
+		billNumbers = billList
 	} else {
 		billNumbers = bills.GetSampleBillNumbers()
 	}
