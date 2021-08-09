@@ -312,23 +312,6 @@ func MakeBillsMeta(parentPath string) {
 	currentBillsPath := path.Join(parentPath, BillsFile)
 	os.WriteFile(currentBillsPath, []byte(billsString), 0666)
 
-	// Loop through titles and for each bill update relatedbills:
-	//  * If the related bill does not already exist, create it
-	//  * If the related bill already exists, add the title to the titles array
-	//  * Update the "reason" to add "title match"
-
-	//titles := getKeys(titleNoYearSyncMap)
-
-	/*
-		log.Info().Msg("Creating string from  billMetaSyncMap")
-		jsonString, err := MarshalJSONBillMeta(BillMetaSyncMap)
-		if err != nil {
-			log.Error().Msgf("Error making JSON data for billMetaMap: %s", err)
-		}
-		log.Info().Msg("Writing billMeta JSON data to file")
-		os.WriteFile(pathToBillMeta, []byte(jsonString), 0666)
-	*/
-
 	jsonSimString, err := MarshalJSONBillSimilarity(BillMetaSyncMap)
 	if err != nil {
 		log.Error().Msgf("Error making JSON data for billSimilarity file: %s", err)
@@ -352,7 +335,9 @@ func MakeBillsMeta(parentPath string) {
 	log.Info().Msg("Writing maintitleNoYearIndex JSON data to file")
 	currentMainTitleNoYearIndexPath := path.Join(parentPath, MainTitleNoYearIndex)
 	os.WriteFile(currentMainTitleNoYearIndexPath, []byte(jsonMainTitleNoYearString), 0666)
-	for i := 0; i < cap(sem); i++ {
-		sem <- true
-	}
+	/*
+		for i := 0; i < cap(sem); i++ {
+			sem <- true
+		}
+	*/
 }

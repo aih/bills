@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"os"
 	"path"
@@ -126,4 +127,39 @@ func main() {
 	}
 	log.Info().Msgf("Writing billMeta JSON data to file: %v", pathToBillMeta)
 	os.WriteFile(pathToBillMeta, []byte(jsonString), 0666)
+
+	log.Info().Msgf("BillMetaSyncMap: %v", bills.BillMetaSyncMap)
+	billslist := bills.GetSyncMapKeys(bills.BillMetaSyncMap)
+	billsString, err := json.Marshal(billslist)
+	log.Info().Msgf("Bills: %s", billsString)
+	if err != nil {
+		log.Error().Msgf("Error making JSON data for bills: %s", err)
+	}
+	log.Info().Msg("Writing bills JSON data to file")
+	currentBillsPath := path.Join(parentPath, bills.BillsFile)
+	os.WriteFile(currentBillsPath, []byte(billsString), 0666)
+
+	jsonSimString, err := bills.MarshalJSONBillSimilarity(bills.BillMetaSyncMap)
+	if err != nil {
+		log.Error().Msgf("Error making JSON data for billSimilarity file: %s", err)
+	}
+	log.Info().Msg("Writing billSimilarity JSON data to file")
+	currentBillSimilarityPath := path.Join(parentPath, bills.BillSimilarityFile)
+	os.WriteFile(currentBillSimilarityPath, []byte(jsonSimString), 0666)
+
+	jsonTitleNoYearString, err := bills.MarshalJSONStringArray(bills.TitleNoYearSyncMap)
+	if err != nil {
+		log.Error().Msgf("Error making JSON data for TitleNoYearSyncMap: %s", err)
+	}
+	log.Info().Msg("Writing titleNoYearIndex JSON data to file")
+	currentTitleNoYearIndexPath := path.Join(parentPath, bills.TitleNoYearIndex)
+	os.WriteFile(currentTitleNoYearIndexPath, []byte(jsonTitleNoYearString), 0666)
+	jsonMainTitleNoYearString, err := bills.MarshalJSONStringArray(bills.MainTitleNoYearSyncMap)
+
+	if err != nil {
+		log.Error().Msgf("Error making JSON data for MainTitleNoYearMap: %s", err)
+	}
+	log.Info().Msg("Writing maintitleNoYearIndex JSON data to file")
+	currentMainTitleNoYearIndexPath := path.Join(parentPath, bills.MainTitleNoYearIndex)
+	os.WriteFile(currentMainTitleNoYearIndexPath, []byte(jsonMainTitleNoYearString), 0666)
 }
