@@ -335,9 +335,7 @@ func MakeBillsMeta(parentPath string) {
 	log.Info().Msg("Writing maintitleNoYearIndex JSON data to file")
 	currentMainTitleNoYearIndexPath := path.Join(parentPath, MainTitleNoYearIndex)
 	os.WriteFile(currentMainTitleNoYearIndexPath, []byte(jsonMainTitleNoYearString), 0666)
-	/*
-		for i := 0; i < cap(sem); i++ {
-			sem <- true
-		}
-	*/
+	for i := 0; i < cap(sem); i++ {
+		sem <- true
+	}
 }
