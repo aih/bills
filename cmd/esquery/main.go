@@ -86,6 +86,7 @@ func main() {
 			similars := bills.GetMoreLikeThisQuery(num_results, min_sim_score, sectionText.(string))
 
 			var esResult bills.SearchResult_ES
+			// TODO: marshal and unmarshal is not efficient, but the mapstructure library does not work for this
 			bs, _ := json.Marshal(similars)
 			if err := json.Unmarshal([]byte(bs), &esResult); err != nil {
 				log.Error().Msgf("Could not parse ES query result: %v", err)
