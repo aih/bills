@@ -1,13 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/aih/bills"
-	"github.com/mitchellh/mapstructure"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -89,41 +89,24 @@ func main() {
 			similars := bills.GetMoreLikeThisQuery(num_results, min_sim_score, sectionText.(string))
 
 			var esResult bills.SearchResult_ES
-			log.Info().Msgf("similars['hits']: %v", similars["hits"])
-			mapstructure.Decode(similars, &esResult)
-			/*
-				body, err := ioutil.ReadAll(similarsRes.Body)
-				if err != nil {
-					log.Error().Msg("error reading es response body")
-					return
-				}
-			*/
-
+			bs, _ := json.Marshal(similars)
+			if err := json.Unmarshal([]byte(bs), &esResult); err != nil {
+				panic(err)
+			}
 			//bs, _ := json.Marshal(similars)
 			//fmt.Println(string(bs))
 			//ioutil.WriteFile("similarsResp.json", bs, os.ModePerm)
 
-			log.Info().Msgf("searchResult: %v", esResult)
-			//similarsJson := bills.ReadToString(similarsRes.Body)
-			//similarsG := gjson.Get(similarsJson, "hits.hits").Array()
-			//fmt.Println(string(similarsJson))
-			//log.Info().Msgf("similarsBody: %v", similarsRes.Body)
+			if len(esResult.Hits.Hits) > 0 && len(esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits) > 0 {
+				log.Info().Msgf("searchResult: %s", esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits[0].Source)
+			}
 			hits, _ := bills.GetInnerHits(similars)
-			//innerResults, _ := bills.GetInnerResults(similars)
 			if len(hits) > 0 {
 				topHit := bills.GetTopHit(hits)
 				matchingBills := strings.Join(getMatchingBills(hits), ", ")
-				//lastHit = topHit
 
 				log.Debug().Msgf("Number of matches: %d, Matches: %s, Top Match: %s, Score: %f", len(hits), matchingBills, topHit["_source"].(map[string]interface{})["billnumber"], topHit["_score"])
 			}
 		}
-		//log.Info().Msgf("%v", lastHit["inner_hits"])
-		//bs, _ := json.Marshal(lastHit["inner_hits"].(map[string]interface{})["sections"].(map[string]interface{}))
-		//fmt.Println(string(bs))
-		//source := lastHit["inner_hits"].(map[string]interface{})["sections"].(map[string]interface{})["hits"].(map[string]interface{})["hits"].([]interface{})[0] //.(map[string]interface{})["_source"]
-
-		//bs, _ := json.Marshal(source)
-		//fmt.Println(string(bs))
 	}
 }

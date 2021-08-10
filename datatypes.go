@@ -206,7 +206,7 @@ type InnerHit struct {
 		Section string `json:"section"`
 		Offset  int    `json:"offset"`
 	} `json:"nested"`
-	Source struct {
+	/*Source struct {
 		BillNumber  string        `json:"bill_number"`
 		BillVersion string        `json:"bill_version"`
 		Congress    string        `json:"congress"`
@@ -217,6 +217,8 @@ type InnerHit struct {
 		Type        string        `json:"type"`
 		Sections    []SectionItem `json:"sections"`
 	} `json:"_source"`
+	*/
+	Source json.RawMessage `json:"_source"`
 }
 
 type SectionItem struct {
