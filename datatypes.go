@@ -206,19 +206,8 @@ type InnerHit struct {
 		Section string `json:"section"`
 		Offset  int    `json:"offset"`
 	} `json:"nested"`
-	/*Source struct {
-		BillNumber  string        `json:"bill_number"`
-		BillVersion string        `json:"bill_version"`
-		Congress    string        `json:"congress"`
-		Date        string        `json:"date"`
-		Legisnum    string        `json:"legisnum"`
-		Session     string        `json:"session"`
-		DCTitle     string        `json:"dc_title"`
-		Type        string        `json:"type"`
-		Sections    []SectionItem `json:"sections"`
-	} `json:"_source"`
-	*/
-	Source json.RawMessage `json:"_source"`
+	Source SectionItem `json:"_source"`
+	//Source json.RawMessage `json:"_source"`
 }
 
 type SectionItem struct {

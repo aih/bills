@@ -98,7 +98,7 @@ func main() {
 			//ioutil.WriteFile("similarsResp.json", bs, os.ModePerm)
 
 			if len(esResult.Hits.Hits) > 0 && len(esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits) > 0 {
-				log.Info().Msgf("searchResult: %s", esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits[0].Source)
+				log.Info().Msgf("searchResult: %s", esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits[0].Source.SectionHeader)
 			}
 			hits, _ := bills.GetInnerHits(similars)
 			if len(hits) > 0 {
