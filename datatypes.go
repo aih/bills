@@ -226,9 +226,6 @@ type ResultInnerHits []struct {
 	//Highlight map[string][]string `json:"highlight,omitempty"`
 	Sections InnerHitSections `json:"sections"`
 }
-
-//"_id":"ccN083gBppu2L0JvvoHQ","_index":"billsections","_nested":{"field":"sections","offset":1},"_score":43.656067,"_source":{"section_header":"Repeal of estate and gift taxes","section_number":"2.","section_text":"2.Re
-
 type InnerHitSections struct {
 	Hits struct {
 		Hits []struct {

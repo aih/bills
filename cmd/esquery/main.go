@@ -81,24 +81,21 @@ func main() {
 		billnumberversion := billnumber + billversion
 		billsections := latestbill["_source"].(map[string]interface{})["sections"].([]interface{})
 		log.Info().Msgf("Get similar bills for the %d sections of %s", len(billsections), billnumberversion)
-		//var lastHit map[string]interface{}
 		for _, sectionItem := range billsections {
-			//sectionHeader := sectionItem.(map[string]interface{})["section_header"]
-			//sectionNumber := sectionItem.(map[string]interface{})["section_number"]
 			sectionText := sectionItem.(map[string]interface{})["section_text"]
 			similars := bills.GetMoreLikeThisQuery(num_results, min_sim_score, sectionText.(string))
 
 			var esResult bills.SearchResult_ES
 			bs, _ := json.Marshal(similars)
 			if err := json.Unmarshal([]byte(bs), &esResult); err != nil {
-				panic(err)
+				log.Error().Msgf("Could not parse ES query result: %v", err)
 			}
 			//bs, _ := json.Marshal(similars)
 			//fmt.Println(string(bs))
 			//ioutil.WriteFile("similarsResp.json", bs, os.ModePerm)
 
 			if len(esResult.Hits.Hits) > 0 && len(esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits) > 0 {
-				log.Info().Msgf("searchResult: %s", esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits[0].Source.SectionHeader)
+				log.Debug().Msgf("searchResult: %s", esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits[0].Source.SectionHeader)
 			}
 			hits, _ := bills.GetInnerHits(similars)
 			if len(hits) > 0 {
