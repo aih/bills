@@ -15,6 +15,7 @@ require (
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/jdkato/prose v1.2.1
 	github.com/joho/godotenv v1.3.0
+	github.com/mitchellh/mapstructure v1.4.1
 	github.com/rs/zerolog v1.23.0
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.8.1

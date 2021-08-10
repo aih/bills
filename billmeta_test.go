@@ -1,14 +1,6 @@
 package bills
 
-import (
-	"strings"
-	"testing"
-
-	"github.com/aih/bills/internal/testutils"
-	"github.com/rs/zerolog/log"
-	"github.com/stretchr/testify/assert"
-)
-
+/*
 func TestMakeBillMeta(t *testing.T) {
 	testutils.SetLogLevel()
 	log.Info().Msg("Test getting metadata from bill by bill number")
@@ -25,5 +17,6 @@ func TestMakeBillMeta(t *testing.T) {
 	assert.Equal(t, 2, len(billMeta.TitlesWholeBill))
 	assert.Equal(t, 29, len(billMeta.Cosponsors))
 }
+*/
 
 //TODO make tests for MakeBillsMeta, LoadTitles, LoadMainTitles

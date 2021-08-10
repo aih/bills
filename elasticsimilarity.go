@@ -29,7 +29,7 @@ var (
 	}
 )
 
-func read(r io.Reader) string {
+func ReadToString(r io.Reader) string {
 	var b bytes.Buffer
 	b.ReadFrom(r)
 	return b.String()
@@ -189,7 +189,7 @@ func scrollQueryBillNumbers(buf bytes.Buffer, resultChan chan []gjson.Result) {
 
 	// Handle the first batch of data and extract the scrollID
 	//
-	json := read(res.Body)
+	json := ReadToString(res.Body)
 	res.Body.Close()
 	//fmt.Println(json)
 
@@ -217,7 +217,7 @@ func scrollQueryBillNumbers(buf bytes.Buffer, resultChan chan []gjson.Result) {
 			log.Fatal().Msgf("Error response: %s", res)
 		}
 
-		json := read(res.Body)
+		json := ReadToString(res.Body)
 		res.Body.Close()
 
 		// Extract the scrollID from response

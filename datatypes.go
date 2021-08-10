@@ -1,5 +1,7 @@
 package bills
 
+import "encoding/json"
+
 type TitlesJson struct {
 	As           string `json:"as"`
 	Type         string `json:"type"`
@@ -110,6 +112,20 @@ type SimilarBillItem struct {
 	TargetSectionHeader           string  `json:"target_section_header"`
 	TargetSectionNumber           string  `json:"target_section_number"`
 }
+type SimilarSection struct {
+	BillNumberVersion string `json:"bill_number_version"`
+	Score             string `json:"score"`
+	BillNumber        string `json:"bill_number"`
+	Congress          string `json:"congress"`
+	Session           string `json:"session"`
+	Legisnum          string `json:"legisnum"`
+	Title             string `json:"title"`
+	Section           string `json:"section"`
+	SectionHeader     string `json:"section_header"`
+	Date              string `json:"date"`
+}
+
+type SimilarSections []SimilarSection
 
 type DataJson struct {
 	Actions          []ActionItem      `json:"actions"`
@@ -138,6 +154,102 @@ type DataJson struct {
 	Titles           []TitlesJson      `json:"titles"`
 	UpdatedAt        string            `json:"updated_at"`
 	Url              string            `json:"url"`
+}
+
+// SearchResult represents the result of the search operation
+type SearchResult_ES struct {
+	Took     uint64 `json:"took"`
+	TimedOut bool   `json:"timed_out"`
+	Shards   struct {
+		Total      int `json:"total"`
+		Successful int `json:"successful"`
+		Failed     int `json:"failed"`
+		Skipped    int `json:"skipped"`
+	} `json:"_shards"`
+	Hits ResultHits `json:"hits"`
+}
+
+// ResultHits represents the result of the search hits
+type ResultHits struct {
+	Total    int     `json:"total"`
+	MaxScore float32 `json:"max_score"`
+	Relation string  `json:"relation"`
+	Value    int     `json:"value"`
+	Hits     []struct {
+		ID        string          `json:"_id"`
+		Index     string          `json:"_index"`
+		Type      string          `json:"_type"`
+		Score     float32         `json:"_score"`
+		Source    json.RawMessage `json:"_source"`
+		InnerHits struct {
+			Hits struct {
+				Hits     []InnerHit
+				MaxScore float32 `json:"max_score"`
+				Total    struct {
+					Relation string `json:"relation"`
+					Value    int    `json:"value"`
+				} `json:"total"`
+			} `json:"hits"`
+		} `json:"inner_hits"`
+	} `json:"hits"`
+}
+
+type InnerHit struct {
+	ID     string  `json:"_id"`
+	Index  string  `json:"_index"`
+	Type   string  `json:"_type"`
+	Score  float32 `json:"_score"`
+	Source struct {
+		BillNumber  string        `json:"bill_number"`
+		BillVersion string        `json:"bill_version"`
+		Congress    string        `json:"congress"`
+		Date        string        `json:"date"`
+		Legisnum    string        `json:"legisnum"`
+		Session     string        `json:"session"`
+		DCTitle     string        `json:"dc_title"`
+		Type        string        `json:"type"`
+		Sections    []SectionItem `json:"sections"`
+	} `json:"_source"`
+}
+
+type SectionItem struct {
+	SectionNumber string `json:"section_number"`
+	SectionHeader string `json:"section_header"`
+	SectionText   string `json:"section_text"`
+	SectionXML    string `json:"section_xml"`
+}
+
+type ResultInnerHits []struct {
+	Index  string          `json:"_index"`
+	Type   string          `json:"_type"`
+	ID     string          `json:"_id"`
+	Score  float32         `json:"_score"`
+	Source json.RawMessage `json:"_source"`
+	//Highlight map[string][]string `json:"highlight,omitempty"`
+	Sections InnerHitSections `json:"sections"`
+}
+
+//"_id":"ccN083gBppu2L0JvvoHQ","_index":"billsections","_nested":{"field":"sections","offset":1},"_score":43.656067,"_source":{"section_header":"Repeal of estate and gift taxes","section_number":"2.","section_text":"2.Re
+
+type InnerHitSections struct {
+	Hits struct {
+		Hits []struct {
+			SectionHit struct {
+				ID     string `json:"_id"`
+				Index  string `json:"_index"`
+				Nested struct {
+					Field  string `json:"field"`
+					Offset int    `json:"offset"`
+				} `json:"_nested"`
+				Score  string `json:"_score"`
+				Source struct {
+					SectionNumber string `json:"section_number"`
+					SectionHeader string `json:"section_header"`
+					SectionText   string `json:"section_text"`
+				} `json:"_source"`
+			}
+		} `json:"hits"`
+	} `json:"hits"`
 }
 
 type WordSample struct {
