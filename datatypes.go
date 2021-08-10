@@ -171,25 +171,28 @@ type SearchResult_ES struct {
 
 // ResultHits represents the result of the search hits
 type ResultHits struct {
-	Total    int     `json:"total"`
 	MaxScore float32 `json:"max_score"`
-	Relation string  `json:"relation"`
-	Value    int     `json:"value"`
-	Hits     []struct {
+	Total    struct {
+		Relation string `json:"relation"`
+		Value    int    `json:"value"`
+	} `json:"total"`
+	Hits []struct {
 		ID        string          `json:"_id"`
 		Index     string          `json:"_index"`
 		Type      string          `json:"_type"`
 		Score     float32         `json:"_score"`
 		Source    json.RawMessage `json:"_source"`
 		InnerHits struct {
-			Hits struct {
-				Hits     []InnerHit
-				MaxScore float32 `json:"max_score"`
-				Total    struct {
-					Relation string `json:"relation"`
-					Value    int    `json:"value"`
-				} `json:"total"`
-			} `json:"hits"`
+			Sections struct {
+				Hits struct {
+					Hits     []InnerHit
+					MaxScore float32 `json:"max_score"`
+					Total    struct {
+						Relation string `json:"relation"`
+						Value    int    `json:"value"`
+					} `json:"total"`
+				} `json:"hits"`
+			} `json:"sections"`
 		} `json:"inner_hits"`
 	} `json:"hits"`
 }
@@ -199,6 +202,10 @@ type InnerHit struct {
 	Index  string  `json:"_index"`
 	Type   string  `json:"_type"`
 	Score  float32 `json:"_score"`
+	Nested struct {
+		Section string `json:"section"`
+		Offset  int    `json:"offset"`
+	} `json:"nested"`
 	Source struct {
 		BillNumber  string        `json:"bill_number"`
 		BillVersion string        `json:"bill_version"`
