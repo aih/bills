@@ -176,25 +176,42 @@ type ResultHits struct {
 		Relation string `json:"relation"`
 		Value    int    `json:"value"`
 	} `json:"total"`
-	Hits []struct {
-		ID        string          `json:"_id"`
-		Index     string          `json:"_index"`
-		Type      string          `json:"_type"`
-		Score     float32         `json:"_score"`
-		Source    json.RawMessage `json:"_source"`
-		InnerHits struct {
-			Sections struct {
-				Hits struct {
-					Hits     []InnerHit
-					MaxScore float32 `json:"max_score"`
-					Total    struct {
-						Relation string `json:"relation"`
-						Value    int    `json:"value"`
-					} `json:"total"`
-				} `json:"hits"`
-			} `json:"sections"`
-		} `json:"inner_hits"`
-	} `json:"hits"`
+	Hits Hits_ES `json:"hits"`
+}
+
+type BillItemES struct {
+	ID          string        `json:"id"`
+	BillNumber  string        `json:"billnumber"`
+	BillVersion string        `json:"billversion"`
+	Congress    string        `json:"congress"`
+	Date        string        `json:"date"`
+	DC          []string      `json:"dc"`
+	DCTitle     string        `json:"dctitle"`
+	Headers     []string      `json:"headers"`
+	Legisnum    string        `json:"legisnum"`
+	Sections    []SectionItem `json:"sections"`
+}
+
+type Hits_ES []Hit_ES
+type Hit_ES struct {
+	ID        string     `json:"_id"`
+	Index     string     `json:"_index"`
+	Type      string     `json:"_type"`
+	Score     float32    `json:"_score"`
+	Source    BillItemES `json:"_source"`
+	InnerHits InnerHits  `json:"inner_hits"`
+}
+type InnerHits struct {
+	Sections struct {
+		Hits struct {
+			Hits     []InnerHit
+			MaxScore float32 `json:"max_score"`
+			Total    struct {
+				Relation string `json:"relation"`
+				Value    int    `json:"value"`
+			} `json:"total"`
+		} `json:"hits"`
+	} `json:"sections"`
 }
 
 type InnerHit struct {

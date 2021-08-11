@@ -324,11 +324,11 @@ func GetAllBillNumbers() []string {
 	return billNumberStrings
 }
 
-func getMatchingBills(hits []interface{}) (billnumbers []string) {
+func getMatchingBills(hits Hits_ES) (billnumbers []string) {
 
 	for _, item := range hits {
-		source := item.(map[string]interface{})["_source"].(map[string]interface{})
-		billnumber := source["billnumber"].(string)
+		source := item.Source
+		billnumber := source.BillNumber
 		billnumbers = append(billnumbers, billnumber)
 	}
 	return billnumbers
@@ -341,11 +341,12 @@ func GetSimilarityByBillNumber(billNumber string) (esResults []SearchResult_ES) 
 	billversion := latestbill["_source"].(map[string]interface{})["billversion"].(string)
 	billnumberversion := billNumber + billversion
 	billsections := latestbill["_source"].(map[string]interface{})["sections"].([]interface{})
-	log.Info().Msgf("Get similar bills for the %d sections of %s", len(billsections), billnumberversion)
+	log.Info().Msgf("Get similar bills for the %d sections of bill %s", len(billsections), billnumberversion)
 	for _, sectionItem := range billsections {
-		sectionText := sectionItem.(map[string]interface{})["section_text"]
+		sectionItemInterface := sectionItem.(map[string]interface{})
+		log.Info().Msgf("Get similar sections for: '%s'", sectionItemInterface["section_header"])
+		sectionText := sectionItemInterface["section_text"]
 		similars := GetMoreLikeThisQuery(num_results, min_sim_score, sectionText.(string))
-		log.Info().Msg("TEST\n")
 
 		// TODO: marshal and unmarshal is not efficient, but the mapstructure library does not work for this
 		var esResult SearchResult_ES
@@ -359,20 +360,33 @@ func GetSimilarityByBillNumber(billNumber string) (esResults []SearchResult_ES) 
 		//fmt.Println(string(bs))
 		//ioutil.WriteFile("similarsResp.json", bs, os.ModePerm)
 
-		hitsLen := len(esResult.Hits.Hits)
-		sectionHitsLen := len(esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits)
+		hitsEs, _ := GetHitsES(esResult) // = Hits.Hits
+		hitsLen := len(hitsEs)
 		log.Debug().Msgf("hitsLen: %d\n", hitsLen)
-		log.Debug().Msgf("sectionHitsLen: %d\n", sectionHitsLen)
-		if hitsLen > 0 && sectionHitsLen > 0 {
-			sections := esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits
-			log.Debug().Msgf("searchResult: %s", sections[0].Source.SectionHeader)
-		}
-		hits, _ := GetInnerHits(similars)
-		if len(hits) > 0 {
-			topHit := GetTopHit(hits)
-			matchingBills := strings.Join(getMatchingBills(hits), ", ")
+		innerHits, _ := GetInnerHits(esResult) // = InnerHits for each hit of Hits.Hits
+		var sectionHitsLen int
+		for index, hit := range innerHits {
+			billHit := hitsEs[index]
+			log.Debug().Msg("\n===============\n")
+			log.Debug().Msgf("Bill %d of %d", index+1, hitsLen)
+			log.Debug().Msgf("Matching sections for: %s", billHit.Source.BillNumber+billHit.Source.BillVersion)
+			log.Debug().Msgf("Score for %s: %f", billHit.Source.BillNumber, billHit.Score)
+			log.Debug().Msg("\n******************\n")
+			sectionHits := hit.Sections.Hits.Hits
+			sectionHitsLen = len(sectionHits)
+			log.Debug().Msgf("sectionHitsLen: %d\n", sectionHitsLen)
+			for _, sectionHit := range sectionHits {
+				log.Debug().Msgf("sectionMatch: %s", sectionHit.Source.SectionHeader)
+				log.Debug().Msgf("Section score: %f", sectionHit.Score)
+			}
+			log.Debug().Msg("\n******************\n")
 
-			log.Debug().Msgf("Number of matches: %d, Matches: %s, Top Match: %s, Score: %f", len(hits), matchingBills, topHit["_source"].(map[string]interface{})["billnumber"], topHit["_score"])
+		}
+		if len(innerHits) > 0 {
+			topHit := GetTopHit(hitsEs)
+			matchingBills := strings.Join(getMatchingBills(hitsEs), ", ")
+
+			log.Debug().Msgf("Number of matches: %d, Matches: %s, Top Match: %s, Score: %f", len(innerHits), matchingBills, topHit.Source.BillNumber, topHit.Score)
 		}
 	}
 	return esResults

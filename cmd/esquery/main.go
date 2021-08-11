@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -28,16 +27,6 @@ func (bl *BillList) String() string {
 func (bl *BillList) Set(s string) error {
 	*bl = strings.Split(s, ",")
 	return nil
-}
-
-func getMatchingBills(hits []interface{}) (billnumbers []string) {
-
-	for _, item := range hits {
-		source := item.(map[string]interface{})["_source"].(map[string]interface{})
-		billnumber := source["billnumber"].(string)
-		billnumbers = append(billnumbers, billnumber)
-	}
-	return billnumbers
 }
 
 func main() {
@@ -74,37 +63,6 @@ func main() {
 		billNumbers = bills.GetSampleBillNumbers()
 	}
 	for _, billnumber := range billNumbers {
-		log.Info().Msgf("Get versions of: %s", billnumber)
-		r := bills.GetBill_ES(billnumber)
-		latestbill := bills.GetLatestBill(r)
-		billversion := latestbill["_source"].(map[string]interface{})["billversion"].(string)
-		billnumberversion := billnumber + billversion
-		billsections := latestbill["_source"].(map[string]interface{})["sections"].([]interface{})
-		log.Info().Msgf("Get similar bills for the %d sections of %s", len(billsections), billnumberversion)
-		for _, sectionItem := range billsections {
-			sectionText := sectionItem.(map[string]interface{})["section_text"]
-			similars := bills.GetMoreLikeThisQuery(num_results, min_sim_score, sectionText.(string))
-
-			var esResult bills.SearchResult_ES
-			// TODO: marshal and unmarshal is not efficient, but the mapstructure library does not work for this
-			bs, _ := json.Marshal(similars)
-			if err := json.Unmarshal([]byte(bs), &esResult); err != nil {
-				log.Error().Msgf("Could not parse ES query result: %v", err)
-			}
-			//bs, _ := json.Marshal(similars)
-			//fmt.Println(string(bs))
-			//ioutil.WriteFile("similarsResp.json", bs, os.ModePerm)
-
-			if len(esResult.Hits.Hits) > 0 && len(esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits) > 0 {
-				log.Debug().Msgf("searchResult: %s", esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits[0].Source.SectionHeader)
-			}
-			hits, _ := bills.GetInnerHits(similars)
-			if len(hits) > 0 {
-				topHit := bills.GetTopHit(hits)
-				matchingBills := strings.Join(getMatchingBills(hits), ", ")
-
-				log.Debug().Msgf("Number of matches: %d, Matches: %s, Top Match: %s, Score: %f", len(hits), matchingBills, topHit["_source"].(map[string]interface{})["billnumber"], topHit["_score"])
-			}
-		}
+		bills.GetSimilarityByBillNumber(billnumber)
 	}
 }

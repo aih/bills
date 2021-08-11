@@ -1,35 +1,31 @@
 package bills
 
-func GetTopHit(hits []interface{}) (topHit map[string]interface{}) {
+func GetTopHit(hits Hits_ES) (topHit Hit_ES) {
 
-	var topScore float64
-	var score float64
+	var topScore float32
+	var score float32
 	topScore = 0
 	for _, item := range hits {
-		score = item.(map[string]interface{})["_score"].(float64)
+		score = item.Score
 		if score > topScore {
 			topScore = score
-			topHit = item.(map[string]interface{})
+			topHit = item
 		}
 
 	}
 	return topHit
 }
 
-func GetInnerHits(res map[string]interface{}) (innerHits []interface{}, err error) {
-	// TODO: check if res is a map with the right keys
-	innerHits = res["hits"].(map[string]interface{})["hits"].([]interface{})
-	return innerHits, nil
+func GetHitsES(results SearchResult_ES) (innerHits Hits_ES, err error) {
+	return results.Hits.Hits, nil
 }
 
-func GetInnerResults(res map[string]interface{}) (innerResults []map[string]interface{}, err error) {
-	var innerHits, _ = GetInnerHits(res)
-	//TODO check for error
-	for index, hit := range innerHits {
-		//log.Debug().Msgf("hit: %v", hit)
-		innerResults = append(innerResults, hit.(map[string]interface{})["inner_results"].([]map[string]interface{})[index])
+func GetInnerHits(results SearchResult_ES) (innerHits []InnerHits, err error) {
+	var hitsES, _ = GetHitsES(results)
+	for _, hit := range hitsES {
+		innerHits = append(innerHits, hit.InnerHits)
 	}
-	return innerResults, nil
+	return innerHits, nil
 }
 
 // similars is the result of the MLT query
