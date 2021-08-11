@@ -29,6 +29,11 @@ var (
 	}
 )
 
+const (
+	num_results   = 20
+	min_sim_score = 20
+)
+
 func ReadToString(r io.Reader) string {
 	var b bytes.Buffer
 	b.ReadFrom(r)
@@ -150,9 +155,11 @@ func runQuery(query map[string]interface{}) (r map[string]interface{}) {
 		int(r["took"].(float64)),
 	)
 	// Print the ID and document source for each hit.
-	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-		log.Debug().Msgf(" * ID=%s, %s", hit.(map[string]interface{})["_id"], hit.(map[string]interface{})["_source"])
-	}
+	/*
+		for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
+			log.Debug().Msgf(" * ID=%s, %s", hit.(map[string]interface{})["_id"], hit.(map[string]interface{})["_source"])
+		}
+	*/
 	return r
 }
 
@@ -315,4 +322,58 @@ func GetAllBillNumbers() []string {
 		}
 	}
 	return billNumberStrings
+}
+
+func getMatchingBills(hits []interface{}) (billnumbers []string) {
+
+	for _, item := range hits {
+		source := item.(map[string]interface{})["_source"].(map[string]interface{})
+		billnumber := source["billnumber"].(string)
+		billnumbers = append(billnumbers, billnumber)
+	}
+	return billnumbers
+}
+
+func GetSimilarityByBillNumber(billNumber string) (esResults []SearchResult_ES) {
+	log.Info().Msgf("Get versions of: %s", billNumber)
+	r := GetBill_ES(billNumber)
+	latestbill := GetLatestBill(r)
+	billversion := latestbill["_source"].(map[string]interface{})["billversion"].(string)
+	billnumberversion := billNumber + billversion
+	billsections := latestbill["_source"].(map[string]interface{})["sections"].([]interface{})
+	log.Info().Msgf("Get similar bills for the %d sections of %s", len(billsections), billnumberversion)
+	for _, sectionItem := range billsections {
+		sectionText := sectionItem.(map[string]interface{})["section_text"]
+		similars := GetMoreLikeThisQuery(num_results, min_sim_score, sectionText.(string))
+		log.Info().Msg("TEST\n")
+
+		// TODO: marshal and unmarshal is not efficient, but the mapstructure library does not work for this
+		var esResult SearchResult_ES
+		bs, _ := json.Marshal(similars)
+		if err := json.Unmarshal([]byte(bs), &esResult); err != nil {
+			log.Error().Msgf("Could not parse ES query result: %v", err)
+		} else {
+			esResults = append(esResults, esResult)
+		}
+		//bs, _ := json.Marshal(similars)
+		//fmt.Println(string(bs))
+		//ioutil.WriteFile("similarsResp.json", bs, os.ModePerm)
+
+		hitsLen := len(esResult.Hits.Hits)
+		sectionHitsLen := len(esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits)
+		log.Debug().Msgf("hitsLen: %d\n", hitsLen)
+		log.Debug().Msgf("sectionHitsLen: %d\n", sectionHitsLen)
+		if hitsLen > 0 && sectionHitsLen > 0 {
+			sections := esResult.Hits.Hits[0].InnerHits.Sections.Hits.Hits
+			log.Debug().Msgf("searchResult: %s", sections[0].Source.SectionHeader)
+		}
+		hits, _ := GetInnerHits(similars)
+		if len(hits) > 0 {
+			topHit := GetTopHit(hits)
+			matchingBills := strings.Join(getMatchingBills(hits), ", ")
+
+			log.Debug().Msgf("Number of matches: %d, Matches: %s, Top Match: %s, Score: %f", len(hits), matchingBills, topHit["_source"].(map[string]interface{})["billnumber"], topHit["_score"])
+		}
+	}
+	return esResults
 }

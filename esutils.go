@@ -1,7 +1,5 @@
 package bills
 
-import "github.com/rs/zerolog/log"
-
 func GetTopHit(hits []interface{}) (topHit map[string]interface{}) {
 
 	var topScore float64
@@ -28,23 +26,25 @@ func GetInnerResults(res map[string]interface{}) (innerResults []map[string]inte
 	var innerHits, _ = GetInnerHits(res)
 	//TODO check for error
 	for index, hit := range innerHits {
-		log.Info().Msgf("hit: %v", hit)
+		//log.Debug().Msgf("hit: %v", hit)
 		innerResults = append(innerResults, hit.(map[string]interface{})["inner_results"].([]map[string]interface{})[index])
 	}
 	return innerResults, nil
 }
 
-/*
-
 // similars is the result of the MLT query
+/*
 func GetSimilarSections(similars map[string]interface{}) (SimilarSections, error) {
-	hits := GetInnerHits(similars)
-	for hit := range hits {
-		similarSections
+	hits, _ := GetInnerHits(similars)
+	innerResults, _ := GetInnerResults(similars)
+	for index, hit := range hits {
+		log.Info().Msgf(" %v, %v", index, hit)
+		innerResultSections = similars
 	}
 	return similarSections, nil
 }
 */
+
 /* Python version
 def getSimilarSections(res):
   similarSections = []
