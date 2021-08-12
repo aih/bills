@@ -324,16 +324,6 @@ func GetAllBillNumbers() []string {
 	return billNumberStrings
 }
 
-func getMatchingBills(hits Hits_ES) (billnumbers []string) {
-
-	for _, item := range hits {
-		source := item.Source
-		billnumber := source.BillNumber
-		billnumbers = append(billnumbers, billnumber)
-	}
-	return billnumbers
-}
-
 func GetSimilarityByBillNumber(billNumber string) (esResults []SearchResult_ES) {
 	log.Info().Msgf("Get versions of: %s", billNumber)
 	r := GetBill_ES(billNumber)
@@ -391,9 +381,11 @@ func GetSimilarityByBillNumber(billNumber string) (esResults []SearchResult_ES) 
 		log.Debug().Msgf("similarSections: %v\n", similarSections)
 		if len(innerHits) > 0 {
 			topHit := GetTopHit(hitsEs)
-			matchingBills := strings.Join(getMatchingBills(hitsEs), ", ")
+			matchingBills := GetMatchingBills(esResult)
+			matchingBillsDedupe := RemoveDuplicates(matchingBills)
+			matchingBillsString := strings.Join(matchingBills, ", ")
 
-			log.Debug().Msgf("Number of matches: %d, Matches: %s, Top Match: %s, Score: %f", len(innerHits), matchingBills, topHit.Source.BillNumber, topHit.Score)
+			log.Debug().Msgf("Number of matches: %d, Matches: %s, MatchesDedupe: %s, Top Match: %s, Score: %f", len(innerHits), matchingBillsString, matchingBillsDedupe, topHit.Source.BillNumber, topHit.Score)
 		}
 	}
 	return esResults

@@ -33,6 +33,16 @@ func GetInnerHits(results SearchResult_ES) (innerHits []InnerHits, err error) {
 	return innerHits, nil
 }
 
+func GetMatchingBills(results SearchResult_ES) (billnumbers []string) {
+	hits, _ := GetHitsES(results)
+	for _, item := range hits {
+		source := item.Source
+		billnumber := source.BillNumber
+		billnumbers = append(billnumbers, billnumber)
+	}
+	return billnumbers
+}
+
 // similars is the result of the MLT query
 func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSections, err error) {
 	hits, _ := GetHitsES(results)
@@ -75,4 +85,26 @@ func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSection
 	sort.SliceStable(similarSections, func(i, j int) bool { return similarSections[i].Score > similarSections[j].Score })
 
 	return similarSections, nil
+}
+
+func GetSimilarBills(results SearchResult_ES) (similarBillItems []SimilarBillItem, err error) {
+	similarSections, _ := GetSimilarSections(results)
+	// Get unique bills
+	// For each bill get best score
+	matchingBills := GetMatchingBills(results)
+	matchingBillsDedupe := RemoveDuplicates(matchingBills)
+	for _, bill := range matchingBillsDedupe {
+		similarBillItem := SimilarBillItem{
+			Billnumber: bill,
+			//TODO: add more fields
+		}
+		for _, section := range similarSections {
+			if section.BillNumber == bill {
+				similarBillItem.Score = section.Score
+			}
+		}
+		similarBillItems = append(similarBillItems, similarBillItem)
+	}
+	return similarBillItems, nil
+
 }
