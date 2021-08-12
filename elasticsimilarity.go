@@ -37,10 +37,7 @@ func GetSimilaritySectionsByBillNumber(billNumber string) (similarSectionsItems 
 		hitsEs, _ := GetHitsES(esResult) // = Hits.Hits
 		hitsLen := len(hitsEs)
 
-		// TODO: Organize the matches by bill and by section
-		// Define a struct for the similarity JSON per bill
-
-		log.Debug().Msgf("hitsLen: %d\n", hitsLen)
+		log.Info().Msgf("Number of bills with matching sections (hitsLen): %d\n", hitsLen)
 		innerHits, _ := GetInnerHits(esResult) // = InnerHits for each hit of Hits.Hits
 		var sectionHitsLen int
 		for index, hit := range innerHits {
