@@ -1,5 +1,9 @@
 package bills
 
+import (
+	"strings"
+)
+
 func GetTopHit(hits Hits_ES) (topHit Hit_ES) {
 
 	var topScore float32
@@ -29,55 +33,39 @@ func GetInnerHits(results SearchResult_ES) (innerHits []InnerHits, err error) {
 }
 
 // similars is the result of the MLT query
-/*
-func GetSimilarSections(similars map[string]interface{}) (SimilarSections, error) {
-	hits, _ := GetInnerHits(similars)
-	innerResults, _ := GetInnerResults(similars)
+func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSections, err error) {
+	hits, _ := GetHitsES(results)
+	innerHits, _ := GetInnerHits(results)
 	for index, hit := range hits {
-		log.Info().Msgf(" %v, %v", index, hit)
-		innerResultSections = similars
+		var topInnerResultSectionHit InnerHit
+		var similarSection SimilarSection
+		innerResultSectionHits := innerHits[index].Sections.Hits.Hits
+		if len(innerResultSectionHits) > 0 {
+			// The first section matched is the best section (and usu. the only real match in the bill)
+			topInnerResultSectionHit = innerResultSectionHits[0]
+		}
+		billSource := hit.Source
+		similarSection.BillNumber = billSource.BillNumber
+		similarSection.BillNumberVersion = billSource.ID
+		similarSection.Congress = billSource.Congress
+		similarSection.Session = billSource.Session
+		similarSection.Legisnum = billSource.Legisnum
+		similarSection.Score = topInnerResultSectionHit.Score
+		similarSection.SectionNum = topInnerResultSectionHit.Source.SectionNumber + " "
+		similarSection.SectionHeader = topInnerResultSectionHit.Source.SectionHeader
+		similarSection.Date = billSource.Date
+		dublinCores := billSource.DC
+		dublinCore := ""
+		if len(dublinCores) > 0 {
+			dublinCore = dublinCores[0]
+			result := DcTitle_Regexp.FindAllStringSubmatch(dublinCore, -1)
+			title := ""
+			if len(result) > 0 && len(result[0]) > 1 {
+				title = strings.Trim(result[0][1], " ")
+			}
+			similarSection.Title = title
+			similarSections = append(similarSections, similarSection)
+		}
 	}
 	return similarSections, nil
 }
-*/
-
-/* Python version
-def getSimilarSections(res):
-  similarSections = []
-  try:
-    hits = getInnerHits(res)
-    innerResults = getInnerResults(res)
-    for index, hit in enumerate(hits):
-      innerResultSections = getInnerHits(innerResults[index].get('sections'))
-      billSource = hit.get('_source')
-      title = ''
-      dublinCore = ''
-      dublinCores = billSource.get('dc', [])
-      if dublinCores:
-        dublinCore = dublinCores[0]
-
-      titleMatch = re.search(r'<dc:title>(.*)?<', str(dublinCore))
-      if titleMatch:
-        title = titleMatch[1].strip()
-      num = innerResultSections[0].get('_source', {}).get('section_number', '')
-      if num:
-        num = num + " "
-      header = innerResultSections[0].get('_source', {}).get('section_header', '')
-      match = {
-        "bill_number_version": billSource.get('id', ''),
-        "score": innerResultSections[0].get('_score', ''),
-        "billnumber": billSource.get('billnumber', ''),
-        "congress": billSource.get('_source', {}).get('congress', ''),
-        "session": billSource.get('session', ''),
-        "legisnum": billSource.get('legisnum', ''),
-        "title": title,
-        "section_num": num,
-        "section_header": header,
-        "date": billSource.get('date'),
-      }
-      similarSections.append(match)
-    return similarSections
-  except Exception as err:
-    print(err)
-    return []
-*/

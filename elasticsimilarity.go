@@ -386,6 +386,9 @@ func GetSimilarityByBillNumber(billNumber string) (esResults []SearchResult_ES) 
 			log.Debug().Msg("\n******************\n")
 
 		}
+		similarSections, _ := GetSimilarSections(esResult)
+		log.Debug().Msgf("number of similarSections: %v\n", len(similarSections))
+		log.Debug().Msgf("similarSections: %v\n", similarSections)
 		if len(innerHits) > 0 {
 			topHit := GetTopHit(hitsEs)
 			matchingBills := strings.Join(getMatchingBills(hitsEs), ", ")

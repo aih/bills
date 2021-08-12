@@ -99,7 +99,7 @@ type RelatedBillMap map[string]RelatedBillItem
 
 type SimilarBillItem struct {
 	Date                          string  `json:"date"`
-	Score                         float64 `json:"score"`
+	Score                         float32 `json:"score"`
 	Title                         string  `json:"title"`
 	Session                       string  `json:"session"`
 	Congress                      string  `json:"congress"`
@@ -113,16 +113,16 @@ type SimilarBillItem struct {
 	TargetSectionNumber           string  `json:"target_section_number"`
 }
 type SimilarSection struct {
-	BillNumberVersion string `json:"bill_number_version"`
-	Score             string `json:"score"`
-	BillNumber        string `json:"bill_number"`
-	Congress          string `json:"congress"`
-	Session           string `json:"session"`
-	Legisnum          string `json:"legisnum"`
-	Title             string `json:"title"`
-	Section           string `json:"section"`
-	SectionHeader     string `json:"section_header"`
-	Date              string `json:"date"`
+	BillNumberVersion string  `json:"bill_number_version"`
+	Score             float32 `json:"score"`
+	BillNumber        string  `json:"bill_number"`
+	Congress          string  `json:"congress"`
+	Session           string  `json:"session"`
+	Legisnum          string  `json:"legisnum"`
+	Title             string  `json:"title"`
+	SectionNum        string  `json:"section"`
+	SectionHeader     string  `json:"section_header"`
+	Date              string  `json:"date"`
 }
 
 type SimilarSections []SimilarSection
@@ -184,6 +184,7 @@ type BillItemES struct {
 	BillNumber  string        `json:"billnumber"`
 	BillVersion string        `json:"billversion"`
 	Congress    string        `json:"congress"`
+	Session     string        `json:"session"`
 	Date        string        `json:"date"`
 	DC          []string      `json:"dc"`
 	DCTitle     string        `json:"dctitle"`
