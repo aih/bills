@@ -11,7 +11,7 @@ const (
 	min_sim_score = 20 // Minimum similarity to make a match in the section query
 )
 
-func GetSimilarityByBillNumber(billNumber string) (similarSectionsItems SimilarSectionsItems, err error) {
+func GetSimilaritySectionsByBillNumber(billNumber string) (similarSectionsItems SimilarSectionsItems, err error) {
 	log.Info().Msgf("Get versions of: %s", billNumber)
 	r := GetBill_ES(billNumber)
 	latestBillItem, err := GetLatestBill(r)
