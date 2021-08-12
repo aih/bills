@@ -11,11 +11,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const (
-	num_results   = 20
-	min_sim_score = 20
-)
-
 // BillList is a string slice
 type BillList []string
 
