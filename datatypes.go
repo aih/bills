@@ -128,6 +128,15 @@ type BillSection struct {
 
 type SimilarSections []SimilarSection
 
+type SimilarSectionsItem struct {
+	BillNumber        string          `json:"bill_number"`
+	BillNumberVersion string          `json:"bill_number_version"`
+	SectionHeader     string          `json:"section_header"`
+	SectionNum        string          `json:"section"`
+	SimilarSections   SimilarSections `json:"similar_sections"`
+}
+
+type SimilarSectionsItems []SimilarSectionsItem
 type DataJson struct {
 	Actions          []ActionItem      `json:"actions"`
 	Amendments       []interface{}     `json:"amendments"`

@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	num_results   = 20
-	min_sim_score = 20
+	num_results   = 20 // Maximum number of results to return
+	min_sim_score = 20 // Minimum similarity to make a match in the section query
 )
 
-func GetSimilarityByBillNumber(billNumber string) (esResults []SearchResult_ES) {
+func GetSimilarityByBillNumber(billNumber string) (similarSectionsItems SimilarSectionsItems, err error) {
 	log.Info().Msgf("Get versions of: %s", billNumber)
 	r := GetBill_ES(billNumber)
 	latestBillItem, err := GetLatestBill(r)
@@ -29,8 +29,6 @@ func GetSimilarityByBillNumber(billNumber string) (esResults []SearchResult_ES) 
 
 		if err != nil {
 			log.Error().Msgf("Error getting results: '%v'", err)
-		} else {
-			esResults = append(esResults, esResult)
 		}
 		//bs, _ := json.Marshal(similars)
 		//fmt.Println(string(bs))
@@ -63,8 +61,15 @@ func GetSimilarityByBillNumber(billNumber string) (esResults []SearchResult_ES) 
 
 		}
 		similarSections, _ := GetSimilarSections(esResult)
+		similarSectionsItems = append(similarSectionsItems, SimilarSectionsItem{
+			BillNumber:        billNumber,
+			BillNumberVersion: billnumberversion,
+			SectionHeader:     sectionItem.SectionHeader,
+			SectionNum:        sectionItem.SectionNumber,
+			SimilarSections:   similarSections,
+		})
 		log.Debug().Msgf("number of similarSections: %v\n", len(similarSections))
-		log.Debug().Msgf("similarSections: %v\n", similarSections)
+		//log.Debug().Msgf("similarSections: %v\n", similarSections)
 		if len(innerHits) > 0 {
 			topHit := GetTopHit(hitsEs)
 			matchingBills := GetMatchingBills(esResult)
@@ -80,5 +85,6 @@ func GetSimilarityByBillNumber(billNumber string) (esResults []SearchResult_ES) 
 			log.Debug().Msgf("Number of matches: %d, Matches: %s", len(innerHits), matchingBillNumberVersionsString)
 		}
 	}
-	return esResults
+	log.Debug().Msgf("number of similarSectionsItems: %d\n", len(similarSectionsItems))
+	return similarSectionsItems, err
 }
