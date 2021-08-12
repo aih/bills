@@ -43,6 +43,17 @@ func GetMatchingBills(results SearchResult_ES) (billnumbers []string) {
 	return billnumbers
 }
 
+func GetMatchingBillNumberVersions(results SearchResult_ES) (billnumberversions []string) {
+	hits, _ := GetHitsES(results)
+	for _, item := range hits {
+		source := item.Source
+		billnumber := source.BillNumber
+		billversion := source.BillVersion
+		billnumberversions = append(billnumberversions, billnumber+billversion)
+	}
+	return billnumberversions
+}
+
 // similars is the result of the MLT query
 func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSections, err error) {
 	hits, _ := GetHitsES(results)

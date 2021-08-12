@@ -282,11 +282,13 @@ func GetLatestBill(r map[string]interface{}) (latestbill map[string]interface{})
 			if strings.HasPrefix(billversion, "e") && (billversion_val > latestbillversion_val) {
 				latestbillversion = billversion
 				latestbill = hit.(map[string]interface{})
+				latestbillversion_val = BillVersionsOrdered[latestbillversion]
 			}
 		}
 		log.Debug().Msgf("bill=%s; date=%s", billversion, datestring)
+		log.Debug().Msgf("current latestbillversion=%s; latestdate=%s, latestbillversionval=%d", latestbillversion, latestdate.String(), latestbillversion_val)
 	}
-	log.Debug().Msgf("latestbillversion=%s; latestdate=%s", latestbillversion, latestdate.String())
+	log.Debug().Msgf("latestbillversion=%s; latestdate=%s, latestbillversionval=%d", latestbillversion, latestdate.String(), latestbillversion_val)
 	return latestbill
 }
 
@@ -386,6 +388,12 @@ func GetSimilarityByBillNumber(billNumber string) (esResults []SearchResult_ES) 
 			matchingBillsString := strings.Join(matchingBills, ", ")
 
 			log.Debug().Msgf("Number of matches: %d, Matches: %s, MatchesDedupe: %s, Top Match: %s, Score: %f", len(innerHits), matchingBillsString, matchingBillsDedupe, topHit.Source.BillNumber, topHit.Score)
+
+			matchingBillNumberVersions := GetMatchingBillNumberVersions(esResult)
+			matchingBillNumberVersionsDedupe := RemoveDuplicates(matchingBillNumberVersions)
+			matchingBillNumberVersionsString := strings.Join(matchingBillNumberVersionsDedupe, ", ")
+
+			log.Debug().Msgf("Number of matches: %d, Matches: %s", len(innerHits), matchingBillNumberVersionsString)
 		}
 	}
 	return esResults
