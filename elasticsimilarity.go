@@ -85,3 +85,21 @@ func GetSimilaritySectionsByBillNumber(billNumber string) (similarSectionsItems 
 	log.Debug().Msgf("number of similarSectionsItems: %d\n", len(similarSectionsItems))
 	return similarSectionsItems, err
 }
+
+// Similarity by bill (es_similar_bills_dict)
+/*
+"116s238": [
+	{"date": "2019-01-28",
+	"score": 92.7196,
+	"title": "116 S238 RS: Special Envoy to Monitor and Combat Anti-Semitism Act of 2019",
+	"session": "2",
+	"congress": "",
+	"legisnum": "S. 238",
+	"billnumber": "116s238",
+	"section_num": "3. ",
+	"sectionIndex": "3",
+	"section_header": "Monitoring and Combating anti-Semitism",
+	"bill_number_version": "116s238rs",
+	"target_section_header": "Monitoring and Combating anti-Semitism",
+	"target_section_number": "3."}],
+*/

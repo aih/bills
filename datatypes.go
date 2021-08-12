@@ -97,7 +97,8 @@ type RelatedBillItem struct {
 
 type RelatedBillMap map[string]RelatedBillItem
 
-// TODO: define a similarbill item that collects all sections that matched, and the number of sections that matched
+// This is the form of item in `es_similar_bills_dict`;
+// for each billnumber (e.g. '116hr238'), it collects the best scoring sections
 type SimilarSection struct {
 	Date                          string  `json:"date"`
 	Score                         float32 `json:"score"`
@@ -113,21 +114,10 @@ type SimilarSection struct {
 	TargetSectionHeader           string  `json:"target_section_header"`
 	TargetSectionNumber           string  `json:"target_section_number"`
 }
-type BillSection struct {
-	BillNumberVersion string  `json:"bill_number_version"`
-	Score             float32 `json:"score"`
-	BillNumber        string  `json:"bill_number"`
-	Congress          string  `json:"congress"`
-	Session           string  `json:"session"`
-	Legisnum          string  `json:"legisnum"`
-	Title             string  `json:"title"`
-	SectionNum        string  `json:"section"`
-	SectionHeader     string  `json:"section_header"`
-	Date              string  `json:"date"`
-}
 
 type SimilarSections []SimilarSection
 
+type SimilarBillMap map[string]SimilarSections
 type SimilarSectionsItem struct {
 	BillNumber        string          `json:"bill_number"`
 	BillNumberVersion string          `json:"bill_number_version"`
@@ -137,6 +127,7 @@ type SimilarSectionsItem struct {
 }
 
 type SimilarSectionsItems []SimilarSectionsItem
+
 type DataJson struct {
 	Actions          []ActionItem      `json:"actions"`
 	Amendments       []interface{}     `json:"amendments"`
