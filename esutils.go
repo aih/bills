@@ -38,22 +38,26 @@ func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSection
 	innerHits, _ := GetInnerHits(results)
 	for index, hit := range hits {
 		var topInnerResultSectionHit InnerHit
-		var similarSection SimilarSection
+		// innerHits follows the same index as hits; for each hit
+		// in the top level Hits.Hits, there is an InnerHits array of sections.
+		// Of these, only the first one (highest score) is relevant.
 		innerResultSectionHits := innerHits[index].Sections.Hits.Hits
 		if len(innerResultSectionHits) > 0 {
 			// The first section matched is the best section (and usu. the only real match in the bill)
 			topInnerResultSectionHit = innerResultSectionHits[0]
 		}
 		billSource := hit.Source
-		similarSection.BillNumber = billSource.BillNumber
-		similarSection.BillNumberVersion = billSource.ID
-		similarSection.Congress = billSource.Congress
-		similarSection.Session = billSource.Session
-		similarSection.Legisnum = billSource.Legisnum
-		similarSection.Score = topInnerResultSectionHit.Score
-		similarSection.SectionNum = topInnerResultSectionHit.Source.SectionNumber + " "
-		similarSection.SectionHeader = topInnerResultSectionHit.Source.SectionHeader
-		similarSection.Date = billSource.Date
+		similarSection := SimilarSection{
+			BillNumber:        billSource.BillNumber,
+			BillNumberVersion: billSource.ID,
+			Congress:          billSource.Congress,
+			Session:           billSource.Session,
+			Legisnum:          billSource.Legisnum,
+			Score:             topInnerResultSectionHit.Score,
+			SectionNum:        topInnerResultSectionHit.Source.SectionNumber + " ",
+			SectionHeader:     topInnerResultSectionHit.Source.SectionHeader,
+			Date:              billSource.Date,
+		}
 		dublinCores := billSource.DC
 		dublinCore := ""
 		if len(dublinCores) > 0 {
