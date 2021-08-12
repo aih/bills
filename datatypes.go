@@ -97,6 +97,7 @@ type RelatedBillItem struct {
 
 type RelatedBillMap map[string]RelatedBillItem
 
+// TODO: define a similarbill item that collects all sections that matched, and the number of sections that matched
 type SimilarBillItem struct {
 	Date                          string  `json:"date"`
 	Score                         float32 `json:"score"`

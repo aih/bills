@@ -94,6 +94,8 @@ func GetSimilarBills(results SearchResult_ES) (similarBillItems []SimilarBillIte
 	matchingBills := GetMatchingBills(results)
 	matchingBillsDedupe := RemoveDuplicates(matchingBills)
 	for _, bill := range matchingBillsDedupe {
+		//TODO: find the highest scoring section for this bill, store its billnumber and billnumberversion
+
 		similarBillItem := SimilarBillItem{
 			Billnumber: bill,
 			//TODO: add more fields
