@@ -1,6 +1,7 @@
 package bills
 
 import (
+	"sort"
 	"strings"
 )
 
@@ -71,5 +72,7 @@ func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSection
 			similarSections = append(similarSections, similarSection)
 		}
 	}
+	sort.SliceStable(similarSections, func(i, j int) bool { return similarSections[i].Score > similarSections[j].Score })
+
 	return similarSections, nil
 }
