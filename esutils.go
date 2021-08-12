@@ -29,6 +29,13 @@ var (
 	}
 )
 
+func GetKeysFromMap(m map[string]interface{}) (keys []string) {
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
 func GetTopHit(hits Hits_ES) (topHit Hit_ES) {
 
 	var topScore float32
@@ -93,16 +100,17 @@ func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSection
 			topInnerResultSectionHit = innerResultSectionHits[0]
 		}
 		billSource := hit.Source
+		// TODO: add more current sectionNum, sectionHeader, sectionIndex; consider adding TargetBillnumber and TargetBillVersion
 		similarSection := SimilarSection{
-			BillNumber:        billSource.BillNumber,
-			BillNumberVersion: billSource.ID,
-			Congress:          billSource.Congress,
-			Session:           billSource.Session,
-			Legisnum:          billSource.Legisnum,
-			Score:             topInnerResultSectionHit.Score,
-			SectionNum:        topInnerResultSectionHit.Source.SectionNumber + " ",
-			SectionHeader:     topInnerResultSectionHit.Source.SectionHeader,
-			Date:              billSource.Date,
+			Billnumber:                    billSource.BillNumber,
+			BillCongressTypeNumberVersion: billSource.ID,
+			Congress:                      billSource.Congress,
+			Session:                       billSource.Session,
+			Legisnum:                      billSource.Legisnum,
+			Score:                         topInnerResultSectionHit.Score,
+			TargetSectionNumber:           topInnerResultSectionHit.Source.SectionNumber + " ",
+			TargetSectionHeader:           topInnerResultSectionHit.Source.SectionHeader,
+			Date:                          billSource.Date,
 		}
 		dublinCores := billSource.DC
 		dublinCore := ""
@@ -122,6 +130,7 @@ func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSection
 	return similarSections, nil
 }
 
+/*
 func GetSimilarBills(results SearchResult_ES) (similarBillItems []SimilarBillItem, err error) {
 	similarSections, _ := GetSimilarSections(results)
 	// Get unique bills
@@ -145,6 +154,7 @@ func GetSimilarBills(results SearchResult_ES) (similarBillItems []SimilarBillIte
 	return similarBillItems, nil
 
 }
+*/
 
 func ReadToString(r io.Reader) string {
 	var b bytes.Buffer
@@ -280,9 +290,29 @@ func GetBill_ES(billnumber string) map[string]interface{} {
 	return r
 }
 
-func GetMoreLikeThisQuery(size, minscore int, searchtext string) map[string]interface{} {
-	mltQuery := MakeMLTQuery(size, minscore, searchtext)
-	return RunQuery(mltQuery)
+func BillResultToStruct(billresult map[string]interface{}) (billItemResult BillItemES, err error) {
+	bs, _ := json.Marshal(billresult)
+	if err := json.Unmarshal([]byte(bs), &billItemResult); err != nil {
+		log.Error().Msgf("Could not parse ES bill query result: %v", err)
+	}
+	return billItemResult, err
+}
+
+func GetMoreLikeThis_ES(size, minscore int, searchtext string) map[string]interface{} {
+	r := RunQuery(MakeMLTQuery(size, minscore, searchtext))
+	return r
+}
+
+func GetMLTResult(size, minscore int, searchtext string) (esResult SearchResult_ES, err error) {
+
+	similars := GetMoreLikeThis_ES(num_results, min_sim_score, searchtext)
+
+	// TODO: marshal and unmarshal is not efficient, but the mapstructure library does not work for this
+	bs, _ := json.Marshal(similars)
+	if err := json.Unmarshal([]byte(bs), &esResult); err != nil {
+		log.Error().Msgf("Could not parse ES query result: %v", err)
+	}
+	return esResult, err
 }
 
 // Performs scroll query over indices in `searchIndices`; sends result to the resultChan for processing to extract billnumbers
@@ -366,7 +396,8 @@ func ScrollQueryBillNumbers(buf bytes.Buffer, resultChan chan []gjson.Result) {
 // Sort the eh, es, and enr as latest
 // Then sort by date
 // TODO: better method is to get the latest version in Fdsys_billstatus
-func GetLatestBill(r map[string]interface{}) (latestbill map[string]interface{}) {
+func GetLatestBill(r map[string]interface{}) (latestbill BillItemES, err error) {
+	var latestbillInterface map[string]interface{}
 	latestdate, _ := time.Parse(time.RFC3339, time.RFC3339)
 	latestbillversion := "ih"
 	latestbillversion_val := 0
@@ -387,13 +418,13 @@ func GetLatestBill(r map[string]interface{}) (latestbill map[string]interface{})
 				latestdate = date
 				latestbillversion = billversion
 				latestbillversion_val = BillVersionsOrdered[latestbillversion]
-				latestbill = hit.(map[string]interface{})
+				latestbillInterface = hit.(map[string]interface{})
 			}
 		}
 		if billversion_val, ok := BillVersionsOrdered[billversion]; ok {
 			if strings.HasPrefix(billversion, "e") && (billversion_val > latestbillversion_val) {
 				latestbillversion = billversion
-				latestbill = hit.(map[string]interface{})
+				latestbillInterface = hit.(map[string]interface{})
 				latestbillversion_val = BillVersionsOrdered[latestbillversion]
 			}
 		}
@@ -401,7 +432,11 @@ func GetLatestBill(r map[string]interface{}) (latestbill map[string]interface{})
 		log.Debug().Msgf("current latestbillversion=%s; latestdate=%s, latestbillversionval=%d", latestbillversion, latestdate.String(), latestbillversion_val)
 	}
 	log.Debug().Msgf("latestbillversion=%s; latestdate=%s, latestbillversionval=%d", latestbillversion, latestdate.String(), latestbillversion_val)
-	return latestbill
+	billItem, err := BillResultToStruct(latestbillInterface["_source"].(map[string]interface{}))
+	if err != nil {
+		log.Fatal().Msgf("Error converting bill to struct: %s", err)
+	}
+	return billItem, err
 }
 
 func GetSampleBillNumbers() []string {

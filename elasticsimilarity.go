@@ -1,7 +1,6 @@
 package bills
 
 import (
-	"encoding/json"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -15,22 +14,21 @@ const (
 func GetSimilarityByBillNumber(billNumber string) (esResults []SearchResult_ES) {
 	log.Info().Msgf("Get versions of: %s", billNumber)
 	r := GetBill_ES(billNumber)
-	latestbill := GetLatestBill(r)
-	billversion := latestbill["_source"].(map[string]interface{})["billversion"].(string)
+	latestBillItem, err := GetLatestBill(r)
+	if err != nil {
+		log.Error().Msgf("Error getting latest bill: '%v'", err)
+	}
+	billversion := latestBillItem.BillVersion
 	billnumberversion := billNumber + billversion
-	billsections := latestbill["_source"].(map[string]interface{})["sections"].([]interface{})
+	billsections := latestBillItem.Sections
 	log.Info().Msgf("Get similar bills for the %d sections of bill %s", len(billsections), billnumberversion)
 	for _, sectionItem := range billsections {
-		sectionItemInterface := sectionItem.(map[string]interface{})
-		log.Info().Msgf("Get similar sections for: '%s'", sectionItemInterface["section_header"])
-		sectionText := sectionItemInterface["section_text"]
-		similars := GetMoreLikeThisQuery(num_results, min_sim_score, sectionText.(string))
+		log.Info().Msgf("Get similar sections for: '%s'", sectionItem.SectionHeader)
+		sectionText := sectionItem.SectionText
+		esResult, err := GetMLTResult(num_results, min_sim_score, sectionText)
 
-		// TODO: marshal and unmarshal is not efficient, but the mapstructure library does not work for this
-		var esResult SearchResult_ES
-		bs, _ := json.Marshal(similars)
-		if err := json.Unmarshal([]byte(bs), &esResult); err != nil {
-			log.Error().Msgf("Could not parse ES query result: %v", err)
+		if err != nil {
+			log.Error().Msgf("Error getting results: '%v'", err)
 		} else {
 			esResults = append(esResults, esResult)
 		}
