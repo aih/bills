@@ -480,7 +480,7 @@ func GetLatestBill(r map[string]interface{}) (latestbill BillItemES, err error) 
 			log.Fatal().Msgf("Error converting bill to struct: %s", err)
 		}
 	} else {
-		log.Fatal().Msg("Bill item is not found")
+		log.Error().Msg("Bill item is not found")
 	}
 	return billItem, err
 }
