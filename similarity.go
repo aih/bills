@@ -80,14 +80,11 @@ func getExplanation(scorei, scorej float64, iTotal, jTotal int) string {
 func makeBillNgrams(docPaths []string) (nGramMaps docMaps, err error) {
 	nGramMaps = make(docMaps)
 	for i, docpath := range docPaths {
-		log.Info().Msgf("Getting Ngrams for file: %d\n", i)
+		log.Debug().Msgf("Getting Ngrams for file: %d\n", i)
 		file, err := os.ReadFile(docpath)
 		if err != nil {
 			log.Error().Msgf("Error reading document: %s\n", err)
-			var docMapItem *docMap = new(docMap)
-			docMapItem.nGramMap = MakeNgramMap("error error error error error error error error", 4)
-			docMapItem.keys = MapNgramKeys(docMapItem.nGramMap)
-			nGramMaps[docpath] = docMapItem
+			return nil, err
 		} else {
 			fileText := removeXMLRegexCompiled.ReplaceAllString(string(file), " ")
 			var docMapItem *docMap = new(docMap)
@@ -106,7 +103,7 @@ func compareFiles(nGramMaps docMaps, docPaths []string) (compareMatrix [][]Compa
 	log.Info().Msg("Comparing files")
 	compareMatrix = make([][]CompareItem, len(docPaths))
 	for i, docpath1 := range docPaths {
-		log.Info().Msgf("Comparison for file: %d\n", i)
+		log.Debug().Msgf("Comparison for file: %d\n", i)
 		compareMatrix[i] = make([]CompareItem, len(docPaths))
 		for j := 0; j < (i + 1); j++ {
 			docpath2 := docPaths[j]
@@ -176,7 +173,10 @@ func CompareSamples() {
 		}
 	}()
 
-	nGramMaps, _ := makeBillNgrams(dOC_PATHS)
+	nGramMaps, err := makeBillNgrams(dOC_PATHS)
+	if err != nil {
+		log.Panic().Msgf("Error making ngrams: %s\n", err)
+	}
 	compareMatrix, _ := compareFiles(nGramMaps, dOC_PATHS)
 	log.Info().Msg(fmt.Sprint(compareMatrix))
 	ticker.Stop()
@@ -202,7 +202,7 @@ func CompareSamples() {
 // result.stdout.split('compareMatrix:\n')[-1]
 // Out[4]: '[[{1 identical} {0.63 incorporates}] [{0.79 incorporated by} {1 identical}]]'
 
-func CompareBills(parentPath string, billList []string, print bool) [][]CompareItem {
+func CompareBills(parentPath string, billList []string, print bool) ([][]CompareItem, error) {
 
 	var docPathsToCompare []string
 	for _, billNumber := range billList {
@@ -215,11 +215,22 @@ func CompareBills(parentPath string, billList []string, print bool) [][]CompareI
 		}
 	}
 	// log.Info().Msg(docPathsToCompare)
-	nGramMaps, _ := makeBillNgrams(docPathsToCompare)
+	nGramMaps, err := makeBillNgrams(docPathsToCompare)
+	if err != nil {
+		log.Error().Msgf("Error making ngrams: %s\n", err)
+		return nil, err
+	}
+	if len(docPathsToCompare) == 0 {
+		log.Info().Msg("No documents to compare")
+		if print {
+			fmt.Print(":compareMatrix:", "", ":compareMatrix:")
+		}
+		return nil, nil
+	}
 	compareMatrix, _ := compareFiles(nGramMaps, docPathsToCompare)
 	compareMatrixJson, _ := json.Marshal(compareMatrix)
 	if print {
 		fmt.Print(":compareMatrix:", string(compareMatrixJson), ":compareMatrix:")
 	}
-	return compareMatrix
+	return compareMatrix, nil
 }

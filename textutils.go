@@ -108,6 +108,18 @@ func Find(slice []string, val string) (int, bool) {
 	return -1, false
 }
 
+// Reverses a slice of strings
+func ReverseSlice(slice []string) []string {
+	for i, j := 0, len(slice)-1; i < j; i, j = i+1, j-1 {
+		slice[i], slice[j] = slice[j], slice[i]
+	}
+	return slice
+}
+
+func PrependSlice(slice []string, val string) []string {
+	return append([]string{val}, slice...)
+}
+
 // Returns a map of regex capture groups to the items that are matched
 func FindNamedMatches(regex *regexp.Regexp, str string) map[string]string {
 	match := regex.FindStringSubmatch(str)
