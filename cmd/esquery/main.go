@@ -64,9 +64,15 @@ func main() {
 		billNumbers = bills.GetSampleBillNumbers()
 	}
 	for _, billnumber := range billNumbers {
+		// This is the equivalent of es_similarity in BillMap
 		similaritySectionsByBillNumber := bills.GetSimilaritySectionsByBillNumber(billnumber, sampleSize)
+
+		// This is the equivalent of es_similar_bills_dict in BillMap
 		similarBillsDict := bills.GetSimilarBillsDict(similaritySectionsByBillNumber, max_bills)
 		log.Info().Msgf("Similar Bills Dict: %v", similarBillsDict)
+		log.Info().Msgf("Similar Bills Dict Len: %d", len(similarBillsDict))
+
+		// This is a different data form that uses the section metadata as keys
 		//similarBillMapBySection := bills.SimilarSectionsItemsToBillMap(similaritySectionsByBillNumber)
 		//bills := bills.GetSimilarBills(similarBillMapBySection)
 		//log.Info().Msgf("Similar Bills: %v", bills)
