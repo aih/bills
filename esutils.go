@@ -130,6 +130,69 @@ func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSection
 	return similarSections, nil
 }
 
+func SectionItemQuery(sectionItem SectionItem) (similarSectionsItem SimilarSectionsItem) {
+	log.Info().Msgf("Get similar sections for: '%s'", sectionItem.SectionHeader)
+	sectionText := sectionItem.SectionText
+	esResult, err := GetMLTResult(num_results, min_sim_score, sectionText)
+
+	if err != nil {
+		log.Error().Msgf("Error getting results: '%v'", err)
+	}
+	//bs, _ := json.Marshal(similars)
+	//fmt.Println(string(bs))
+	//ioutil.WriteFile("similarsResp.json", bs, os.ModePerm)
+
+	hitsEs, _ := GetHitsES(esResult) // = Hits.Hits
+	hitsLen := len(hitsEs)
+
+	log.Info().Msgf("Number of bills with matching sections (hitsLen): %d\n", hitsLen)
+	innerHits, _ := GetInnerHits(esResult) // = InnerHits for each hit of Hits.Hits
+	var sectionHitsLen int
+	for index, hit := range innerHits {
+		billHit := hitsEs[index]
+		log.Debug().Msg("\n===============\n")
+		log.Debug().Msgf("Bill %d of %d", index+1, hitsLen)
+		log.Debug().Msgf("Matching sections for: %s", billHit.Source.BillNumber+billHit.Source.BillVersion)
+		log.Debug().Msgf("Score for %s: %f", billHit.Source.BillNumber, billHit.Score)
+		log.Debug().Msg("\n******************\n")
+		sectionHits := hit.Sections.Hits.Hits
+		sectionHitsLen = len(sectionHits)
+		log.Debug().Msgf("sectionHitsLen: %d\n", sectionHitsLen)
+		for _, sectionHit := range sectionHits {
+			log.Debug().Msgf("sectionMatch: %s", sectionHit.Source.SectionHeader)
+			log.Debug().Msgf("Section score: %f", sectionHit.Score)
+		}
+		log.Debug().Msg("\n******************\n")
+
+	}
+	//log.Debug().Msgf("similarSections: %v\n", similarSections)
+	if len(innerHits) > 0 {
+		topHit := GetTopHit(hitsEs)
+		matchingBills := GetMatchingBills(esResult)
+		matchingBillsDedupe := RemoveDuplicates(matchingBills)
+		matchingBillsString := strings.Join(matchingBills, ", ")
+
+		log.Debug().Msgf("Number of matches: %d, Matches: %s, MatchesDedupe: %s, Top Match: %s, Score: %f", len(innerHits), matchingBillsString, matchingBillsDedupe, topHit.Source.BillNumber, topHit.Score)
+
+		matchingBillNumberVersions := GetMatchingBillNumberVersions(esResult)
+		matchingBillNumberVersionsDedupe := RemoveDuplicates(matchingBillNumberVersions)
+		matchingBillNumberVersionsString := strings.Join(matchingBillNumberVersionsDedupe, ", ")
+
+		log.Debug().Msgf("Number of matches: %d, Matches: %s", len(innerHits), matchingBillNumberVersionsString)
+	}
+	similarSections, _ := GetSimilarSections(esResult)
+	log.Debug().Msgf("number of similarSections: %v\n", len(similarSections))
+	return SimilarSectionsItem{
+		BillNumber:        sectionItem.BillNumber,
+		BillNumberVersion: sectionItem.BillNumberVersion,
+		SectionIndex:      sectionItem.SectionIndex,
+		SectionHeader:     sectionItem.SectionHeader,
+		SectionNum:        sectionItem.SectionNumber,
+		SimilarSections:   similarSections,
+	}
+
+}
+
 /*
 func GetSimilarBills(results SearchResult_ES) (similarBillItems []SimilarBillItem, err error) {
 	similarSections, _ := GetSimilarSections(results)

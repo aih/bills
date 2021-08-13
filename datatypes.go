@@ -118,11 +118,13 @@ type SimilarSection struct {
 type SimilarSections []SimilarSection
 
 type SimilarBillMap map[string]SimilarSections
+
 type SimilarSectionsItem struct {
 	BillNumber        string          `json:"bill_number"`
 	BillNumberVersion string          `json:"bill_number_version"`
 	SectionHeader     string          `json:"section_header"`
 	SectionNum        string          `json:"section"`
+	SectionIndex      string          `json:"sectionIndex"`
 	SimilarSections   SimilarSections `json:"similar_sections"`
 }
 
@@ -230,10 +232,13 @@ type InnerHit struct {
 }
 
 type SectionItem struct {
-	SectionNumber string `json:"section_number"`
-	SectionHeader string `json:"section_header"`
-	SectionText   string `json:"section_text"`
-	SectionXML    string `json:"section_xml"`
+	BillNumber        string `json:"bill_number"`
+	BillNumberVersion string `json:"bill_number_version"`
+	SectionIndex      string `json:"sectionIndex"`
+	SectionNumber     string `json:"section_number"`
+	SectionHeader     string `json:"section_header"`
+	SectionText       string `json:"section_text"`
+	SectionXML        string `json:"section_xml"`
 }
 
 type ResultInnerHits []struct {
