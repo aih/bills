@@ -58,7 +58,11 @@ func main() {
 		billNumbers = bills.GetSampleBillNumbers()
 	}
 	for _, billnumber := range billNumbers {
-		bills.GetSimilaritySectionsByBillNumber(billnumber)
-		bills.GetSimilarityBillMapBySection(billnumber)
+		similaritySectionsByBillNumber := bills.GetSimilaritySectionsByBillNumber(billnumber)
+		similarBillMapBySection := bills.SimilarSectionsItemsToBillMap(similaritySectionsByBillNumber)
+		bills := bills.GetSimilarBills(similarBillMapBySection)
+		log.Info().Msgf("Similar Bills: %v", bills)
+		//TODO Select top bills based on score
+		//Find how many sections and how many matches
 	}
 }

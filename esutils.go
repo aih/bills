@@ -131,7 +131,7 @@ func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSection
 }
 
 func SectionItemQuery(sectionItem SectionItem) (similarSectionsItem SimilarSectionsItem) {
-	log.Info().Msgf("Get similar sections for: '%s'", sectionItem.SectionHeader)
+	log.Debug().Msgf("Get similar sections for: '%s'", sectionItem.SectionHeader)
 	sectionText := sectionItem.SectionText
 	esResult, err := GetMLTResult(num_results, min_sim_score, sectionText)
 
@@ -145,7 +145,7 @@ func SectionItemQuery(sectionItem SectionItem) (similarSectionsItem SimilarSecti
 	hitsEs, _ := GetHitsES(esResult) // = Hits.Hits
 	hitsLen := len(hitsEs)
 
-	log.Info().Msgf("Number of bills with matching sections (hitsLen): %d\n", hitsLen)
+	log.Debug().Msgf("Number of bills with matching sections (hitsLen): %d\n", hitsLen)
 	innerHits, _ := GetInnerHits(esResult) // = InnerHits for each hit of Hits.Hits
 	var sectionHitsLen int
 	for index, hit := range innerHits {
@@ -174,7 +174,7 @@ func SectionItemQuery(sectionItem SectionItem) (similarSectionsItem SimilarSecti
 		matchingBillsDedupe = RemoveDuplicates(matchingBills)
 		matchingBillsString := strings.Join(matchingBills, ", ")
 
-		log.Info().Msgf("Number of matches: %d, MatchingBills: %s, MatchingBillsDedupe: %s, Top Match: %s, Score: %f", len(innerHits), matchingBillsString, matchingBillsDedupe, topHit.Source.BillNumber, topHit.Score)
+		log.Debug().Msgf("Number of matches: %d, MatchingBills: %s, MatchingBillsDedupe: %s, Top Match: %s, Score: %f", len(innerHits), matchingBillsString, matchingBillsDedupe, topHit.Source.BillNumber, topHit.Score)
 
 		matchingBillNumberVersions := GetMatchingBillNumberVersions(esResult)
 		matchingBillNumberVersionsDedupe = RemoveDuplicates(matchingBillNumberVersions)

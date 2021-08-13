@@ -1,6 +1,7 @@
 package bills
 
 import (
+	"sort"
 	"strconv"
 
 	"github.com/rs/zerolog/log"
@@ -8,12 +9,13 @@ import (
 
 const (
 	num_results   = 20 // Maximum number of results to return
-	min_sim_score = 20 // Minimum similarity to make a match in the section query
+	min_sim_score = 25 // Minimum similarity to make a match in the section query
 )
 
 func GetSimilaritySectionsByBillNumber(billNumber string) (similarSectionsItems SimilarSectionsItems) {
 	log.Info().Msgf("Get versions of: %s", billNumber)
 	r := GetBill_ES(billNumber)
+	log.Info().Msgf("Number of versions of: %s, %d", billNumber, len(r["hits"].(map[string]interface{})["hits"].([]interface{})))
 	latestBillItem, err := GetLatestBill(r)
 	if err != nil {
 		log.Error().Msgf("Error getting latest bill: '%v'", err)
@@ -70,12 +72,54 @@ func SimilarSectionsItemsToBillMap(similarSectionsItems SimilarSectionsItems) (s
 		}
 	}
 	log.Info().Msgf("number of items in similarBillMapBySection: %d\n", len(similarBillMapBySection))
-	log.Debug().Msgf("similarBillMapBySection: %v\n", similarBillMapBySection)
+	for bill, billdata := range similarBillMapBySection {
+		var totalScore float32
+		var topSectionScore float32
+		var topSectionNum string
+		var topSectionHeader string
+		var topSectionIndex string
+		for _, similarSection := range billdata.SectionItemMetaMap {
+			totalScore += similarSection.Score
+			if similarSection.Score > topSectionScore {
+				topSectionScore = similarSection.Score
+				topSectionNum = similarSection.SectionNum
+				topSectionHeader = similarSection.SectionNum
+				topSectionIndex = similarSection.SectionIndex
+			}
+
+		}
+		similarBillMapBySection[bill] = SimilarBillData{
+			SectionItemMetaMap:   billdata.SectionItemMetaMap,
+			TotalScore:           totalScore,
+			TopSectionScore:      topSectionScore,
+			TopSectionNum:        topSectionNum,
+			TopSectionHeader:     topSectionHeader,
+			TopSectionIndex:      topSectionIndex,
+			TotalSimilarSections: len(billdata.SectionItemMetaMap),
+		}
+
+	}
+	log.Info().Msgf("similarBillMapBySection: %v\n", similarBillMapBySection)
 	return similarBillMapBySection
 }
 
 func GetSimilarityBillMapBySection(billNumber string) (similarBillMapBySection SimilarBillMapBySection) {
 	return SimilarSectionsItemsToBillMap(GetSimilaritySectionsByBillNumber(billNumber))
+}
+
+type BillScore struct {
+	BillNumber      string
+	Score           float32
+	SectionsMatched int
+	// TODO add fields for number of sections matched
+}
+
+func GetSimilarBills(similarBillMapBySection SimilarBillMapBySection) (billScores []BillScore) {
+	for bill, billdata := range similarBillMapBySection {
+		billScores = append(billScores, BillScore{bill, billdata.TotalScore, billdata.TotalSimilarSections})
+	}
+	sort.SliceStable(billScores, func(i, j int) bool { return billScores[i].Score > billScores[j].Score })
+	return billScores
 }
 
 /*
