@@ -111,21 +111,23 @@ type SimilarSection struct {
 	SectionIndex                  string  `json:"sectionIndex"`
 	SectionHeader                 string  `json:"section_header"`
 	BillCongressTypeNumberVersion string  `json:"bill_number_version"`
-	TargetSectionHeader           string  `json:"target_section_header"`
-	TargetSectionNumber           string  `json:"target_section_number"`
+	TargetSectionHeader           string  `json:"target_section_header"` // This is the section header of the original
+	TargetSectionNumber           string  `json:"target_section_number"` // This is the section number of the original
 }
 
 type SimilarSections []SimilarSection
 
 type SimilarBillMap map[string]SimilarSections
 
+type SimilarBillMapBySection map[string]map[SectionItemMeta]SimilarSection
+
 type SimilarSectionsItem struct {
-	BillNumber                string          `json:"bill_number"`
-	BillNumberVersion         string          `json:"bill_number_version"`
-	SectionHeader             string          `json:"section_header"`
-	SectionNum                string          `json:"section"`
-	SectionIndex              string          `json:"sectionIndex"`
-	SimilarSections           SimilarSections `json:"similar_sections"`
+	BillNumber                string          `json:"bill_number"`                  // Original (target) bill
+	BillNumberVersion         string          `json:"bill_number_version"`          // Original (target) bill version
+	SectionHeader             string          `json:"section_header"`               // Original (target) section header
+	SectionNum                string          `json:"section"`                      // Original (target) section number
+	SectionIndex              string          `json:"sectionIndex"`                 // Original (target) section index
+	SimilarSections           SimilarSections `json:"similar_sections"`             // list of similar sections
 	SimilarBills              []string        `json:"similar_bills"`                // deduplicated list of billnumbers from highest to lowest score
 	SimilarBillNumberVersions []string        `json:"similar_bill_number_versions"` // deduplicated list of billnumberversions from highest to lowest score
 
@@ -232,6 +234,13 @@ type InnerHit struct {
 	} `json:"nested"`
 	Source SectionItem `json:"_source"`
 	//Source json.RawMessage `json:"_source"`
+}
+type SectionItemMeta struct {
+	BillNumber        string `json:"bill_number"`
+	BillNumberVersion string `json:"bill_number_version"`
+	SectionIndex      string `json:"sectionIndex"`
+	SectionNumber     string `json:"section_number"`
+	SectionHeader     string `json:"section_header"`
 }
 
 type SectionItem struct {
