@@ -229,7 +229,7 @@ func MakeMLTQuery(size, minscore int, searchtext string) (mltquery map[string]in
 						"fields":          []string{"sections.section_text"},
 						"like":            `SEC. 102. COLORADO WILDERNESS ADDITIONS. (a) Designation.—Section 2(a) of the Colorado Wilderness Act of 1993 (16 U.S.C. 1132 note; Public Law 103–77) is amended— (1) in paragraph (18), by striking “1993,” and inserting “1993, and certain Federal land within the White River National Forest that comprises approximately 6,896 acres, as generally depicted as ‘Proposed Ptarmigan Peak Wilderness Additions’ on the map entitled ‘Proposed Ptarmigan Peak Wilderness Additions’ and dated June 24, 2019,”; and (2) by adding at the end the following:`,
 						"min_term_freq":   2,
-						"max_query_terms": 30,
+						"max_query_terms": 60,
 						"min_doc_freq":    2,
 					},
 				},

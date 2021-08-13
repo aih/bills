@@ -30,8 +30,10 @@ func main() {
 
 	// allow user to pass billnumbers as argument
 	var billList BillList
+	var sampleSize int
 	flag.Var(&billList, "billnumbers", "comma-separated list of billnumbers")
 	flag.Var(&billList, "b", "comma-separated list of billnumbers")
+	flag.IntVar(&sampleSize, "samplesize", 0, "number of sections to sample in large bill")
 	flag.Parse()
 
 	flag.Parse()
@@ -58,7 +60,7 @@ func main() {
 		billNumbers = bills.GetSampleBillNumbers()
 	}
 	for _, billnumber := range billNumbers {
-		similaritySectionsByBillNumber := bills.GetSimilaritySectionsByBillNumber(billnumber)
+		similaritySectionsByBillNumber := bills.GetSimilaritySectionsByBillNumber(billnumber, sampleSize)
 		similarBillMapBySection := bills.SimilarSectionsItemsToBillMap(similaritySectionsByBillNumber)
 		bills := bills.GetSimilarBills(similarBillMapBySection)
 		log.Info().Msgf("Similar Bills: %v", bills)

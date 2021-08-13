@@ -12,7 +12,19 @@ const (
 	min_sim_score = 25 // Minimum similarity to make a match in the section query
 )
 
-func GetSimilaritySectionsByBillNumber(billNumber string) (similarSectionsItems SimilarSectionsItems) {
+func getRandomSliceSectionItems(slice []SectionItem, num_items int) []SectionItem {
+	if num_items > len(slice) {
+		num_items = len(slice)
+	}
+	var random_slice []SectionItem
+	for i := 0; i < num_items; i++ {
+		random_slice = append(random_slice, slice[i])
+	}
+	return random_slice
+}
+
+// Set sample size to <= 0 to use all sections
+func GetSimilaritySectionsByBillNumber(billNumber string, samplesize int) (similarSectionsItems SimilarSectionsItems) {
 	log.Info().Msgf("Get versions of: %s", billNumber)
 	r := GetBill_ES(billNumber)
 	log.Info().Msgf("Number of versions of: %s, %d", billNumber, len(r["hits"].(map[string]interface{})["hits"].([]interface{})))
@@ -23,7 +35,12 @@ func GetSimilaritySectionsByBillNumber(billNumber string) (similarSectionsItems 
 	billversion := latestBillItem.BillVersion
 	billnumberversion := billNumber + billversion
 	billsections := latestBillItem.Sections
-	log.Info().Msgf("Get similar bills for the %d sections of bill %s", len(billsections), billnumberversion)
+	if samplesize > 0 && len(billsections) > samplesize {
+		log.Info().Msgf("Get similar bills for %d of the %d sections of bill %s", samplesize, len(billsections), billnumberversion)
+		billsections = getRandomSliceSectionItems(billsections, samplesize)
+	} else {
+		log.Info().Msgf("Get similar bills for the %d sections of bill %s", len(billsections), billnumberversion)
+	}
 	for sectionIndex, sectionItem := range billsections {
 		// The billnumber and billnumber version are not stored in the ES results
 		// We add them back in to track the section query with its original bill
@@ -103,8 +120,8 @@ func SimilarSectionsItemsToBillMap(similarSectionsItems SimilarSectionsItems) (s
 	return similarBillMapBySection
 }
 
-func GetSimilarityBillMapBySection(billNumber string) (similarBillMapBySection SimilarBillMapBySection) {
-	return SimilarSectionsItemsToBillMap(GetSimilaritySectionsByBillNumber(billNumber))
+func GetSimilarityBillMapBySection(billNumber string, sampleSize int) (similarBillMapBySection SimilarBillMapBySection) {
+	return SimilarSectionsItemsToBillMap(GetSimilaritySectionsByBillNumber(billNumber, sampleSize))
 }
 
 type BillScore struct {
