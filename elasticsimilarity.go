@@ -28,6 +28,9 @@ func GetSimilaritySectionsByBillNumber(billNumber string) (similarSectionsItems 
 		sectionItem.BillNumber = billNumber
 		sectionItem.BillNumberVersion = billnumberversion
 		sectionItem.SectionIndex = strconv.Itoa(sectionIndex)
+
+		// TODO this can be made concurrent:
+		// Send the query out, collect the results put them in order by sectionIndex
 		similarSectionsItem := SectionItemQuery(sectionItem)
 		similarSectionsItems = append(similarSectionsItems, similarSectionsItem)
 	}
@@ -37,7 +40,7 @@ func GetSimilaritySectionsByBillNumber(billNumber string) (similarSectionsItems 
 
 /*
 func SimilarSectionsItemsToBillMap(similarSectionsItems SimilarSectionsItems) (SimilarBillMap SimilarBillMap) {
-	// TODO get bill numbers
+	// Get bill numbers from similarSectionsItems.SimilarBills and similarSectionsItems.SimilarBillNumberVersions
 	// For each bill number, create a map[string]SimilarSections, with the structure below
 	// Each item in the slice is the best match, in the target bill, for each section of the original bill
 	    Similarity by bill (es_similar_bills_dict)

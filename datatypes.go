@@ -120,12 +120,15 @@ type SimilarSections []SimilarSection
 type SimilarBillMap map[string]SimilarSections
 
 type SimilarSectionsItem struct {
-	BillNumber        string          `json:"bill_number"`
-	BillNumberVersion string          `json:"bill_number_version"`
-	SectionHeader     string          `json:"section_header"`
-	SectionNum        string          `json:"section"`
-	SectionIndex      string          `json:"sectionIndex"`
-	SimilarSections   SimilarSections `json:"similar_sections"`
+	BillNumber                string          `json:"bill_number"`
+	BillNumberVersion         string          `json:"bill_number_version"`
+	SectionHeader             string          `json:"section_header"`
+	SectionNum                string          `json:"section"`
+	SectionIndex              string          `json:"sectionIndex"`
+	SimilarSections           SimilarSections `json:"similar_sections"`
+	SimilarBills              []string        `json:"similar_bills"`                // deduplicated list of billnumbers from highest to lowest score
+	SimilarBillNumberVersions []string        `json:"similar_bill_number_versions"` // deduplicated list of billnumberversions from highest to lowest score
+
 }
 
 type SimilarSectionsItems []SimilarSectionsItem

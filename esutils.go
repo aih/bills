@@ -166,16 +166,18 @@ func SectionItemQuery(sectionItem SectionItem) (similarSectionsItem SimilarSecti
 
 	}
 	//log.Debug().Msgf("similarSections: %v\n", similarSections)
+	var matchingBillsDedupe []string
+	var matchingBillNumberVersionsDedupe []string
 	if len(innerHits) > 0 {
 		topHit := GetTopHit(hitsEs)
 		matchingBills := GetMatchingBills(esResult)
-		matchingBillsDedupe := RemoveDuplicates(matchingBills)
+		matchingBillsDedupe = RemoveDuplicates(matchingBills)
 		matchingBillsString := strings.Join(matchingBills, ", ")
 
 		log.Debug().Msgf("Number of matches: %d, Matches: %s, MatchesDedupe: %s, Top Match: %s, Score: %f", len(innerHits), matchingBillsString, matchingBillsDedupe, topHit.Source.BillNumber, topHit.Score)
 
 		matchingBillNumberVersions := GetMatchingBillNumberVersions(esResult)
-		matchingBillNumberVersionsDedupe := RemoveDuplicates(matchingBillNumberVersions)
+		matchingBillNumberVersionsDedupe = RemoveDuplicates(matchingBillNumberVersions)
 		matchingBillNumberVersionsString := strings.Join(matchingBillNumberVersionsDedupe, ", ")
 
 		log.Debug().Msgf("Number of matches: %d, Matches: %s", len(innerHits), matchingBillNumberVersionsString)
@@ -183,41 +185,17 @@ func SectionItemQuery(sectionItem SectionItem) (similarSectionsItem SimilarSecti
 	similarSections, _ := GetSimilarSections(esResult)
 	log.Debug().Msgf("number of similarSections: %v\n", len(similarSections))
 	return SimilarSectionsItem{
-		BillNumber:        sectionItem.BillNumber,
-		BillNumberVersion: sectionItem.BillNumberVersion,
-		SectionIndex:      sectionItem.SectionIndex,
-		SectionHeader:     sectionItem.SectionHeader,
-		SectionNum:        sectionItem.SectionNumber,
-		SimilarSections:   similarSections,
+		BillNumber:                sectionItem.BillNumber,
+		BillNumberVersion:         sectionItem.BillNumberVersion,
+		SectionHeader:             sectionItem.SectionHeader,
+		SectionNum:                sectionItem.SectionNumber,
+		SectionIndex:              sectionItem.SectionIndex,
+		SimilarSections:           similarSections,
+		SimilarBills:              matchingBillsDedupe,
+		SimilarBillNumberVersions: matchingBillNumberVersionsDedupe,
 	}
 
 }
-
-/*
-func GetSimilarBills(results SearchResult_ES) (similarBillItems []SimilarBillItem, err error) {
-	similarSections, _ := GetSimilarSections(results)
-	// Get unique bills
-	// For each bill get best score
-	matchingBills := GetMatchingBills(results)
-	matchingBillsDedupe := RemoveDuplicates(matchingBills)
-	for _, bill := range matchingBillsDedupe {
-		//TODO: find the highest scoring section for this bill, store its billnumber and billnumberversion
-
-		similarBillItem := SimilarBillItem{
-			Billnumber: bill,
-			//TODO: add more fields
-		}
-		for _, section := range similarSections {
-			if section.BillNumber == bill {
-				similarBillItem.Score = section.Score
-			}
-		}
-		similarBillItems = append(similarBillItems, similarBillItem)
-	}
-	return similarBillItems, nil
-
-}
-*/
 
 func ReadToString(r io.Reader) string {
 	var b bytes.Buffer
