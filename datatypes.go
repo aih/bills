@@ -119,7 +119,16 @@ type SimilarSections []SimilarSection
 
 type SimilarBillMap map[string]SimilarSections
 
-type SimilarBillMapBySection map[string]map[SectionItemMeta]SimilarSection
+type SimilarBillData struct {
+	TopSectionIndex      string
+	TopSectionHeader     string
+	TopSectionNum        string
+	TopSectionScore      float32
+	TotalScore           float32
+	TotalSimilarSections int
+	SectionItemMetaMap   map[SectionItemMeta]SimilarSection
+}
+type SimilarBillMapBySection map[string]SimilarBillData
 
 type SimilarSectionsItem struct {
 	BillNumber                string          `json:"bill_number"`                  // Original (target) bill

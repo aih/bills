@@ -174,13 +174,13 @@ func SectionItemQuery(sectionItem SectionItem) (similarSectionsItem SimilarSecti
 		matchingBillsDedupe = RemoveDuplicates(matchingBills)
 		matchingBillsString := strings.Join(matchingBills, ", ")
 
-		log.Debug().Msgf("Number of matches: %d, Matches: %s, MatchesDedupe: %s, Top Match: %s, Score: %f", len(innerHits), matchingBillsString, matchingBillsDedupe, topHit.Source.BillNumber, topHit.Score)
+		log.Info().Msgf("Number of matches: %d, MatchingBills: %s, MatchingBillsDedupe: %s, Top Match: %s, Score: %f", len(innerHits), matchingBillsString, matchingBillsDedupe, topHit.Source.BillNumber, topHit.Score)
 
 		matchingBillNumberVersions := GetMatchingBillNumberVersions(esResult)
 		matchingBillNumberVersionsDedupe = RemoveDuplicates(matchingBillNumberVersions)
 		matchingBillNumberVersionsString := strings.Join(matchingBillNumberVersionsDedupe, ", ")
 
-		log.Debug().Msgf("Number of matches: %d, Matches: %s", len(innerHits), matchingBillNumberVersionsString)
+		log.Debug().Msgf("Number of matching bill versions: %d, Matches: %s", len(matchingBillNumberVersionsDedupe), matchingBillNumberVersionsString)
 	}
 	similarSections, _ := GetSimilarSections(esResult)
 	log.Debug().Msgf("number of similarSections: %v\n", len(similarSections))

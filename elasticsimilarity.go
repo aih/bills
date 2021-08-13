@@ -38,29 +38,63 @@ func GetSimilaritySectionsByBillNumber(billNumber string) (similarSectionsItems 
 	return similarSectionsItems
 }
 
-/*
-func SimilarSectionsItemsToBillMap(similarSectionsItems SimilarSectionsItems) (SimilarBillMap SimilarBillMap) {
+func SimilarSectionsItemsToBillMap(similarSectionsItems SimilarSectionsItems) (similarBillMapBySection SimilarBillMapBySection) {
 	// Get bill numbers from similarSectionsItems.SimilarBills and similarSectionsItems.SimilarBillNumberVersions
-	// For each bill number, create a map[string]SimilarSections, with the structure below
-	// Each item in the slice is the best match, in the target bill, for each section of the original bill
-	    Similarity by bill (es_similar_bills_dict)
-	   "116s238": [
-	   	{"date": "2019-01-28",
-	   	"score": 92.7196,
-	   	"title": "116 S238 RS: Special Envoy to Monitor and Combat Anti-Semitism Act of 2019",
-	   	"session": "2",
-	   	"congress": "",
-	   	"legisnum": "S. 238",
-	   	"billnumber": "116s238",
-	   	"section_num": "3. ",
-	   	"sectionIndex": "3",
-	   	"section_header": "Monitoring and Combating anti-Semitism",
-	   	"bill_number_version": "116s238rs",
-	   	"target_section_header": "Monitoring and Combating anti-Semitism",
-	   	"target_section_number": "3."}],
+	// Creates the similarBillMapBySection
+	//	  "116s238": {
+	//		  SectionItemMeta: SimilarSection
+	//	  }
+	similarBillMapBySection = make(SimilarBillMapBySection)
+	for _, similarSectionsItem := range similarSectionsItems {
+		for _, similarSection := range similarSectionsItem.SimilarSections {
+			// the inner key is a SectionItemMeta, which can be created from the similarSectionsItem
+			innerKey := SectionItemMeta{
+				BillNumber:        similarSection.Billnumber,
+				BillNumberVersion: similarSection.BillCongressTypeNumberVersion,
+				SectionIndex:      similarSectionsItem.SectionIndex,
+				SectionNumber:     similarSectionsItem.SectionNum,
+				SectionHeader:     similarSectionsItem.SectionHeader,
+			}
+			if _, ok := similarBillMapBySection[similarSection.Billnumber]; !ok {
+				similarBillMapBySection[similarSection.Billnumber] = SimilarBillData{
+					SectionItemMetaMap: map[SectionItemMeta]SimilarSection{innerKey: similarSection},
+				}
+			} else {
+				if _, ok := similarBillMapBySection[similarSection.Billnumber].SectionItemMetaMap[innerKey]; !ok {
+					similarBillMapBySection[similarSection.Billnumber].SectionItemMetaMap[innerKey] = similarSection
+				} else if similarSection.Score > similarBillMapBySection[similarSection.Billnumber].SectionItemMetaMap[innerKey].Score {
+					similarBillMapBySection[similarSection.Billnumber].SectionItemMetaMap[innerKey] = similarSection
+				}
+			}
+
+		}
+	}
+	log.Info().Msgf("number of items in similarBillMapBySection: %d\n", len(similarBillMapBySection))
+	log.Debug().Msgf("similarBillMapBySection: %v\n", similarBillMapBySection)
+	return similarBillMapBySection
 }
 
-func GetSimilarityByBillNumber(billNumber string) (SimilarBillMap SimilarBillMap) {
+func GetSimilarityBillMapBySection(billNumber string) (similarBillMapBySection SimilarBillMapBySection) {
 	return SimilarSectionsItemsToBillMap(GetSimilaritySectionsByBillNumber(billNumber))
 }
+
+/*
+SimilarBillMap
+For each bill number, create a map[string]SimilarSections, with the structure below
+Each item in the slice is the best match, in the target bill, for each section of the original bill
+Similarity by bill (es_similar_bills_dict)
+		   "116s238": [
+		   	{"date": "2019-01-28",
+		   	"score": 92.7196,
+		   	"title": "116 S238 RS: Special Envoy to Monitor and Combat Anti-Semitism Act of 2019",
+		   	"session": "2",
+		   	"congress": "",
+		   	"legisnum": "S. 238",
+		   	"billnumber": "116s238",
+		   	"section_num": "3. ",
+		   	"sectionIndex": "3",
+		   	"section_header": "Monitoring and Combating anti-Semitism",
+		   	"bill_number_version": "116s238rs",
+		   	"target_section_header": "Monitoring and Combating anti-Semitism",
+		   	"target_section_number": "3."}],...]
 */

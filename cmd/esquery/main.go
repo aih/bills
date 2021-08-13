@@ -59,5 +59,6 @@ func main() {
 	}
 	for _, billnumber := range billNumbers {
 		bills.GetSimilaritySectionsByBillNumber(billnumber)
+		bills.GetSimilarityBillMapBySection(billnumber)
 	}
 }
