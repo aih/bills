@@ -139,8 +139,86 @@ func GetSimilarBills(similarBillMapBySection SimilarBillMapBySection) (billScore
 	return billScores
 }
 
+func GetSimilarBillsDict(similarSectionsItems SimilarSectionsItems, maxBills int) (similarBillsDict map[string]SimilarSections) {
+	var sectionSimilars []SimilarSections
+	var similarBillsAll []string
+	similarBillsDict = make(map[string]SimilarSections)
+	dedupeMap := make(map[SectionItemMeta]SimilarSection)
+	/*
+		SectionItemMeta
+		BillNumber        string `json:"bill_number"`
+		BillNumberVersion string `json:"bill_number_version"`
+		SectionIndex      string `json:"sectionIndex"`
+		SectionNumber     string `json:"section_number"`
+		SectionHeader
+	*/
+	for _, similarSectionsItem := range similarSectionsItems {
+		// Collect the similar sections
+		sectionSimilars = append(sectionSimilars, similarSectionsItem.SimilarSections)
+		similarBillsAll = append(similarBillsAll, similarSectionsItem.SimilarBills...)
+	}
+	similarBillsAll = RemoveDuplicates(similarBillsAll)
+	if maxBills > 0 && len(similarBillsAll) > maxBills {
+		similarBillsAll = similarBillsAll[:maxBills]
+	}
+	for _, sectionSimilar := range sectionSimilars {
+		for _, similarSection := range sectionSimilar {
+			// Check which bill it belongs to
+			// Check if that bill already has an item with that TargetSectionNumber
+			// If not, add it to the dict
+			// If yes, check if the score is higher than the existing one
+			// If yes, replace the existing one
+			dedupeItemKey := SectionItemMeta{
+				BillNumber:        similarSection.Billnumber,
+				BillNumberVersion: similarSection.BillCongressTypeNumberVersion,
+				SectionNumber:     similarSection.TargetSectionNumber,
+				SectionHeader:     similarSection.TargetSectionHeader,
+			}
+			if _, ok := dedupeMap[dedupeItemKey]; !ok {
+				dedupeMap[dedupeItemKey] = similarSection
+			} else {
+				if similarSection.Score > dedupeMap[dedupeItemKey].Score {
+					dedupeMap[dedupeItemKey] = similarSection
+				}
+			}
+
+		}
+	}
+	for _, similarSection := range dedupeMap {
+		//Check if the bill is in the similarBillsAll list
+		if _, ok := Find(similarBillsAll, similarSection.Billnumber); ok {
+			similarBillsDict[similarSection.Billnumber] = append(similarBillsDict[similarSection.Billnumber], similarSection)
+		}
+	}
+	return similarBillsDict
+}
+
 /*
 SimilarBillMap
+def getSimilarBills(es_similarity: List[dict] ) -> dict:
+similarBills = {}
+  sectionSimilars = [item.get('similars', []) for item in es_similarity]
+  billnumbers = list(unique_everseen(flatten([[similarItem.get('billnumber') for similarItem in similars] for similars in sectionSimilars])))
+  for billnumber in billnumbers:
+    try:
+      similarBills[billnumber] = []
+      for sectionIndex, similarItem in enumerate(sectionSimilars):
+        sectionBillItems = sorted(filter(lambda x: x.get('billnumber', '') == billnumber, similarItem), key=lambda k: k.get('score', 0), reverse=True)
+        if sectionBillItems and len(sectionBillItems) > 0:
+          for sectionBillItem in sectionBillItems:
+            # Check if we've seen this billItem before and which has a higher score
+            currentScore = sectionBillItem.get('score', 0)
+            currentSection = sectionBillItem.get('section_num', '') + sectionBillItem.get('section_header', '')
+            dupeIndexes = [similarBillIndex for similarBillIndex, similarBill in enumerate(similarBills.get(billnumber, [])) if (similarBill.get('section_num', '') + similarBill.get('section_header', '')) == currentSection]
+            if not dupeIndexes:
+              sectionBillItem['sectionIndex'] = str(sectionIndex)
+              sectionBillItem['target_section_number'] = es_similarity[sectionIndex].get('section_number', '')
+              sectionBillItem['target_section_header'] = es_similarity[sectionIndex].get('section_header', '')
+              similarBills[billnumber].append(sectionBillItem)
+              break
+            elif  currentScore > similarBills[billnumber][dupeIndexes[0]].get('score', 0):
+              del similarBills[billnumber][dupeIndexes[0]]
+              similarBills[billnumber].append(sectionBillItem)
 For each bill number, create a map[string]SimilarSections, with the structure below
 Each item in the slice is the best match, in the target bill, for each section of the original bill
 Similarity by bill (es_similar_bills_dict)

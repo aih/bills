@@ -11,6 +11,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	max_bills = 30
+)
+
 // BillList is a string slice
 type BillList []string
 
@@ -61,9 +65,11 @@ func main() {
 	}
 	for _, billnumber := range billNumbers {
 		similaritySectionsByBillNumber := bills.GetSimilaritySectionsByBillNumber(billnumber, sampleSize)
-		similarBillMapBySection := bills.SimilarSectionsItemsToBillMap(similaritySectionsByBillNumber)
-		bills := bills.GetSimilarBills(similarBillMapBySection)
-		log.Info().Msgf("Similar Bills: %v", bills)
+		similarBillsDict := bills.GetSimilarBillsDict(similaritySectionsByBillNumber, max_bills)
+		log.Info().Msgf("Similar Bills Dict: %v", similarBillsDict)
+		//similarBillMapBySection := bills.SimilarSectionsItemsToBillMap(similaritySectionsByBillNumber)
+		//bills := bills.GetSimilarBills(similarBillMapBySection)
+		//log.Info().Msgf("Similar Bills: %v", bills)
 		//TODO Select top bills based on score
 		//Find how many sections and how many matches
 	}
