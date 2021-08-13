@@ -24,17 +24,12 @@ func getRandomSliceSectionItems(slice []SectionItem, num_items int) []SectionIte
 }
 
 // Set sample size to <= 0 to use all sections
-func GetSimilaritySectionsByBillNumber(billNumber string, samplesize int) (similarSectionsItems SimilarSectionsItems) {
-	log.Info().Msgf("Get versions of: %s", billNumber)
-	r := GetBill_ES(billNumber)
-	log.Info().Msgf("Number of versions of: %s, %d", billNumber, len(r["hits"].(map[string]interface{})["hits"].([]interface{})))
-	latestBillItem, err := GetLatestBill(r)
-	if err != nil {
-		log.Error().Msgf("Error getting latest bill: '%v'", err)
-	}
-	billversion := latestBillItem.BillVersion
+func GetSimilaritySectionsByBillNumber(billItem BillItemES, samplesize int) (similarSectionsItems SimilarSectionsItems) {
+	billversion := billItem.BillVersion
+	billNumber := billItem.BillNumber
 	billnumberversion := billNumber + billversion
-	billsections := latestBillItem.Sections
+	billsections := billItem.Sections
+
 	if samplesize > 0 && len(billsections) > samplesize {
 		log.Info().Msgf("Get similar bills for %d of the %d sections of bill %s", samplesize, len(billsections), billnumberversion)
 		billsections = getRandomSliceSectionItems(billsections, samplesize)
@@ -120,8 +115,8 @@ func SimilarSectionsItemsToBillMap(similarSectionsItems SimilarSectionsItems) (s
 	return similarBillMapBySection
 }
 
-func GetSimilarityBillMapBySection(billNumber string, sampleSize int) (similarBillMapBySection SimilarBillMapBySection) {
-	return SimilarSectionsItemsToBillMap(GetSimilaritySectionsByBillNumber(billNumber, sampleSize))
+func GetSimilarityBillMapBySection(billItem BillItemES, sampleSize int) (similarBillMapBySection SimilarBillMapBySection) {
+	return SimilarSectionsItemsToBillMap(GetSimilaritySectionsByBillNumber(billItem, sampleSize))
 }
 
 type BillScore struct {

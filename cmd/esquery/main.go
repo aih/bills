@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	max_bills = 30
+	max_bills = 15
 )
 
 // BillList is a string slice
@@ -35,10 +35,14 @@ func main() {
 	// allow user to pass billnumbers as argument
 	var billList BillList
 	var sampleSize int
+	var parentPath string
 	flag.Var(&billList, "billnumbers", "comma-separated list of billnumbers")
 	flag.Var(&billList, "b", "comma-separated list of billnumbers")
 	flag.IntVar(&sampleSize, "samplesize", 0, "number of sections to sample in large bill")
-	flag.Parse()
+	flagPathUsage := "Absolute path to the parent directory for 'congress' and json metadata files"
+	flagPathValue := string(bills.ParentPathDefault)
+	flag.StringVar(&parentPath, "parentPath", flagPathValue, flagPathUsage)
+	flag.StringVar(&parentPath, "p", flagPathValue, flagPathUsage+" (shorthand)")
 
 	flag.Parse()
 
@@ -65,7 +69,14 @@ func main() {
 	}
 	for _, billnumber := range billNumbers {
 		// This is the equivalent of es_similarity in BillMap
-		similaritySectionsByBillNumber := bills.GetSimilaritySectionsByBillNumber(billnumber, sampleSize)
+		log.Info().Msgf("Get versions of: %s", billnumber)
+		r := bills.GetBill_ES(billnumber)
+		log.Info().Msgf("Number of versions of: %s, %d", billnumber, len(r["hits"].(map[string]interface{})["hits"].([]interface{})))
+		latestBillItem, err := bills.GetLatestBill(r)
+		if err != nil {
+			log.Error().Msgf("Error getting latest bill: '%v'", err)
+		}
+		similaritySectionsByBillNumber := bills.GetSimilaritySectionsByBillNumber(latestBillItem, sampleSize)
 
 		// This is the equivalent of es_similar_bills_dict in BillMap
 		similarBillsDict := bills.GetSimilarBillsDict(similaritySectionsByBillNumber, max_bills)
@@ -78,5 +89,19 @@ func main() {
 		//log.Info().Msgf("Similar Bills: %v", bills)
 		//TODO Select top bills based on score
 		//Find how many sections and how many matches
+		similarBillsList := make([]string, len(similarBillsDict))
+
+		// TODO this creates the bill list from similars;
+		// make sure the original billnumberversion is in the list
+		i := 0
+		for _, v := range similarBillsDict {
+			if len(v) > 0 {
+				similarBillsList[i] = v[0].BillCongressTypeNumberVersion
+			}
+			i++
+		}
+		similarBillsList = bills.RemoveDuplicates(append(similarBillsList, latestBillItem.BillNumber+latestBillItem.BillVersion))
+		compareMatrix := bills.CompareBills(parentPath, similarBillsList, false)
+		log.Info().Msgf("Compare Matrix: %v", compareMatrix)
 	}
 }

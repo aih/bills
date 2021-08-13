@@ -202,7 +202,7 @@ func CompareSamples() {
 // result.stdout.split('compareMatrix:\n')[-1]
 // Out[4]: '[[{1 identical} {0.63 incorporates}] [{0.79 incorporated by} {1 identical}]]'
 
-func CompareBills(parentPath string, billList []string) [][]CompareItem {
+func CompareBills(parentPath string, billList []string, print bool) [][]CompareItem {
 
 	var docPathsToCompare []string
 	for _, billNumber := range billList {
@@ -218,6 +218,8 @@ func CompareBills(parentPath string, billList []string) [][]CompareItem {
 	nGramMaps, _ := makeBillNgrams(docPathsToCompare)
 	compareMatrix, _ := compareFiles(nGramMaps, docPathsToCompare)
 	compareMatrixJson, _ := json.Marshal(compareMatrix)
-	fmt.Print(":compareMatrix:", string(compareMatrixJson), ":compareMatrix:")
+	if print {
+		fmt.Print(":compareMatrix:", string(compareMatrixJson), ":compareMatrix:")
+	}
 	return compareMatrix
 }
