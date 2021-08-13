@@ -59,7 +59,7 @@ func getExplanation(scorei, scorej float64, iTotal, jTotal int) string {
 	//log.Info().Msg("----")
 
 	// minimumTotal avoids small bills being counted as nearly identical
-	if ((iTotal > minimumTotal && jTotal > minimumTotal) || ((1 - scorei/scorej) < similarScoreThreshold)) && scorei > nearlyIdenticalThreshold && scorej > nearlyIdenticalThreshold {
+	if ((iTotal > minimumTotal && jTotal > minimumTotal) || ((1 - scorei/scorej) < similarScoreThreshold)) && (scorei > nearlyIdenticalThreshold) && (scorej > nearlyIdenticalThreshold) {
 		return "bills-nearly_identical"
 	}
 	if scorei < scoreThreshold && scorej < scoreThreshold {
