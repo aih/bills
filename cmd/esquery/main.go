@@ -107,9 +107,10 @@ func main() {
 			i++
 		}
 		// Include the original billnumberversion is in the list if it is not in the list of similar bills
-		if _, ok := bills.Find(similarBillsList, billnumber); !ok {
-			similarBillVersionsList = bills.PrependSlice(similarBillVersionsList, latestBillItem.BillNumber+latestBillItem.BillVersion)
+		if index, ok := bills.Find(similarBillsList, billnumber); ok {
+			similarBillVersionsList = bills.RemoveIndex(similarBillVersionsList, index)
 		}
+		similarBillVersionsList = bills.PrependSlice(similarBillVersionsList, latestBillItem.BillNumber+latestBillItem.BillVersion)
 		log.Info().Msgf("similar bills: %v", similarBillVersionsList)
 		compareMatrix, err := bills.CompareBills(parentPath, similarBillVersionsList, false)
 		if err != nil {

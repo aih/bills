@@ -56,5 +56,5 @@ func main() {
 	}
 	log.Debug().Msg("Log level set to Debug")
 
-	bills.CompareBills(parentPath, billList, true)
+	compareMatrix, err := bills.CompareBills(parentPath, billList, true)
 }

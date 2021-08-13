@@ -98,7 +98,7 @@ func RemoveDuplicates(elements []string) []string { // change string to int here
 }
 
 // Find takes a slice and looks for an element in it. If found it will
-// return it's key, otherwise it will return -1 and a bool of false.
+// return its index and a bool of true; otherwise it will return -1 and a bool of false.
 func Find(slice []string, val string) (int, bool) {
 	for i, item := range slice {
 		if item == val {
@@ -106,6 +106,17 @@ func Find(slice []string, val string) (int, bool) {
 		}
 	}
 	return -1, false
+}
+
+func RemoveIndex(slice []string, index int) []string {
+	return append(slice[:index], slice[index+1:]...)
+}
+func RemoveVal(slice []string, val string) []string {
+	index, found := Find(slice, val)
+	if found {
+		return append(slice[:index], slice[index+1:]...)
+	}
+	return slice
 }
 
 // Reverses a slice of strings
