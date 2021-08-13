@@ -473,9 +473,14 @@ func GetLatestBill(r map[string]interface{}) (latestbill BillItemES, err error) 
 		log.Debug().Msgf("current latestbillversion=%s; latestdate=%s, latestbillversionval=%d", latestbillversion, latestdate.String(), latestbillversion_val)
 	}
 	log.Debug().Msgf("latestbillversion=%s; latestdate=%s, latestbillversionval=%d", latestbillversion, latestdate.String(), latestbillversion_val)
-	billItem, err := BillResultToStruct(latestbillInterface["_source"].(map[string]interface{}))
-	if err != nil {
-		log.Fatal().Msgf("Error converting bill to struct: %s", err)
+	var billItem BillItemES
+	if latestbillInterface["_source"] != nil {
+		billItem, err = BillResultToStruct(latestbillInterface["_source"].(map[string]interface{}))
+		if err != nil {
+			log.Fatal().Msgf("Error converting bill to struct: %s", err)
+		}
+	} else {
+		log.Fatal().Msg("Bill item is not found")
 	}
 	return billItem, err
 }
