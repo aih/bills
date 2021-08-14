@@ -1,5 +1,7 @@
 package bills
 
+import "encoding/json"
+
 type TitlesJson struct {
 	As           string `json:"as"`
 	Type         string `json:"type"`
@@ -95,9 +97,11 @@ type RelatedBillItem struct {
 
 type RelatedBillMap map[string]RelatedBillItem
 
-type SimilarBillItem struct {
+// This is the form of item in `es_similar_bills_dict`;
+// for each billnumber (e.g. '116hr238'), it collects the best scoring sections
+type SimilarSection struct {
 	Date                          string  `json:"date"`
-	Score                         float64 `json:"score"`
+	Score                         float32 `json:"score"`
 	Title                         string  `json:"title"`
 	Session                       string  `json:"session"`
 	Congress                      string  `json:"congress"`
@@ -107,9 +111,38 @@ type SimilarBillItem struct {
 	SectionIndex                  string  `json:"sectionIndex"`
 	SectionHeader                 string  `json:"section_header"`
 	BillCongressTypeNumberVersion string  `json:"bill_number_version"`
-	TargetSectionHeader           string  `json:"target_section_header"`
-	TargetSectionNumber           string  `json:"target_section_number"`
+	TargetSectionHeader           string  `json:"target_section_header"` // This is the section header of the original
+	TargetSectionNumber           string  `json:"target_section_number"` // This is the section number of the original
 }
+
+type SimilarSections []SimilarSection
+
+type SimilarBillMap map[string]SimilarSections
+
+type SimilarBillData struct {
+	TopSectionIndex      string
+	TopSectionHeader     string
+	TopSectionNum        string
+	TopSectionScore      float32
+	TotalScore           float32
+	TotalSimilarSections int
+	SectionItemMetaMap   map[SectionItemMeta]SimilarSection
+}
+type SimilarBillMapBySection map[string]SimilarBillData
+
+type SimilarSectionsItem struct {
+	BillNumber                string          `json:"bill_number"`                  // Original (target) bill
+	BillNumberVersion         string          `json:"bill_number_version"`          // Original (target) bill version
+	SectionHeader             string          `json:"section_header"`               // Original (target) section header
+	SectionNum                string          `json:"section"`                      // Original (target) section number
+	SectionIndex              string          `json:"sectionIndex"`                 // Original (target) section index
+	SimilarSections           SimilarSections `json:"similar_sections"`             // list of similar sections
+	SimilarBills              []string        `json:"similar_bills"`                // deduplicated list of billnumbers from highest to lowest score
+	SimilarBillNumberVersions []string        `json:"similar_bill_number_versions"` // deduplicated list of billnumberversions from highest to lowest score
+
+}
+
+type SimilarSectionsItems []SimilarSectionsItem
 
 type DataJson struct {
 	Actions          []ActionItem      `json:"actions"`
@@ -138,6 +171,125 @@ type DataJson struct {
 	Titles           []TitlesJson      `json:"titles"`
 	UpdatedAt        string            `json:"updated_at"`
 	Url              string            `json:"url"`
+}
+
+// SearchResult represents the result of the search operation
+type SearchResult_ES struct {
+	Took     uint64 `json:"took"`
+	TimedOut bool   `json:"timed_out"`
+	Shards   struct {
+		Total      int `json:"total"`
+		Successful int `json:"successful"`
+		Failed     int `json:"failed"`
+		Skipped    int `json:"skipped"`
+	} `json:"_shards"`
+	Hits ResultHits `json:"hits"`
+}
+
+// ResultHits represents the result of the search hits
+type ResultHits struct {
+	MaxScore float32 `json:"max_score"`
+	Total    struct {
+		Relation string `json:"relation"`
+		Value    int    `json:"value"`
+	} `json:"total"`
+	Hits Hits_ES `json:"hits"`
+}
+
+type BillItemES struct {
+	ID          string        `json:"id"`
+	BillNumber  string        `json:"billnumber"`
+	BillVersion string        `json:"billversion"`
+	Congress    string        `json:"congress"`
+	Session     string        `json:"session"`
+	Date        string        `json:"date"`
+	DC          []string      `json:"dc"`
+	DCTitle     string        `json:"dctitle"`
+	Headers     []string      `json:"headers"`
+	Legisnum    string        `json:"legisnum"`
+	Sections    []SectionItem `json:"sections"`
+}
+
+type Hits_ES []Hit_ES
+type Hit_ES struct {
+	ID        string     `json:"_id"`
+	Index     string     `json:"_index"`
+	Type      string     `json:"_type"`
+	Score     float32    `json:"_score"`
+	Source    BillItemES `json:"_source"`
+	InnerHits InnerHits  `json:"inner_hits"`
+}
+type InnerHits struct {
+	Sections struct {
+		Hits struct {
+			Hits     []InnerHit
+			MaxScore float32 `json:"max_score"`
+			Total    struct {
+				Relation string `json:"relation"`
+				Value    int    `json:"value"`
+			} `json:"total"`
+		} `json:"hits"`
+	} `json:"sections"`
+}
+
+type InnerHit struct {
+	ID     string  `json:"_id"`
+	Index  string  `json:"_index"`
+	Type   string  `json:"_type"`
+	Score  float32 `json:"_score"`
+	Nested struct {
+		Section string `json:"section"`
+		Offset  int    `json:"offset"`
+	} `json:"nested"`
+	Source SectionItem `json:"_source"`
+	//Source json.RawMessage `json:"_source"`
+}
+type SectionItemMeta struct {
+	BillNumber        string `json:"bill_number"`
+	BillNumberVersion string `json:"bill_number_version"`
+	SectionIndex      string `json:"sectionIndex"`
+	SectionNumber     string `json:"section_number"`
+	SectionHeader     string `json:"section_header"`
+}
+
+type SectionItem struct {
+	BillNumber        string `json:"bill_number"`
+	BillNumberVersion string `json:"bill_number_version"`
+	SectionIndex      string `json:"sectionIndex"`
+	SectionNumber     string `json:"section_number"`
+	SectionHeader     string `json:"section_header"`
+	SectionText       string `json:"section_text"`
+	SectionXML        string `json:"section_xml"`
+}
+
+type ResultInnerHits []struct {
+	Index  string          `json:"_index"`
+	Type   string          `json:"_type"`
+	ID     string          `json:"_id"`
+	Score  float32         `json:"_score"`
+	Source json.RawMessage `json:"_source"`
+	//Highlight map[string][]string `json:"highlight,omitempty"`
+	Sections InnerHitSections `json:"sections"`
+}
+type InnerHitSections struct {
+	Hits struct {
+		Hits []struct {
+			SectionHit struct {
+				ID     string `json:"_id"`
+				Index  string `json:"_index"`
+				Nested struct {
+					Field  string `json:"field"`
+					Offset int    `json:"offset"`
+				} `json:"_nested"`
+				Score  string `json:"_score"`
+				Source struct {
+					SectionNumber string `json:"section_number"`
+					SectionHeader string `json:"section_header"`
+					SectionText   string `json:"section_text"`
+				} `json:"_source"`
+			}
+		} `json:"hits"`
+	} `json:"hits"`
 }
 
 type WordSample struct {

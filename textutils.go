@@ -25,6 +25,13 @@ func CustomTokenize(text string) (wordList []string) {
 	return
 }
 
+func ReverseStrings(ss []string) {
+	last := len(ss) - 1
+	for i := 0; i < len(ss)/2; i++ {
+		ss[i], ss[last-i] = ss[last-i], ss[i]
+	}
+}
+
 // Creates a map with ngrams as keys and number of occurences as values
 // n is the number of words in each n-gram
 func MakeNgramMap(text string, n int) (wordMap map[string]int) {
@@ -95,6 +102,40 @@ func RemoveDuplicates(elements []string) []string { // change string to int here
 	}
 	// Return the new slice.
 	return result
+}
+
+// Find takes a slice and looks for an element in it. If found it will
+// return its index and a bool of true; otherwise it will return -1 and a bool of false.
+func Find(slice []string, val string) (int, bool) {
+	for i, item := range slice {
+		if item == val {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
+func RemoveIndex(slice []string, index int) []string {
+	return append(slice[:index], slice[index+1:]...)
+}
+func RemoveVal(slice []string, val string) []string {
+	index, found := Find(slice, val)
+	if found {
+		return append(slice[:index], slice[index+1:]...)
+	}
+	return slice
+}
+
+// Reverses a slice of strings
+func ReverseSlice(slice []string) []string {
+	for i, j := 0, len(slice)-1; i < j; i, j = i+1, j-1 {
+		slice[i], slice[j] = slice[j], slice[i]
+	}
+	return slice
+}
+
+func PrependSlice(slice []string, val string) []string {
+	return append([]string{val}, slice...)
 }
 
 // Returns a map of regex capture groups to the items that are matched

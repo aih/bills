@@ -86,12 +86,14 @@
    "type": "",
    "bill_congress_type_number": "117hr100",
    "titles": [
-    "To require the use of independent nonpartisan commissions to carry out congressional redistricting and to require States to hold open primaries for elections for Federal office.",
     "CLEAN Elections Act",
-    "Citizen Legislature Anti-Corruption Reform of Elections Act"
+    "Citizen Legislature Anti-Corruption Reform of Elections Act",
+    "To require the use of independent nonpartisan commissions to carry out congressional redistricting and to require States to hold open primaries for elections for Federal office."
    ],
    "titles_whole_bill": [
-    "Citizen Legislature Anti-Corruption Reform of Elections Act"
+    "CLEAN Elections Act",
+    "Citizen Legislature Anti-Corruption Reform of Elections Act",
+    "To require the use of independent nonpartisan commissions to carry out congressional redistricting and to require States to hold open primaries for elections for Federal office."
    ]
   }
  }

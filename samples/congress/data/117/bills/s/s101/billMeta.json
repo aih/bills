@@ -62,13 +62,15 @@
   "117s101": {
    "bill_id": "s101-117",
    "identified_by": "BillMap",
-   "reason": "bills-title_match",
+   "reason": "bills-title_match_main, bills-title_match",
    "type": "",
    "bill_congress_type_number": "117s101",
    "titles": [
     "A bill to establish the Environmental Justice Mapping Committee, and for other purposes."
    ],
-   "titles_whole_bill": null
+   "titles_whole_bill": [
+    "A bill to establish the Environmental Justice Mapping Committee, and for other purposes."
+   ]
   }
  }
 }

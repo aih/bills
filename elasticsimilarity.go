@@ -1,318 +1,234 @@
 package bills
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
-	"fmt"
-	"io"
+	"sort"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/tidwall/gjson"
-
-	"github.com/elastic/go-elasticsearch/v7"
 )
 
-var (
-	batchNum      int
-	scrollID      string
-	searchIndices = []string{"billsections"}
-	idQuery       = map[string]interface{}{
-		"query": map[string]interface{}{
-			"match_all": map[string]interface{}{},
-		},
-		"fields":  []string{"id"},
-		"_source": false,
+const (
+	num_results   = 20 // Maximum number of results to return
+	min_sim_score = 25 // Minimum similarity to make a match in the section query
+)
+
+func getRandomSliceSectionItems(slice []SectionItem, num_items int) []SectionItem {
+	if num_items > len(slice) {
+		num_items = len(slice)
 	}
-)
-
-func read(r io.Reader) string {
-	var b bytes.Buffer
-	b.ReadFrom(r)
-	return b.String()
+	var random_slice []SectionItem
+	for i := 0; i < num_items; i++ {
+		random_slice = append(random_slice, slice[i])
+	}
+	return random_slice
 }
 
-func PrintESInfo() {
-	es, err := elasticsearch.NewDefaultClient()
-	if err != nil {
-		log.Fatal().Msgf("Error creating the client: %s", err)
-	}
-	res, err := es.Info()
-	if err != nil {
-		log.Fatal().Msgf("Error getting response: %s", err)
+// Set sample size to <= 0 to use all sections
+func GetSimilaritySectionsByBillNumber(billItem BillItemES, samplesize int) (similarSectionsItems SimilarSectionsItems) {
+	billversion := billItem.BillVersion
+	billNumber := billItem.BillNumber
+	billnumberversion := billNumber + billversion
+	billsections := billItem.Sections
+
+	if samplesize > 0 && len(billsections) > samplesize {
+		log.Info().Msgf("Get similar bills for %d of the %d sections of bill %s", samplesize, len(billsections), billnumberversion)
+		billsections = getRandomSliceSectionItems(billsections, samplesize)
 	} else {
-		log.Info().Msg(fmt.Sprint(res))
-		log.Info().Msg(fmt.Sprint(elasticsearch.Version))
+		log.Info().Msgf("Get similar bills for the %d sections of bill %s", len(billsections), billnumberversion)
 	}
+	for sectionIndex, sectionItem := range billsections {
+		// The billnumber and billnumber version are not stored in the ES results
+		// We add them back in to track the section query with its original bill
+		sectionItem.BillNumber = billNumber
+		sectionItem.BillNumberVersion = billnumberversion
+		sectionItem.SectionIndex = strconv.Itoa(sectionIndex)
+
+		// TODO this can be made concurrent:
+		// Send the query out, collect the results put them in order by sectionIndex
+		similarSectionsItem := SectionItemQuery(sectionItem)
+		similarSectionsItems = append(similarSectionsItems, similarSectionsItem)
+	}
+	log.Debug().Msgf("number of similarSectionsItems: %d\n", len(similarSectionsItems))
+	return similarSectionsItems
 }
 
-func makeMLTQuery(size, minscore int, searchtext string) (mltquery map[string]interface{}) {
-	mltquery = map[string]interface{}{
-		"size":      20,
-		"min_score": 15,
-		"query": map[string]interface{}{
-			"nested": map[string]interface{}{
-				"path": "sections",
-				"query": map[string]interface{}{
-					"more_like_this": map[string]interface{}{
-						"fields":          []string{"sections.section_text"},
-						"like":            `SEC. 102. COLORADO WILDERNESS ADDITIONS. (a) Designation.—Section 2(a) of the Colorado Wilderness Act of 1993 (16 U.S.C. 1132 note; Public Law 103–77) is amended— (1) in paragraph (18), by striking “1993,” and inserting “1993, and certain Federal land within the White River National Forest that comprises approximately 6,896 acres, as generally depicted as ‘Proposed Ptarmigan Peak Wilderness Additions’ on the map entitled ‘Proposed Ptarmigan Peak Wilderness Additions’ and dated June 24, 2019,”; and (2) by adding at the end the following:`,
-						"min_term_freq":   2,
-						"max_query_terms": 30,
-						"min_doc_freq":    2,
-					},
-				},
-				"inner_hits": map[string]interface{}{
-					"highlight": map[string]interface{}{
-						"fields": map[string]interface{}{
-							"sections.section_text": map[string]interface{}{},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	mltquery["size"] = size
-	mltquery["min_score"] = minscore
-	mltquery["query"].(map[string]interface{})["nested"].(map[string]interface{})["query"].(map[string]interface{})["more_like_this"].(map[string]interface{})["like"] = searchtext
-	return mltquery
-}
-
-func makeBillQuery(billnumber string) (billquery map[string]interface{}) {
-	billquery = map[string]interface{}{
-		"query": map[string]interface{}{
-			"match": map[string]interface{}{
-				"billnumber": billnumber,
-			},
-		},
-	}
-	return billquery
-}
-
-func runQuery(query map[string]interface{}) (r map[string]interface{}) {
-	es, err := elasticsearch.NewDefaultClient()
-	if err != nil {
-		log.Fatal().Msgf("Error creating the client: %s", err)
-	}
-
-	// Search for the indexed documents
-	// Build the request body.
-	var buf bytes.Buffer
-
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		log.Fatal().Msgf("Error encoding query: %s", err)
-	}
-
-	// Perform the search request.
-	res, err := es.Search(
-		es.Search.WithContext(context.Background()),
-		es.Search.WithIndex(searchIndices...),
-		es.Search.WithBody(&buf),
-		es.Search.WithTrackTotalHits(true),
-		es.Search.WithPretty(),
-	)
-	if err != nil {
-		log.Fatal().Msgf("Error getting response: %s", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			log.Fatal().Msgf("Error parsing the response body: %s", err)
-		} else {
-			// Print the response status and error information.
-			log.Fatal().Msgf("[%s] %s: %s",
-				res.Status(),
-				e["error"].(map[string]interface{})["type"],
-				e["error"].(map[string]interface{})["reason"],
-			)
-		}
-	}
-
-	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		log.Fatal().Msgf("Error parsing the response body: %s", err)
-	}
-
-	if res.Status() != "200 OK" {
-		log.Error().Msgf("ES search: [%s]", res.Status())
-	}
-
-	// Print the response status, number of results, and request duration.
-	log.Debug().Msgf(
-		"ES search: [%s] %d hits; took %dms",
-		res.Status(),
-		int(r["hits"].(map[string]interface{})["total"].(map[string]interface{})["value"].(float64)),
-		int(r["took"].(float64)),
-	)
-	// Print the ID and document source for each hit.
-	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-		log.Debug().Msgf(" * ID=%s, %s", hit.(map[string]interface{})["_id"], hit.(map[string]interface{})["_source"])
-	}
-	return r
-}
-
-func GetBill_ES(billnumber string) map[string]interface{} {
-	r := runQuery(makeBillQuery(billnumber))
-	return r
-}
-
-func GetMoreLikeThisQuery(size, minscore int, searchtext string) map[string]interface{} {
-	mltQuery := makeMLTQuery(size, minscore, searchtext)
-	return runQuery(mltQuery)
-}
-
-// Performs scroll query over indices in `searchIndices`; sends result to the resultChan for processing to extract billnumbers
-func scrollQueryBillNumbers(buf bytes.Buffer, resultChan chan []gjson.Result) {
-	defer close(resultChan)
-	es, err := elasticsearch.NewDefaultClient()
-	if err != nil {
-		log.Fatal().Msgf("Error creating the client: %s", err)
-	}
-
-	// Perform the initial search request to get
-	// the first batch of data and the scroll ID
-	//
-	log.Info().Msg("Scrolling the index...")
-	log.Info().Msg(strings.Repeat("-", 80))
-	res, _ := es.Search(
-		es.Search.WithIndex(searchIndices...),
-		es.Search.WithBody(&buf),
-		es.Search.WithSort("_doc"),
-		es.Search.WithSize(10000),
-		es.Search.WithScroll(time.Minute),
-	)
-
-	// Handle the first batch of data and extract the scrollID
-	//
-	json := read(res.Body)
-	res.Body.Close()
-	//fmt.Println(json)
-
-	scrollID = gjson.Get(json, "_scroll_id").String()
-
-	log.Debug().Msg("Batch   " + strconv.Itoa(batchNum))
-	log.Debug().Msg("ScrollID: " + scrollID)
-	billNumbers := gjson.Get(json, "hits.hits.#fields.id").Array()
-	//log.Debug().Msg("IDs:     " + strings.Join(billNumbers, ", "))
-	resultChan <- billNumbers
-	log.Debug().Msg(strings.Repeat("-", 80))
-
-	// Perform the scroll requests in sequence
-	//
-	for {
-		batchNum++
-
-		// Perform the scroll request and pass the scrollID and scroll duration
-		//
-		res, err := es.Scroll(es.Scroll.WithScrollID(scrollID), es.Scroll.WithScroll(time.Minute))
-		if err != nil {
-			log.Fatal().Msgf("Error: %s", err)
-		}
-		if res.IsError() {
-			log.Fatal().Msgf("Error response: %s", res)
-		}
-
-		json := read(res.Body)
-		res.Body.Close()
-
-		// Extract the scrollID from response
-		//
-		scrollID = gjson.Get(json, "_scroll_id").String()
-
-		// Extract the search results
-		//
-		hits := gjson.Get(json, "hits.hits")
-
-		// Break out of the loop when there are no results
-		//
-		if len(hits.Array()) < 1 {
-			log.Info().Msg("Finished scrolling")
-			break
-		} else {
-			log.Debug().Msg("Batch   " + strconv.Itoa(batchNum))
-			log.Debug().Msg("ScrollID: " + scrollID)
-			billNumbers := gjson.Get(json, "hits.hits.#.fields.id").Array()
-			//log.Debug().Msg("IDs:     " + strings.Join(billNumbers, ", "))
-			resultChan <- billNumbers
-			log.Debug().Msg(strings.Repeat("-", 80))
-		}
-	}
-}
-
-// Sort the eh, es, and enr as latest
-// Then sort by date
-// TODO: better method is to get the latest version in Fdsys_billstatus
-func GetLatestBill(r map[string]interface{}) (latestbill map[string]interface{}) {
-	latestdate, _ := time.Parse(time.RFC3339, time.RFC3339)
-	latestbillversion := "ih"
-	latestbillversion_val := 0
-	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-		billversion := hit.(map[string]interface{})["_source"].(map[string]interface{})["billversion"].(string)
-		datestring := hit.(map[string]interface{})["_source"].(map[string]interface{})["date"]
-		if datestring == nil {
-			datestring = ""
-		}
-		if datestring != "" {
-			date, err := time.Parse(time.RFC3339, datestring.(string)+"T15:04:05Z")
-			if err != nil {
-				fmt.Println(err)
+func SimilarSectionsItemsToBillMap(similarSectionsItems SimilarSectionsItems) (similarBillMapBySection SimilarBillMapBySection) {
+	// Get bill numbers from similarSectionsItems.SimilarBills and similarSectionsItems.SimilarBillNumberVersions
+	// Creates the similarBillMapBySection
+	//	  "116s238": {
+	//		  SectionItemMeta: SimilarSection
+	//	  }
+	similarBillMapBySection = make(SimilarBillMapBySection)
+	for _, similarSectionsItem := range similarSectionsItems {
+		for _, similarSection := range similarSectionsItem.SimilarSections {
+			// the inner key is a SectionItemMeta, which can be created from the similarSectionsItem
+			innerKey := SectionItemMeta{
+				BillNumber:        similarSection.Billnumber,
+				BillNumberVersion: similarSection.BillCongressTypeNumberVersion,
+				SectionIndex:      similarSectionsItem.SectionIndex,
+				SectionNumber:     similarSectionsItem.SectionNum,
+				SectionHeader:     similarSectionsItem.SectionHeader,
+			}
+			if _, ok := similarBillMapBySection[similarSection.Billnumber]; !ok {
+				similarBillMapBySection[similarSection.Billnumber] = SimilarBillData{
+					SectionItemMetaMap: map[SectionItemMeta]SimilarSection{innerKey: similarSection},
+				}
+			} else {
+				if _, ok := similarBillMapBySection[similarSection.Billnumber].SectionItemMetaMap[innerKey]; !ok {
+					similarBillMapBySection[similarSection.Billnumber].SectionItemMetaMap[innerKey] = similarSection
+				} else if similarSection.Score > similarBillMapBySection[similarSection.Billnumber].SectionItemMetaMap[innerKey].Score {
+					similarBillMapBySection[similarSection.Billnumber].SectionItemMetaMap[innerKey] = similarSection
+				}
 			}
 
-			// Use the date if the latest version is not an "e" version
-			if date.After(latestdate) && !strings.HasPrefix(latestbillversion, "e") {
-				latestdate = date
-				latestbillversion = billversion
-				latestbillversion_val = BillVersionsOrdered[latestbillversion]
-				latestbill = hit.(map[string]interface{})
-			}
 		}
-		if billversion_val, ok := BillVersionsOrdered[billversion]; ok {
-			if strings.HasPrefix(billversion, "e") && (billversion_val > latestbillversion_val) {
-				latestbillversion = billversion
-				latestbill = hit.(map[string]interface{})
-			}
-		}
-		log.Debug().Msgf("bill=%s; date=%s", billversion, datestring)
 	}
-	log.Debug().Msgf("latestbillversion=%s; latestdate=%s", latestbillversion, latestdate.String())
-	return latestbill
+	log.Info().Msgf("number of items in similarBillMapBySection: %d\n", len(similarBillMapBySection))
+	for bill, billdata := range similarBillMapBySection {
+		var totalScore float32
+		var topSectionScore float32
+		var topSectionNum string
+		var topSectionHeader string
+		var topSectionIndex string
+		for _, similarSection := range billdata.SectionItemMetaMap {
+			totalScore += similarSection.Score
+			if similarSection.Score > topSectionScore {
+				topSectionScore = similarSection.Score
+				topSectionNum = similarSection.SectionNum
+				topSectionHeader = similarSection.SectionNum
+				topSectionIndex = similarSection.SectionIndex
+			}
+
+		}
+		similarBillMapBySection[bill] = SimilarBillData{
+			SectionItemMetaMap:   billdata.SectionItemMetaMap,
+			TotalScore:           totalScore,
+			TopSectionScore:      topSectionScore,
+			TopSectionNum:        topSectionNum,
+			TopSectionHeader:     topSectionHeader,
+			TopSectionIndex:      topSectionIndex,
+			TotalSimilarSections: len(billdata.SectionItemMetaMap),
+		}
+
+	}
+	log.Info().Msgf("similarBillMapBySection: %v\n", similarBillMapBySection)
+	return similarBillMapBySection
 }
 
-func GetSampleBillNumbers() []string {
-	// TODO: set number of bills to get and get them at random
-	return []string{"116hr299"}
+func GetSimilarityBillMapBySection(billItem BillItemES, sampleSize int) (similarBillMapBySection SimilarBillMapBySection) {
+	return SimilarSectionsItemsToBillMap(GetSimilaritySectionsByBillNumber(billItem, sampleSize))
 }
 
-func GetAllBillNumbers() []string {
-	var billNumbers []gjson.Result
-	resultChan := make(chan []gjson.Result)
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(idQuery); err != nil {
-		log.Fatal().Msgf("Error encoding query: %s", err)
+type BillScore struct {
+	BillNumber      string
+	Score           float32
+	SectionsMatched int
+	// TODO add fields for number of sections matched
+}
+
+func GetSimilarBills(similarBillMapBySection SimilarBillMapBySection) (billScores []BillScore) {
+	for bill, billdata := range similarBillMapBySection {
+		billScores = append(billScores, BillScore{bill, billdata.TotalScore, billdata.TotalSimilarSections})
 	}
-	go scrollQueryBillNumbers(buf, resultChan)
-	for newBillNumbers := range resultChan {
-		billNumbers = append(billNumbers, newBillNumbers...)
+	sort.SliceStable(billScores, func(i, j int) bool { return billScores[i].Score > billScores[j].Score })
+	return billScores
+}
+
+func GetSimilarBillsDict(similarSectionsItems SimilarSectionsItems, maxBills int) (similarBillsDict map[string]SimilarSections) {
+	var sectionSimilars []SimilarSections
+	var similarBillsAll []string
+	similarBillsDict = make(map[string]SimilarSections)
+	dedupeMap := make(map[SectionItemMeta]SimilarSection)
+	/*
+		SectionItemMeta
+		BillNumber        string `json:"bill_number"`
+		BillNumberVersion string `json:"bill_number_version"`
+		SectionIndex      string `json:"sectionIndex"`
+		SectionNumber     string `json:"section_number"`
+		SectionHeader
+	*/
+	for _, similarSectionsItem := range similarSectionsItems {
+		// Collect the similar sections
+		sectionSimilars = append(sectionSimilars, similarSectionsItem.SimilarSections)
+		similarBillsAll = append(similarBillsAll, similarSectionsItem.SimilarBills...)
 	}
-	//fmt.Println(billNumbers)
-	// billNumbers is an Array of gjson.Result;
-	// each result is itself an array of string of the form
-	//["117hr141ih"]
-	log.Info().Msgf("Length of billNumbers: %d", len(billNumbers))
-	var billNumberStrings []string
-	for _, b := range billNumbers {
-		bRes := b.Array()
-		for _, bItem := range bRes {
-			billNumber := bItem.String()
-			if billNumber != "" {
-				billNumberStrings = append(billNumberStrings, billNumber)
+	similarBillsAll = RemoveDuplicates(similarBillsAll)
+	if maxBills > 0 && len(similarBillsAll) > maxBills {
+		similarBillsAll = similarBillsAll[:maxBills]
+	}
+	for _, sectionSimilar := range sectionSimilars {
+		for _, similarSection := range sectionSimilar {
+			// Check which bill it belongs to
+			// Check if that bill already has an item with that TargetSectionNumber
+			// If not, add it to the dict
+			// If yes, check if the score is higher than the existing one
+			// If yes, replace the existing one
+			dedupeItemKey := SectionItemMeta{
+				BillNumber:        similarSection.Billnumber,
+				BillNumberVersion: similarSection.BillCongressTypeNumberVersion,
+				SectionNumber:     similarSection.TargetSectionNumber,
+				SectionHeader:     similarSection.TargetSectionHeader,
 			}
+			if _, ok := dedupeMap[dedupeItemKey]; !ok {
+				dedupeMap[dedupeItemKey] = similarSection
+			} else {
+				if similarSection.Score > dedupeMap[dedupeItemKey].Score {
+					dedupeMap[dedupeItemKey] = similarSection
+				}
+			}
+
 		}
 	}
-	return billNumberStrings
+	for _, similarSection := range dedupeMap {
+		//Check if the bill is in the similarBillsAll list
+		if _, ok := Find(similarBillsAll, similarSection.Billnumber); ok {
+			similarBillsDict[similarSection.Billnumber] = append(similarBillsDict[similarSection.Billnumber], similarSection)
+		}
+	}
+	return similarBillsDict
 }
+
+/*
+SimilarBillMap
+def getSimilarBills(es_similarity: List[dict] ) -> dict:
+similarBills = {}
+  sectionSimilars = [item.get('similars', []) for item in es_similarity]
+  billnumbers = list(unique_everseen(flatten([[similarItem.get('billnumber') for similarItem in similars] for similars in sectionSimilars])))
+  for billnumber in billnumbers:
+    try:
+      similarBills[billnumber] = []
+      for sectionIndex, similarItem in enumerate(sectionSimilars):
+        sectionBillItems = sorted(filter(lambda x: x.get('billnumber', '') == billnumber, similarItem), key=lambda k: k.get('score', 0), reverse=True)
+        if sectionBillItems and len(sectionBillItems) > 0:
+          for sectionBillItem in sectionBillItems:
+            # Check if we've seen this billItem before and which has a higher score
+            currentScore = sectionBillItem.get('score', 0)
+            currentSection = sectionBillItem.get('section_num', '') + sectionBillItem.get('section_header', '')
+            dupeIndexes = [similarBillIndex for similarBillIndex, similarBill in enumerate(similarBills.get(billnumber, [])) if (similarBill.get('section_num', '') + similarBill.get('section_header', '')) == currentSection]
+            if not dupeIndexes:
+              sectionBillItem['sectionIndex'] = str(sectionIndex)
+              sectionBillItem['target_section_number'] = es_similarity[sectionIndex].get('section_number', '')
+              sectionBillItem['target_section_header'] = es_similarity[sectionIndex].get('section_header', '')
+              similarBills[billnumber].append(sectionBillItem)
+              break
+            elif  currentScore > similarBills[billnumber][dupeIndexes[0]].get('score', 0):
+              del similarBills[billnumber][dupeIndexes[0]]
+              similarBills[billnumber].append(sectionBillItem)
+For each bill number, create a map[string]SimilarSections, with the structure below
+Each item in the slice is the best match, in the target bill, for each section of the original bill
+Similarity by bill (es_similar_bills_dict)
+		   "116s238": [
+		   	{"date": "2019-01-28",
+		   	"score": 92.7196,
+		   	"title": "116 S238 RS: Special Envoy to Monitor and Combat Anti-Semitism Act of 2019",
+		   	"session": "2",
+		   	"congress": "",
+		   	"legisnum": "S. 238",
+		   	"billnumber": "116s238",
+		   	"section_num": "3. ",
+		   	"sectionIndex": "3",
+		   	"section_header": "Monitoring and Combating anti-Semitism",
+		   	"bill_number_version": "116s238rs",
+		   	"target_section_header": "Monitoring and Combating anti-Semitism",
+		   	"target_section_number": "3."}],...]
+*/
