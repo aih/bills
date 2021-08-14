@@ -20,6 +20,10 @@ type SimilarityContext struct {
 	MaxBills   int
 	SampleSize int
 }
+type flagDef struct {
+	value string
+	usage string
+}
 
 // BillList is a string slice
 type BillList []string
@@ -91,17 +95,23 @@ func main() {
 		sampleSize int
 		parentPath string
 		maxBills   int
+		logLevel   string
 	)
+
 	shorthand := " (shorthand)"
-	flagBillnumbersUsage := "comma-separated list of billnumbers"
-	flag.Var(&billList, "billnumbers", flagBillnumbersUsage)
-	flag.Var(&billList, "b", flagBillnumbersUsage+shorthand)
+	flagDefs := map[string]flagDef{
+		"billnumbers": {"", "comma-separated list of billnumbers"},
+		"parentpath":  {string(bills.ParentPathDefault), "Absolute path to the parent directory for 'congress' and json metadata files"},
+		"log":         {"Info", "Sets Log level. Options: Error, Info, Debug"},
+	}
+	flag.Var(&billList, "billnumbers", flagDefs["billnumbers"].usage)
+	flag.Var(&billList, "b", flagDefs["billnumbers"].usage+shorthand)
 	flag.IntVar(&sampleSize, "samplesize", 0, "number of sections to sample in large bill")
-	flagPathUsage := "Absolute path to the parent directory for 'congress' and json metadata files"
-	flagPathValue := string(bills.ParentPathDefault)
-	flag.StringVar(&parentPath, "parentPath", flagPathValue, flagPathUsage)
-	flag.StringVar(&parentPath, "p", flagPathValue, flagPathUsage+shorthand)
+	flag.StringVar(&parentPath, "parentPath", flagDefs["parentpath"].value, flagDefs["parentpath"].usage)
+	flag.StringVar(&parentPath, "p", flagDefs["parentpath"].value, flagDefs["parentpath"].usage+shorthand)
 	flag.IntVar(&maxBills, "maxBills", max_bills, "maximum number of similar bills to return")
+	flag.StringVar(&logLevel, "logLevel", flagDefs["log"].value, flagDefs["log"].usage)
+	flag.StringVar(&logLevel, "l", flagDefs["log"].value, flagDefs["log"].usage+" (shorthand)")
 
 	flag.Parse()
 	similarityContext := SimilarityContext{
@@ -131,6 +141,21 @@ func main() {
 	} else {
 		billNumbers = bills.GetSampleBillNumbers()
 	}
+
+	defer log.Info().Msg("Done")
+	/*
+		// Limiting openfiles prevents memory issues
+		// See http://jmoiron.net/blog/limiting-concurrency-in-go/
+		maxopenfiles := 100
+		sem := make(chan bool, maxopenfiles)
+		// Create three channels: bills.SimilarSectionsItems, bills.SimilarBillsDict, bills.CompareMatrix
+		similarSectionsStorageChannel := make(chan bills.SimilarSectionsItems)
+		similarBillsDictStorageChannel := make(chan map[string]bills.SimilarSections)
+		compareMatrixStorageChannel := make(chan [][]bills.CompareItem)
+		wg := &sync.WaitGroup{}
+		wg.Add(len(billNumbers))
+	*/
+
 	for _, billnumber := range billNumbers {
 		GetSimilarityForBill(billnumber, similarityContext)
 	}

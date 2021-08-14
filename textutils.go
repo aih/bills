@@ -25,6 +25,13 @@ func CustomTokenize(text string) (wordList []string) {
 	return
 }
 
+func ReverseStrings(ss []string) {
+	last := len(ss) - 1
+	for i := 0; i < len(ss)/2; i++ {
+		ss[i], ss[last-i] = ss[last-i], ss[i]
+	}
+}
+
 // Creates a map with ngrams as keys and number of occurences as values
 // n is the number of words in each n-gram
 func MakeNgramMap(text string, n int) (wordMap map[string]int) {

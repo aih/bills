@@ -1,6 +1,7 @@
 package bills
 
 import (
+	"encoding/json"
 	"path"
 	"strings"
 	"sync"
@@ -19,13 +20,6 @@ func GetSyncMapKeys(m *sync.Map) (s string) {
 		return true
 	})
 	return
-}
-
-func reverse(ss []string) {
-	last := len(ss) - 1
-	for i := 0; i < len(ss)/2; i++ {
-		ss[i], ss[last-i] = ss[last-i], ss[i]
-	}
 }
 
 func LoadTitles(titleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
@@ -158,7 +152,11 @@ func WriteBillMetaFiles(billMetaSyncMap *sync.Map, parentPath string) {
 
 	billMetaSyncMap.Range(func(billCongressTypeNumber, billMeta interface{}) bool {
 		log.Info().Msgf("Writing metadata for: %s", billCongressTypeNumber)
-		saveErr := SaveBillJson(billCongressTypeNumber.(string), billMeta.(BillMeta), parentPath)
+		file, marshalErr := json.MarshalIndent(billMeta.(BillMeta), "", " ")
+		if marshalErr != nil {
+			log.Error().Msgf("error marshalling metadata for: %s\nErr: %s", billCongressTypeNumber, marshalErr)
+		}
+		saveErr := SaveBillDataJson(billCongressTypeNumber.(string), file, parentPath, "billMeta.json")
 		if saveErr != nil {
 			log.Error().Msgf("Error saving meta file: %s", saveErr)
 		}
@@ -228,7 +226,7 @@ func MakeBillsMeta(parentPath string) {
 	billMetaStorageChannel := make(chan BillMeta)
 	log.Info().Msgf("Getting all files in %s.  This may take a while.", pathToCongressDir)
 	dataJsonFiles, _ := ListDataJsonFiles(pathToCongressDir)
-	reverse(dataJsonFiles)
+	ReverseStrings(dataJsonFiles)
 	wg := &sync.WaitGroup{}
 	wg.Add(len(dataJsonFiles))
 	go func() {

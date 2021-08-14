@@ -57,27 +57,11 @@ func UpdateRelatedBillJson(billCongressTypeNumber string, relatedBillItems []Rel
 // Saves bill metadata to billMeta.json
 func SaveBillJson(billCongressTypeNumber string, billMetaItem BillMeta, parentPath string) error {
 
-	dataPath, _ := PathFromBillNumber(billCongressTypeNumber)
-
-	dataPath = path.Join(parentPath, CongressDir, "data", strings.Replace(dataPath, "/text-versions", "", 1))
-	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
-		return fmt.Errorf("error getting path for: %s\nErr: %s", billCongressTypeNumber, err)
-	}
-	log.Info().Msgf("Saving metadata to file for: %s; %s\n", billCongressTypeNumber, dataPath)
-	defer func() {
-		log.Info().Msgf("Finished saving metadata for: %s\n", billCongressTypeNumber)
-	}()
 	file, marshalErr := json.MarshalIndent(billMetaItem, "", " ")
 	if marshalErr != nil {
 		return fmt.Errorf("error marshalling metadata for: %s\nErr: %s", billCongressTypeNumber, marshalErr)
 	}
-
-	writeErr := ioutil.WriteFile(path.Join(dataPath, "billMeta.json"), file, 0644)
-
-	if writeErr != nil {
-		return fmt.Errorf("error writing metadata for: %s\nErr: %s", billCongressTypeNumber, writeErr)
-	}
-
+	SaveBillDataJson(billCongressTypeNumber, file, parentPath, "billMeta.json")
 	return nil
 }
 
@@ -97,5 +81,32 @@ func SaveBillJsonToDB(billCongressTypeNumber string, billMetaItem BillMeta) erro
 	return store.Insert(billCongressTypeNumber, billMetaItem)
 }
 
+//similarSectionsStorageChannel := make(chan bills.SimilarSectionsItems)
+//similarBillsDictStorageChannel := make(chan map[string]bills.SimilarSections)
+//compareMatrixStorageChannel := make(chan [][]bills.CompareItem)
+
 // TODO update billJSON with similarity information
 // TODO update billJSON with title information?
+
+// Saves Data in JSON to bill directory
+func SaveBillDataJson(billCongressTypeNumber string, dataJson []byte, parentPath string, fileName string) error {
+
+	dataPath, _ := PathFromBillNumber(billCongressTypeNumber)
+
+	dataPath = path.Join(parentPath, CongressDir, "data", strings.Replace(dataPath, "/text-versions", "", 1))
+	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
+		return fmt.Errorf("error getting path for: %s\nErr: %s", billCongressTypeNumber, err)
+	}
+	savePath := path.Join(dataPath, fileName)
+	log.Info().Msgf("Saving data to: %s\n", savePath)
+	defer func() {
+		log.Info().Msgf("Finished saving data for: %s; \n", billCongressTypeNumber)
+	}()
+	writeErr := ioutil.WriteFile(savePath, dataJson, 0644)
+
+	if writeErr != nil {
+		return fmt.Errorf("error writing data to: %s\nErr: %s", savePath, writeErr)
+	}
+
+	return nil
+}
