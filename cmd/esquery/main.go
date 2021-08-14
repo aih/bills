@@ -15,6 +15,12 @@ const (
 	max_bills = 15
 )
 
+type SimilarityContext struct {
+	ParentPath string
+	MaxBills   int
+	SampleSize int
+}
+
 // BillList is a string slice
 type BillList []string
 
@@ -26,6 +32,53 @@ func (bl *BillList) String() string {
 func (bl *BillList) Set(s string) error {
 	*bl = strings.Split(s, ",")
 	return nil
+}
+
+func GetSimilarityForBill(billnumber string, context SimilarityContext) {
+	// This is the equivalent of es_similarity in BillMap
+	log.Info().Msgf("Get versions of: %s", billnumber)
+	r := bills.GetBill_ES(billnumber)
+	log.Info().Msgf("Number of versions of: %s, %d", billnumber, len(r["hits"].(map[string]interface{})["hits"].([]interface{})))
+	latestBillItem, err := bills.GetLatestBill(r)
+	if err != nil {
+		log.Error().Msgf("Error getting latest bill: '%v'", err)
+	}
+	similaritySectionsByBillNumber := bills.GetSimilaritySectionsByBillNumber(latestBillItem, context.SampleSize)
+
+	// This is the equivalent of es_similar_bills_dict in BillMap
+	similarBillsDict := bills.GetSimilarBillsDict(similaritySectionsByBillNumber, context.MaxBills)
+	log.Debug().Msgf("Similar Bills Dict: %v", similarBillsDict)
+	log.Info().Msgf("Similar Bills Dict Len: %d", len(similarBillsDict))
+
+	// This is a different data form that uses the section metadata as keys
+	//similarBillMapBySection := bills.SimilarSectionsItemsToBillMap(similaritySectionsByBillNumber)
+	//bills := bills.GetSimilarBills(similarBillMapBySection)
+	//log.Info().Msgf("Similar Bills: %v", bills)
+	//TODO Select top bills based on score
+	//Find how many sections and how many matches
+	similarBillVersionsList := make([]string, len(similarBillsDict))
+	similarBillsList := make([]string, len(similarBillsDict))
+
+	i := 0
+	for _, v := range similarBillsDict {
+		if len(v) > 0 {
+			similarBillVersionsList[i] = v[0].BillCongressTypeNumberVersion
+			similarBillsList[i] = v[0].Billnumber
+		}
+		i++
+	}
+	// Include the original billnumberversion is in the list if it is not in the list of similar bills
+	if index, ok := bills.Find(similarBillsList, billnumber); ok {
+		similarBillVersionsList = bills.RemoveIndex(similarBillVersionsList, index)
+	}
+	similarBillVersionsList = bills.PrependSlice(similarBillVersionsList, latestBillItem.BillNumber+latestBillItem.BillVersion)
+	log.Info().Msgf("similar bills: %v", similarBillVersionsList)
+	compareMatrix, err := bills.CompareBills(context.ParentPath, similarBillVersionsList, false)
+	if err != nil {
+		log.Error().Msgf("Error comparing bills: '%v'", err)
+	} else {
+		log.Info().Msgf("Compare Matrix: %v", compareMatrix)
+	}
 }
 
 func main() {
@@ -51,6 +104,11 @@ func main() {
 	flag.IntVar(&maxBills, "maxBills", max_bills, "maximum number of similar bills to return")
 
 	flag.Parse()
+	similarityContext := SimilarityContext{
+		ParentPath: parentPath,
+		MaxBills:   maxBills,
+		SampleSize: sampleSize,
+	}
 
 	// Default level for this example is info, unless debug flag is present
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -74,49 +132,6 @@ func main() {
 		billNumbers = bills.GetSampleBillNumbers()
 	}
 	for _, billnumber := range billNumbers {
-		// This is the equivalent of es_similarity in BillMap
-		log.Info().Msgf("Get versions of: %s", billnumber)
-		r := bills.GetBill_ES(billnumber)
-		log.Info().Msgf("Number of versions of: %s, %d", billnumber, len(r["hits"].(map[string]interface{})["hits"].([]interface{})))
-		latestBillItem, err := bills.GetLatestBill(r)
-		if err != nil {
-			log.Error().Msgf("Error getting latest bill: '%v'", err)
-		}
-		similaritySectionsByBillNumber := bills.GetSimilaritySectionsByBillNumber(latestBillItem, sampleSize)
-
-		// This is the equivalent of es_similar_bills_dict in BillMap
-		similarBillsDict := bills.GetSimilarBillsDict(similaritySectionsByBillNumber, maxBills)
-		log.Debug().Msgf("Similar Bills Dict: %v", similarBillsDict)
-		log.Info().Msgf("Similar Bills Dict Len: %d", len(similarBillsDict))
-
-		// This is a different data form that uses the section metadata as keys
-		//similarBillMapBySection := bills.SimilarSectionsItemsToBillMap(similaritySectionsByBillNumber)
-		//bills := bills.GetSimilarBills(similarBillMapBySection)
-		//log.Info().Msgf("Similar Bills: %v", bills)
-		//TODO Select top bills based on score
-		//Find how many sections and how many matches
-		similarBillVersionsList := make([]string, len(similarBillsDict))
-		similarBillsList := make([]string, len(similarBillsDict))
-
-		i := 0
-		for _, v := range similarBillsDict {
-			if len(v) > 0 {
-				similarBillVersionsList[i] = v[0].BillCongressTypeNumberVersion
-				similarBillsList[i] = v[0].Billnumber
-			}
-			i++
-		}
-		// Include the original billnumberversion is in the list if it is not in the list of similar bills
-		if index, ok := bills.Find(similarBillsList, billnumber); ok {
-			similarBillVersionsList = bills.RemoveIndex(similarBillVersionsList, index)
-		}
-		similarBillVersionsList = bills.PrependSlice(similarBillVersionsList, latestBillItem.BillNumber+latestBillItem.BillVersion)
-		log.Info().Msgf("similar bills: %v", similarBillVersionsList)
-		compareMatrix, err := bills.CompareBills(parentPath, similarBillVersionsList, false)
-		if err != nil {
-			log.Error().Msgf("Error comparing bills: '%v'", err)
-		} else {
-			log.Info().Msgf("Compare Matrix: %v", compareMatrix)
-		}
+		GetSimilarityForBill(billnumber, similarityContext)
 	}
 }
