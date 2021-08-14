@@ -95,6 +95,7 @@ func SaveBillDataJson(billCongressTypeNumber string, dataJson []byte, parentPath
 
 	dataPath = path.Join(parentPath, CongressDir, "data", strings.Replace(dataPath, "/text-versions", "", 1))
 	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
+		log.Error().Msgf("error getting path for: %s\nErr: %s", billCongressTypeNumber, err)
 		return fmt.Errorf("error getting path for: %s\nErr: %s", billCongressTypeNumber, err)
 	}
 	savePath := path.Join(dataPath, fileName)
@@ -105,6 +106,7 @@ func SaveBillDataJson(billCongressTypeNumber string, dataJson []byte, parentPath
 	writeErr := ioutil.WriteFile(savePath, dataJson, 0644)
 
 	if writeErr != nil {
+		log.Error().Msgf("error writing data to: %s\nErr: %s", savePath, writeErr)
 		return fmt.Errorf("error writing data to: %s\nErr: %s", savePath, writeErr)
 	}
 

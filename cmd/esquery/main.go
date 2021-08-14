@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/aih/bills"
@@ -19,6 +21,7 @@ type SimilarityContext struct {
 	ParentPath string
 	MaxBills   int
 	SampleSize int
+	Save       bool
 }
 type flagDef struct {
 	value string
@@ -42,17 +45,32 @@ func GetSimilarityForBill(billnumber string, context SimilarityContext) {
 	// This is the equivalent of es_similarity in BillMap
 	log.Info().Msgf("Get versions of: %s", billnumber)
 	r := bills.GetBill_ES(billnumber)
-	log.Info().Msgf("Number of versions of: %s, %d", billnumber, len(r["hits"].(map[string]interface{})["hits"].([]interface{})))
+	log.Info().Msgf("Number of versions of %s:, %d", billnumber, len(r["hits"].(map[string]interface{})["hits"].([]interface{})))
 	latestBillItem, err := bills.GetLatestBill(r)
 	if err != nil {
 		log.Error().Msgf("Error getting latest bill: '%v'", err)
 	}
 	similaritySectionsByBillNumber := bills.GetSimilaritySectionsByBillNumber(latestBillItem, context.SampleSize)
+	if context.Save {
+		file, marshalErr := json.MarshalIndent(similaritySectionsByBillNumber, "", " ")
+		if marshalErr != nil {
+			log.Error().Msgf("error marshalling similaritySectionsByBillNumber for: %s\nErr: %s", billnumber, marshalErr)
+		}
+		log.Info().Msgf("Saving similaritySectionsByBillnumber for: %s\n", billnumber)
+		bills.SaveBillDataJson(billnumber, file, context.ParentPath, "esSimilarity.json")
+	}
 
 	// This is the equivalent of es_similar_bills_dict in BillMap
 	similarBillsDict := bills.GetSimilarBillsDict(similaritySectionsByBillNumber, context.MaxBills)
 	log.Debug().Msgf("Similar Bills Dict: %v", similarBillsDict)
 	log.Info().Msgf("Similar Bills Dict Len: %d", len(similarBillsDict))
+	if context.Save {
+		file, marshalErr := json.MarshalIndent(similarBillsDict, "", " ")
+		if marshalErr != nil {
+			log.Error().Msgf("error marshalling similarBillsDict for: %s\nErr: %s", billnumber, marshalErr)
+		}
+		bills.SaveBillDataJson(billnumber, file, context.ParentPath, "esSimilarBillsDict.json")
+	}
 
 	// This is a different data form that uses the section metadata as keys
 	//similarBillMapBySection := bills.SimilarSectionsItemsToBillMap(similaritySectionsByBillNumber)
@@ -77,7 +95,8 @@ func GetSimilarityForBill(billnumber string, context SimilarityContext) {
 	}
 	similarBillVersionsList = bills.PrependSlice(similarBillVersionsList, latestBillItem.BillNumber+latestBillItem.BillVersion)
 	log.Info().Msgf("similar bills: %v", similarBillVersionsList)
-	compareMatrix, err := bills.CompareBills(context.ParentPath, similarBillVersionsList, false)
+	dataPath := path.Join(context.ParentPath, bills.CongressDir, "data")
+	compareMatrix, err := bills.CompareBills(dataPath, similarBillVersionsList, false)
 	if err != nil {
 		log.Error().Msgf("Error comparing bills: '%v'", err)
 	} else {
@@ -86,6 +105,7 @@ func GetSimilarityForBill(billnumber string, context SimilarityContext) {
 }
 
 func main() {
+	save := flag.Bool("save", false, "save results files")
 	debug := flag.Bool("debug", false, "sets log level to debug")
 	all := flag.Bool("all", false, "processes all bills-- otherwise process a sample")
 
@@ -104,8 +124,8 @@ func main() {
 		"parentpath":  {string(bills.ParentPathDefault), "Absolute path to the parent directory for 'congress' and json metadata files"},
 		"log":         {"Info", "Sets Log level. Options: Error, Info, Debug"},
 	}
-	flag.Var(&billList, "billnumbers", flagDefs["billnumbers"].usage)
 	flag.Var(&billList, "b", flagDefs["billnumbers"].usage+shorthand)
+	flag.Var(&billList, "billnumbers", flagDefs["billnumbers"].usage)
 	flag.IntVar(&sampleSize, "samplesize", 0, "number of sections to sample in large bill")
 	flag.StringVar(&parentPath, "parentPath", flagDefs["parentpath"].value, flagDefs["parentpath"].usage)
 	flag.StringVar(&parentPath, "p", flagDefs["parentpath"].value, flagDefs["parentpath"].usage+shorthand)
@@ -118,6 +138,7 @@ func main() {
 		ParentPath: parentPath,
 		MaxBills:   maxBills,
 		SampleSize: sampleSize,
+		Save:       *save,
 	}
 
 	// Default level for this example is info, unless debug flag is present
@@ -132,6 +153,9 @@ func main() {
 	log.Debug().Msg("Log level set to Debug")
 	//bills.PrintESInfo()
 	//bills.SampleQuery()
+	if *save {
+		log.Info().Msgf("Saving files to: %s", similarityContext.ParentPath)
+	}
 
 	var billNumbers []string
 	if *all {
