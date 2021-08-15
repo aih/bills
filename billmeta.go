@@ -147,6 +147,26 @@ func LoadMainTitles(mainTitleSyncMap *sync.Map, billMetaSyncMap *sync.Map) {
 	})
 }
 
+// TODO: return saved path
+func WriteBillMetaFile(billMeta interface{}, parentPath string) (saved bool) {
+	// Write bill meta file
+	billCongressTypeNumber := billMeta.(BillMeta).BillCongressTypeNumber
+	log.Info().Msgf("Writing metadata for: %s", billCongressTypeNumber)
+	file, marshalErr := json.MarshalIndent(billMeta.(BillMeta), "", " ")
+	if marshalErr != nil {
+		log.Error().Msgf("error marshalling metadata for: %s\nErr: %s", billCongressTypeNumber, marshalErr)
+	}
+	savePath, saveErr := SaveBillDataJson(billCongressTypeNumber, file, parentPath, "billMeta.json")
+	if saveErr != nil {
+		log.Error().Msgf("Error saving meta file: %s", saveErr)
+		return false
+	}
+	if len(savePath) > 0 {
+		log.Info().Msgf("Saved metadata for: %s to: %s", billCongressTypeNumber, savePath)
+	}
+	return true
+}
+
 func WriteBillMetaFiles(billMetaSyncMap *sync.Map, parentPath string) {
 	log.Info().Msg("***** Writing individual bill metadata to files ******")
 
@@ -156,7 +176,7 @@ func WriteBillMetaFiles(billMetaSyncMap *sync.Map, parentPath string) {
 		if marshalErr != nil {
 			log.Error().Msgf("error marshalling metadata for: %s\nErr: %s", billCongressTypeNumber, marshalErr)
 		}
-		saveErr := SaveBillDataJson(billCongressTypeNumber.(string), file, parentPath, "billMeta.json")
+		_, saveErr := SaveBillDataJson(billCongressTypeNumber.(string), file, parentPath, "billMeta.json")
 		if saveErr != nil {
 			log.Error().Msgf("Error saving meta file: %s", saveErr)
 		}

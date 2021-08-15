@@ -101,7 +101,9 @@ func main() {
 			return
 		}
 		billPath = strings.ReplaceAll(billPath, "/text-versions", "")
-		bills.MakeBillMeta(parentPath, billPath)
+		billMeta := bills.MakeBillMeta(parentPath, billPath)
+		log.Info().Msgf("billMeta: %v/n", billMeta)
+		bills.WriteBillMetaFile(billMeta, parentPath)
 		return
 	}
 

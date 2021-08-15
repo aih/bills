@@ -89,16 +89,16 @@ func SaveBillJsonToDB(billCongressTypeNumber string, billMetaItem BillMeta) erro
 // TODO update billJSON with title information?
 
 // Saves Data in JSON to bill directory
-func SaveBillDataJson(billCongressTypeNumber string, dataJson []byte, parentPath string, fileName string) error {
+func SaveBillDataJson(billCongressTypeNumber string, dataJson []byte, parentPath string, fileName string) (savePath string, err error) {
 
 	dataPath, _ := PathFromBillNumber(billCongressTypeNumber)
 
 	dataPath = path.Join(parentPath, CongressDir, "data", strings.Replace(dataPath, "/text-versions", "", 1))
 	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
 		log.Error().Msgf("error getting path for: %s\nErr: %s", billCongressTypeNumber, err)
-		return fmt.Errorf("error getting path for: %s\nErr: %s", billCongressTypeNumber, err)
+		return "", fmt.Errorf("error getting path for: %s\nErr: %s", billCongressTypeNumber, err)
 	}
-	savePath := path.Join(dataPath, fileName)
+	savePath = path.Join(dataPath, fileName)
 	log.Info().Msgf("Saving data to: %s\n", savePath)
 	defer func() {
 		log.Info().Msgf("Finished saving data for: %s; \n", billCongressTypeNumber)
@@ -107,8 +107,8 @@ func SaveBillDataJson(billCongressTypeNumber string, dataJson []byte, parentPath
 
 	if writeErr != nil {
 		log.Error().Msgf("error writing data to: %s\nErr: %s", savePath, writeErr)
-		return fmt.Errorf("error writing data to: %s\nErr: %s", savePath, writeErr)
+		return "", fmt.Errorf("error writing data to: %s\nErr: %s", savePath, writeErr)
 	}
 
-	return nil
+	return savePath, nil
 }
