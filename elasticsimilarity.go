@@ -111,7 +111,7 @@ func SimilarSectionsItemsToBillMap(similarSectionsItems SimilarSectionsItems) (s
 		}
 
 	}
-	log.Info().Msgf("similarBillMapBySection: %v\n", similarBillMapBySection)
+	log.Debug().Msgf("similarBillMapBySection: %v\n", similarBillMapBySection)
 	return similarBillMapBySection
 }
 

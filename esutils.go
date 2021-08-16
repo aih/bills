@@ -490,6 +490,7 @@ func GetSampleBillNumbers() []string {
 	return []string{"116hr299"}
 }
 
+// Gets all ids, which includes bill and version
 func GetAllBillNumbers() []string {
 	var billNumbers []gjson.Result
 	resultChan := make(chan []gjson.Result)

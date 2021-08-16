@@ -159,7 +159,12 @@ func main() {
 
 	var billNumbers []string
 	if *all {
-		billNumbers = bills.GetAllBillNumbers()
+		billNumberVersions := bills.GetAllBillNumbers()
+		for _, billNumberVersion := range billNumberVersions {
+			billNumber := bills.BillnumberRegexCompiled.ReplaceAllString(billNumberVersion, "$1$2$3")
+			billNumbers = append(billNumbers, billNumber)
+		}
+		billNumbers = bills.RemoveDuplicates(billNumbers)
 	} else if len(billList) > 0 {
 		billNumbers = billList
 	} else {
