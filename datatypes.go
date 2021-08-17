@@ -113,6 +113,7 @@ type SimilarSection struct {
 	BillCongressTypeNumberVersion string  `json:"bill_number_version"`
 	TargetSectionHeader           string  `json:"target_section_header"` // This is the section header of the original
 	TargetSectionNumber           string  `json:"target_section_number"` // This is the section number of the original
+	TargetSectionIndex            string  `json:"target_section_index"`  // This is the section index of the original
 }
 
 type SimilarSections []SimilarSection

@@ -86,7 +86,7 @@ func GetMatchingBillNumberVersions(results SearchResult_ES) (billnumberversions 
 }
 
 // similars is the result of the MLT query
-func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSections, err error) {
+func GetSimilarSections(results SearchResult_ES, queryItem SectionItem) (similarSections SimilarSections, err error) {
 	hits, _ := GetHitsES(results)
 	innerHits, _ := GetInnerHits(results)
 	for index, hit := range hits {
@@ -100,7 +100,6 @@ func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSection
 			topInnerResultSectionHit = innerResultSectionHits[0]
 		}
 		billSource := hit.Source
-		// TODO: add more current sectionNum, sectionHeader, sectionIndex; consider adding TargetBillnumber and TargetBillVersion
 		similarSection := SimilarSection{
 			Billnumber:                    billSource.BillNumber,
 			BillCongressTypeNumberVersion: billSource.ID,
@@ -108,8 +107,12 @@ func GetSimilarSections(results SearchResult_ES) (similarSections SimilarSection
 			Session:                       billSource.Session,
 			Legisnum:                      billSource.Legisnum,
 			Score:                         topInnerResultSectionHit.Score,
-			TargetSectionNumber:           topInnerResultSectionHit.Source.SectionNumber + " ",
-			TargetSectionHeader:           topInnerResultSectionHit.Source.SectionHeader,
+			SectionIndex:                  topInnerResultSectionHit.Source.SectionIndex,
+			SectionNum:                    topInnerResultSectionHit.Source.SectionNumber + " ",
+			SectionHeader:                 topInnerResultSectionHit.Source.SectionHeader,
+			TargetSectionHeader:           queryItem.SectionHeader,
+			TargetSectionNumber:           queryItem.SectionNumber + " ",
+			TargetSectionIndex:            queryItem.SectionIndex,
 			Date:                          billSource.Date,
 		}
 		dublinCores := billSource.DC
@@ -182,8 +185,9 @@ func SectionItemQuery(sectionItem SectionItem) (similarSectionsItem SimilarSecti
 
 		log.Debug().Msgf("Number of matching bill versions: %d, Matches: %s", len(matchingBillNumberVersionsDedupe), matchingBillNumberVersionsString)
 	}
-	similarSections, _ := GetSimilarSections(esResult)
+	similarSections, _ := GetSimilarSections(esResult, sectionItem)
 	log.Debug().Msgf("number of similarSections: %v\n", len(similarSections))
+	log.Debug().Msgf("sectionIndex: %v\n", sectionItem.SectionIndex)
 	return SimilarSectionsItem{
 		BillNumber:                sectionItem.BillNumber,
 		BillNumberVersion:         sectionItem.BillNumberVersion,

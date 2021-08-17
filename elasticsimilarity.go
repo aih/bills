@@ -43,7 +43,7 @@ func GetSimilaritySectionsByBillNumber(billItem BillItemES, samplesize int) (sim
 		sectionItem.BillNumberVersion = billnumberversion
 		sectionItem.SectionIndex = strconv.Itoa(sectionIndex)
 
-		// TODO this can be made concurrent:
+		// TODO this can be made concurrent
 		// Send the query out, collect the results put them in order by sectionIndex
 		similarSectionsItem := SectionItemQuery(sectionItem)
 		similarSectionsItems = append(similarSectionsItems, similarSectionsItem)
@@ -163,6 +163,7 @@ func GetSimilarBillsDict(similarSectionsItems SimilarSectionsItems, maxBills int
 			// If not, add it to the dict
 			// If yes, check if the score is higher than the existing one
 			// If yes, replace the existing one
+			log.Debug().Msgf("similarSection: %v\n", similarSection)
 			dedupeItemKey := SectionItemMeta{
 				BillNumber:        similarSection.Billnumber,
 				BillNumberVersion: similarSection.BillCongressTypeNumberVersion,

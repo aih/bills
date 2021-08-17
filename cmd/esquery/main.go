@@ -100,7 +100,7 @@ func GetSimilarityForBill(billnumber string, context SimilarityContext) {
 	if err != nil {
 		log.Error().Msgf("Error comparing bills: '%v'", err)
 	} else {
-		log.Info().Msgf("Compare Matrix: %v", compareMatrix)
+		log.Debug().Msgf("Compare Matrix: %v", compareMatrix)
 	}
 }
 
