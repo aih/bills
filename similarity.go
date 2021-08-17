@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -32,7 +33,7 @@ var (
 	scoreThreshold           = .1
 	nearlyIdenticalThreshold = .8
 	similarScoreThreshold    = .1
-	minimumTotal             = 150
+	minimumTotal             = 120
 )
 
 type docMap struct {
@@ -52,10 +53,10 @@ func getExplanation(scorei, scorej float64, iTotal, jTotal int) string {
 	if scorei == 1 && scorej == 1 {
 		return "bills-identical"
 	}
-	//log.Info().Msg(iTotal)
-	//log.Info().Msg(jTotal)
-	//log.Info().Msg(scorei)
-	//log.Info().Msg(scorej)
+	//log.Info().Msgf("%d\n", iTotal)
+	//log.Info().Msgf("%d\n", jTotal)
+	//log.Info().Msgf("%f\n", scorei)
+	//log.Info().Msgf("%f\n", scorej)
 	//log.Info().Msg("----")
 
 	// minimumTotal avoids small bills being counted as nearly identical
@@ -135,17 +136,19 @@ func compareFiles(nGramMaps docMaps, docPaths []string) (compareMatrix [][]Compa
 			}
 
 			//if docpath1 != docpath2 {
-			// log.Info().Msgf("Keys:\n%v", nGramMaps[docpath1].keys)
-			// log.Info().Msgf("Keys 2:\n%v", nGramMaps[docpath2].keys)
-			// log.Info().Msgf("scoreTotal: %d\n", scoreTotal)
-			// log.Info().Msgf("scoreTotal: %d\n", scoreTotal)
-			// log.Info().Msgf("iTotal: %d\n", iTotal)
-			// log.Info().Msgf("jTotal: %d\n", jTotal)
+			//log.Info().Msgf("Keys:\n%v", nGramMaps[docpath1].keys)
+			//log.Info().Msgf("Keys 2:\n%v", nGramMaps[docpath2].keys)
+			//log.Info().Msgf("scoreTotal: %d\n", scoreTotal)
+			//log.Info().Msgf("scoreTotal: %d\n", scoreTotal)
+			//log.Info().Msgf("%s vs. %s", docpath1, docpath2)
+			//log.Info().Msgf("iTotal: %d\n", iTotal)
+			//log.Info().Msgf("jTotal: %d\n", jTotal)
 			//}
 			scorei := math.Round(100*float64(iScore)/float64(jTotal)) / 100
 			scorej := math.Round(100*float64(jScore)/float64(iTotal)) / 100
 			exi := getExplanation(scorei, scorej, iTotal, jTotal)
 			exj := getExplanation(scorej, scorei, iTotal, jTotal)
+			log.Info().Msgf("i,j docpath1/docpath2 scorei scorej: %d,%d %d/%d %f %f\n", i, j, iTotal, jTotal, scorei, scorej)
 			//if exi == "incorporated by" || exj == "incorporated by" {
 			//	log.Info().Msgf("i,j docpath1/docpath2 scorei scorej: %d,%d %d/%d %f %f\n", i, j, iTotal, jTotal, scorei, scorej)
 			//}
@@ -233,4 +236,16 @@ func CompareBills(parentPath string, billList []string, print bool) ([][]Compare
 		fmt.Print(":compareMatrix:", string(compareMatrixJson), ":compareMatrix:")
 	}
 	return compareMatrix, nil
+}
+
+func GetCompareMap(compareRow []CompareItem) (compareMap map[string]CompareItem) {
+	compareMap = make(map[string]CompareItem)
+	log.Info().Msgf("compareRow: %v", compareRow)
+	for _, row := range compareRow {
+		comparedocs := strings.Split(row.ComparedDocs, "-")
+		if len(comparedocs) == 2 {
+			compareMap[comparedocs[1]] = row
+		}
+	}
+	return compareMap
 }

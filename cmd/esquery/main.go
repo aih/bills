@@ -97,10 +97,19 @@ func GetSimilarityForBill(billnumber string, context SimilarityContext) {
 	log.Info().Msgf("similar bills: %v", similarBillVersionsList)
 	dataPath := path.Join(context.ParentPath, bills.CongressDir, "data")
 	compareMatrix, err := bills.CompareBills(dataPath, similarBillVersionsList, false)
+
 	if err != nil {
 		log.Error().Msgf("Error comparing bills: '%v'", err)
 	} else {
 		log.Debug().Msgf("Compare Matrix: %v", compareMatrix)
+		// TODO: Save the first row of compare matrix in a file
+		compareMap := bills.GetCompareMap(compareMatrix[0])
+		compareMapMarshalled, marshalErr := json.MarshalIndent(compareMap, "", " ")
+		if marshalErr != nil {
+			log.Error().Msgf("error marshalling compareMap for: %s\nErr: %s", billnumber, marshalErr)
+		} else {
+			bills.SaveBillDataJson(billnumber, compareMapMarshalled, context.ParentPath, "esSimilarCategories.json")
+		}
 	}
 }
 
