@@ -33,7 +33,7 @@ var (
 	scoreThreshold           = .1
 	nearlyIdenticalThreshold = .8
 	similarScoreThreshold    = .1
-	minimumTotal             = 120
+	minimumTotal             = 150
 )
 
 type docMap struct {
@@ -45,6 +45,7 @@ type docMaps map[string]*docMap
 
 type CompareItem struct {
 	Score        float64
+	ScoreOther   float64 // Score of the other bill
 	Explanation  string
 	ComparedDocs string
 }
@@ -148,13 +149,13 @@ func compareFiles(nGramMaps docMaps, docPaths []string) (compareMatrix [][]Compa
 			scorej := math.Round(100*float64(jScore)/float64(iTotal)) / 100
 			exi := getExplanation(scorei, scorej, iTotal, jTotal)
 			exj := getExplanation(scorej, scorei, iTotal, jTotal)
-			log.Info().Msgf("i,j docpath1/docpath2 scorei scorej: %d,%d %d/%d %f %f\n", i, j, iTotal, jTotal, scorei, scorej)
+			//log.Info().Msgf("i,j docpath1/docpath2 scorei scorej: %d,%d %d/%d %f %f\n", i, j, iTotal, jTotal, scorei, scorej)
 			//if exi == "incorporated by" || exj == "incorporated by" {
 			//	log.Info().Msgf("i,j docpath1/docpath2 scorei scorej: %d,%d %d/%d %f %f\n", i, j, iTotal, jTotal, scorei, scorej)
 			//}
 
-			compareMatrix[i][j] = CompareItem{scorei, exi, BillNumberFromPath(docpath1) + "-" + BillNumberFromPath(docpath2)}
-			compareMatrix[j][i] = CompareItem{scorej, exj, BillNumberFromPath(docpath2) + "-" + BillNumberFromPath(docpath1)}
+			compareMatrix[i][j] = CompareItem{scorei, scorej, exi, BillNumberFromPath(docpath1) + "-" + BillNumberFromPath(docpath2)}
+			compareMatrix[j][i] = CompareItem{scorej, scorei, exj, BillNumberFromPath(docpath2) + "-" + BillNumberFromPath(docpath1)}
 		}
 	}
 
@@ -240,7 +241,7 @@ func CompareBills(parentPath string, billList []string, print bool) ([][]Compare
 
 func GetCompareMap(compareRow []CompareItem) (compareMap map[string]CompareItem) {
 	compareMap = make(map[string]CompareItem)
-	log.Info().Msgf("compareRow: %v", compareRow)
+	log.Debug().Msgf("compareRow: %v", compareRow)
 	for _, row := range compareRow {
 		comparedocs := strings.Split(row.ComparedDocs, "-")
 		if len(comparedocs) == 2 {

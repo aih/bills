@@ -14,7 +14,10 @@ import (
 )
 
 const (
-	max_bills = 15
+	max_bills                  = 15
+	esSimilarityFileName       = "esSimilarity.json"
+	esSimilarBillsDictFileName = "esSimilarBillsDict.json"
+	esSimilarCategoryFileName  = "esSimilarCategory.json"
 )
 
 type SimilarityContext struct {
@@ -57,7 +60,7 @@ func GetSimilarityForBill(billnumber string, context SimilarityContext) {
 			log.Error().Msgf("error marshalling similaritySectionsByBillNumber for: %s\nErr: %s", billnumber, marshalErr)
 		}
 		log.Info().Msgf("Saving similaritySectionsByBillnumber for: %s\n", billnumber)
-		bills.SaveBillDataJson(billnumber, file, context.ParentPath, "esSimilarity.json")
+		bills.SaveBillDataJson(billnumber, file, context.ParentPath, esSimilarityFileName)
 	}
 
 	// This is the equivalent of es_similar_bills_dict in BillMap
@@ -69,7 +72,7 @@ func GetSimilarityForBill(billnumber string, context SimilarityContext) {
 		if marshalErr != nil {
 			log.Error().Msgf("error marshalling similarBillsDict for: %s\nErr: %s", billnumber, marshalErr)
 		}
-		bills.SaveBillDataJson(billnumber, file, context.ParentPath, "esSimilarBillsDict.json")
+		bills.SaveBillDataJson(billnumber, file, context.ParentPath, esSimilarBillsDictFileName)
 	}
 
 	// This is a different data form that uses the section metadata as keys
@@ -102,13 +105,15 @@ func GetSimilarityForBill(billnumber string, context SimilarityContext) {
 		log.Error().Msgf("Error comparing bills: '%v'", err)
 	} else {
 		log.Debug().Msgf("Compare Matrix: %v", compareMatrix)
-		// TODO: Save the first row of compare matrix in a file
+		// Save the first row of compare matrix in a file
 		compareMap := bills.GetCompareMap(compareMatrix[0])
-		compareMapMarshalled, marshalErr := json.MarshalIndent(compareMap, "", " ")
-		if marshalErr != nil {
-			log.Error().Msgf("error marshalling compareMap for: %s\nErr: %s", billnumber, marshalErr)
-		} else {
-			bills.SaveBillDataJson(billnumber, compareMapMarshalled, context.ParentPath, "esSimilarCategories.json")
+		if context.Save {
+			compareMapMarshalled, marshalErr := json.MarshalIndent(compareMap, "", " ")
+			if marshalErr != nil {
+				log.Error().Msgf("error marshalling compareMap for: %s\nErr: %s", billnumber, marshalErr)
+			} else {
+				bills.SaveBillDataJson(billnumber, compareMapMarshalled, context.ParentPath, esSimilarCategoryFileName)
+			}
 		}
 	}
 }
