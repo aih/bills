@@ -205,6 +205,7 @@ func main() {
 			billNumbers = append(billNumbers, billNumber)
 		}
 		billNumbers = filterBillsByCongress(bills.RemoveDuplicates(billNumbers), congress)
+		log.Info().Msgf("Length of billNumbers in congress %s: %d", congress, len(billNumbers))
 	} else {
 		billNumbers = bills.GetSampleBillNumbers()
 	}
