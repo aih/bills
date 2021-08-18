@@ -106,7 +106,7 @@ func main() {
 		return
 	}
 
-	// TODO wait until MakeBillsMeta is done until moving on to the next steps
+	// Wait until MakeBillsMeta is done until moving on to the next steps
 	doneChannel := make(chan bool)
 	bills.MakeBillsMeta(parentPath, doneChannel)
 	isDone := <-doneChannel
