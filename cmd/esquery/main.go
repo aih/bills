@@ -199,7 +199,12 @@ func main() {
 		billNumbers = billList
 	} else if len(congress) > 0 {
 		log.Info().Msgf("Processing similarity for congress: %s", congress)
-		billNumbers = filterBillsByCongress(bills.GetSampleBillNumbers(), congress)
+		billNumberVersions := bills.GetAllBillNumbers()
+		for _, billNumberVersion := range billNumberVersions {
+			billNumber := bills.BillnumberRegexCompiled.ReplaceAllString(billNumberVersion, "$1$2$3")
+			billNumbers = append(billNumbers, billNumber)
+		}
+		billNumbers = filterBillsByCongress(bills.RemoveDuplicates(billNumbers), congress)
 	} else {
 		billNumbers = bills.GetSampleBillNumbers()
 	}
