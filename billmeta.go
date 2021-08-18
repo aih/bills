@@ -184,6 +184,23 @@ func WriteBillMetaFiles(billMetaSyncMap *sync.Map, parentPath string) {
 	})
 }
 
+func WriteRelatedDictFiles(billMetaSyncMap *sync.Map, parentPath string) {
+	log.Info().Msg("***** Writing individual related_dict json to files ******")
+
+	billMetaSyncMap.Range(func(billCongressTypeNumber, billMeta interface{}) bool {
+		log.Info().Msgf("Writing metadata for: %s", billCongressTypeNumber)
+		file, marshalErr := json.MarshalIndent(billMeta.(BillMeta).RelatedBillsByBillnumber, "", " ")
+		if marshalErr != nil {
+			log.Error().Msgf("error marshalling related dict for: %s\nErr: %s", billCongressTypeNumber, marshalErr)
+		}
+		_, saveErr := SaveBillDataJson(billCongressTypeNumber.(string), file, parentPath, "relatedDict.json")
+		if saveErr != nil {
+			log.Error().Msgf("Error saving meta file: %s", saveErr)
+		}
+		return true
+	})
+}
+
 func MakeBillMeta(parentPath, billDirPath string) BillMeta {
 
 	defer log.Info().Msg("Done")

@@ -119,11 +119,11 @@ func main() {
 	billlist := getSyncMapKeys(bills.BillMetaSyncMap)
 	log.Debug().Msgf("BillMetaSyncMap keys: %v", billlist)
 	log.Info().Msgf("BillMetaSyncMap length (number of bills processed): %v", len(strings.Split(billlist, ", ")))
+	bills.WriteRelatedDictFiles(bills.BillMetaSyncMap, parentPath)
 	/*
-			Do not store all of the files after the fact; store them when processing
-			bills.WriteBillMetaFiles(bills.BillMetaSyncMap, parentPath)
 
 			Do not store all of the data in one file; instead, store each map in the directory for that bill
+			bills.WriteBillMetaFiles(bills.BillMetaSyncMap, parentPath)
 			log.Info().Msgf("pathToBillMeta: %v", pathToBillMeta)
 			if pathToBillMeta == "" {
 			if parentPath != "" {
