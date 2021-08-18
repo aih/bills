@@ -204,7 +204,10 @@ func main() {
 	maxconcurrent := 20
 	sem := make(chan bool, maxconcurrent)
 
+	counter := 0
 	for _, billnumber := range billNumbers {
+		counter++
+		log.Info().Msgf("Processing bill %d of %d", counter, len(billNumbers))
 		sem <- true
 		go GetSimilarityForBill(billnumber, similarityContext, sem)
 	}
