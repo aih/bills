@@ -121,6 +121,16 @@ func GetSimilarityForBill(billnumber string, context SimilarityContext, sem chan
 	}
 }
 
+func filterBillsByCongress(bills []string, congress string) []string {
+	var filteredBills []string
+	for _, bill := range bills {
+		if strings.HasPrefix(bill, congress) {
+			filteredBills = append(filteredBills, bill)
+		}
+	}
+	return filteredBills
+}
+
 func main() {
 	save := flag.Bool("save", false, "save results files")
 	debug := flag.Bool("debug", false, "sets log level to debug")
@@ -129,6 +139,7 @@ func main() {
 	// allow user to pass billnumbers as argument
 	var (
 		billList   BillList
+		congress   string
 		sampleSize int
 		parentPath string
 		maxBills   int
@@ -138,11 +149,13 @@ func main() {
 	shorthand := " (shorthand)"
 	flagDefs := map[string]flagDef{
 		"billnumbers": {"", "comma-separated list of billnumbers"},
+		"congress":    {"117", "congress to process"},
 		"parentpath":  {string(bills.ParentPathDefault), "Absolute path to the parent directory for 'congress' and json metadata files"},
 		"log":         {"Info", "Sets Log level. Options: Error, Info, Debug"},
 	}
 	flag.Var(&billList, "b", flagDefs["billnumbers"].usage+shorthand)
 	flag.Var(&billList, "billnumbers", flagDefs["billnumbers"].usage)
+	flag.StringVar(&congress, "congress", flagDefs["congress"].value, flagDefs["congress"].usage)
 	flag.IntVar(&sampleSize, "samplesize", 0, "number of sections to sample in large bill")
 	flag.StringVar(&parentPath, "parentPath", flagDefs["parentpath"].value, flagDefs["parentpath"].usage)
 	flag.StringVar(&parentPath, "p", flagDefs["parentpath"].value, flagDefs["parentpath"].usage+shorthand)
@@ -184,6 +197,9 @@ func main() {
 		billNumbers = bills.RemoveDuplicates(billNumbers)
 	} else if len(billList) > 0 {
 		billNumbers = billList
+	} else if len(congress) > 0 {
+		log.Info().Msgf("Processing similarity for congress: %s", congress)
+		billNumbers = filterBillsByCongress(bills.GetSampleBillNumbers(), congress)
 	} else {
 		billNumbers = bills.GetSampleBillNumbers()
 	}
