@@ -265,12 +265,11 @@ func MakeBillsMeta(parentPath string) {
 	dataJsonFiles, _ := ListDataJsonFiles(pathToCongressDir)
 	ReverseStrings(dataJsonFiles)
 	wg := &sync.WaitGroup{}
+	wg2 := &sync.WaitGroup{}
 	wg.Add(len(dataJsonFiles))
+	wg2.Add(1)
 	go func() {
-		wg.Wait()
-		close(billMetaStorageChannel)
-	}()
-	go func() {
+		defer wg2.Done()
 		billCounter := 0
 		for range dataJsonFiles {
 			billMeta := <-billMetaStorageChannel
@@ -336,8 +335,8 @@ func MakeBillsMeta(parentPath string) {
 		sem <- true
 		go ExtractBillMeta(jpath, billMetaStorageChannel, sem, wg)
 	}
+	wg.Wait()
+	close(billMetaStorageChannel)
+	wg2.Wait()
 
-	for i := 0; i < cap(sem); i++ {
-		sem <- true
-	}
 }
