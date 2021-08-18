@@ -231,14 +231,14 @@ func MakeBillMeta(parentPath, billDirPath string) BillMeta {
 // bills is the list of bill numbers (billCongressTypeNumber)
 // titles is a list of titles (no year)
 // billMeta collects metadata from data.json files
-func MakeBillsMeta(parentPath string) {
+func MakeBillsMeta(parentPath string, doneChannel chan bool) {
 	//pathToBillMeta := BillMetaPath
 	pathToCongressDir := PathToCongressDataDir
 	if parentPath != "" {
 		//pathToBillMeta = path.Join(parentPath, BillMetaFile)
 		pathToCongressDir = path.Join(parentPath, CongressDir)
 	}
-	defer log.Info().Msg("Done")
+	defer log.Info().Msg("Done with MakeBillsMeta")
 	// Limiting openfiles prevents memory issues
 	// See http://jmoiron.net/blog/limiting-concurrency-in-go/
 	maxopenfiles := 100
@@ -251,6 +251,7 @@ func MakeBillsMeta(parentPath string) {
 	wg.Add(len(dataJsonFiles))
 	go func() {
 		wg.Wait()
+		doneChannel <- true
 		close(billMetaStorageChannel)
 	}()
 	go func() {

@@ -63,19 +63,5 @@
   }
  ],
  "related_bills": [],
- "related_dict": {
-  "117hr200": {
-   "bill_id": "hr200-117",
-   "identified_by": "BillMap",
-   "reason": "bills-title_match_main, bills-title_match",
-   "type": "",
-   "bill_congress_type_number": "117hr200",
-   "titles": [
-    "To direct the Secretary of Transportation to establish a national intersection and interchange safety construction program, and for other purposes."
-   ],
-   "titles_whole_bill": [
-    "To direct the Secretary of Transportation to establish a national intersection and interchange safety construction program, and for other purposes."
-   ]
-  }
- }
+ "related_dict": {}
 }

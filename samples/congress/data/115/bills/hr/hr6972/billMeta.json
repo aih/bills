@@ -116,36 +116,5 @@
   }
  ],
  "related_bills": [],
- "related_dict": {
-  "115hr6972": {
-   "bill_id": "hr6972-115",
-   "identified_by": "BillMap",
-   "reason": "bills-title_match_main, bills-title_match",
-   "type": "",
-   "bill_congress_type_number": "115hr6972",
-   "titles": [
-    "To require the Consumer Financial Protection Bureau to meet its statutory purpose, and for other purposes.",
-    "Consumers First Act"
-   ],
-   "titles_whole_bill": [
-    "To require the Consumer Financial Protection Bureau to meet its statutory purpose, and for other purposes.",
-    "Consumers First Act"
-   ]
-  },
-  "116hr1500": {
-   "bill_id": "hr1500-116",
-   "identified_by": "BillMap",
-   "reason": "bills-title_match_main, bills-title_match",
-   "type": "",
-   "bill_congress_type_number": "116hr1500",
-   "titles": [
-    "To require the Consumer Financial Protection Bureau to meet its statutory purpose, and for other purposes.",
-    "Consumers First Act"
-   ],
-   "titles_whole_bill": [
-    "To require the Consumer Financial Protection Bureau to meet its statutory purpose, and for other purposes.",
-    "Consumers First Act"
-   ]
-  }
- }
+ "related_dict": {}
 }
