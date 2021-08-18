@@ -107,13 +107,7 @@ func main() {
 	}
 
 	// Wait until MakeBillsMeta is done until moving on to the next steps
-	doneChannel := make(chan bool)
-	bills.MakeBillsMeta(parentPath, doneChannel)
-	isDone := <-doneChannel
-	if isDone {
-		close(doneChannel)
-		log.Info().Msg("Got 'done' signal from MakeBillsMeta")
-	}
+	bills.MakeBillsMeta(parentPath)
 	bills.LoadTitles(bills.TitleNoYearSyncMap, bills.BillMetaSyncMap)
 	bills.LoadMainTitles(bills.MainTitleNoYearSyncMap, bills.BillMetaSyncMap)
 	billlist := getSyncMapKeys(bills.BillMetaSyncMap)
