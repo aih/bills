@@ -188,7 +188,7 @@ func WriteRelatedDictFiles(billMetaSyncMap *sync.Map, parentPath string) {
 	log.Info().Msg("***** Writing individual related_dict json to files ******")
 
 	billMetaSyncMap.Range(func(billCongressTypeNumber, billMeta interface{}) bool {
-		log.Info().Msgf("Writing metadata for: %s", billCongressTypeNumber)
+		log.Info().Msgf("Writing related dict data for: %s", billCongressTypeNumber)
 		file, marshalErr := json.MarshalIndent(billMeta.(BillMeta).RelatedBillsByBillnumber, "", " ")
 		if marshalErr != nil {
 			log.Error().Msgf("error marshalling related dict for: %s\nErr: %s", billCongressTypeNumber, marshalErr)
@@ -248,7 +248,7 @@ func MakeBillMeta(parentPath, billDirPath string) BillMeta {
 // bills is the list of bill numbers (billCongressTypeNumber)
 // titles is a list of titles (no year)
 // billMeta collects metadata from data.json files
-func MakeBillsMeta(parentPath string, doneChannel chan bool) {
+func MakeBillsMeta(parentPath string) {
 	//pathToBillMeta := BillMetaPath
 	pathToCongressDir := PathToCongressDataDir
 	if parentPath != "" {
@@ -268,7 +268,6 @@ func MakeBillsMeta(parentPath string, doneChannel chan bool) {
 	wg.Add(len(dataJsonFiles))
 	go func() {
 		wg.Wait()
-		doneChannel <- true
 		close(billMetaStorageChannel)
 	}()
 	go func() {
