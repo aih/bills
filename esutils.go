@@ -399,6 +399,7 @@ func ScrollQueryBillNumbers(buf bytes.Buffer, resultChan chan []gjson.Result) {
 	// Perform the scroll requests in sequence
 	//
 	for {
+		log.Info().Msg("Getting the next batch")
 		batchNum++
 
 		// Perform the scroll request and pass the scrollID and scroll duration
