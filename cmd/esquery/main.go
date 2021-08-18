@@ -107,13 +107,15 @@ func GetSimilarityForBill(billnumber string, context SimilarityContext, sem chan
 	} else {
 		log.Debug().Msgf("Compare Matrix: %v", compareMatrix)
 		// Save the first row of compare matrix in a file
-		compareMap := bills.GetCompareMap(compareMatrix[0])
-		if context.Save {
-			compareMapMarshalled, marshalErr := json.MarshalIndent(compareMap, "", " ")
-			if marshalErr != nil {
-				log.Error().Msgf("error marshalling compareMap for: %s\nErr: %s", billnumber, marshalErr)
-			} else {
-				bills.SaveBillDataJson(billnumber, compareMapMarshalled, context.ParentPath, esSimilarCategoryFileName)
+		if len(compareMatrix) > 0 {
+			compareMap := bills.GetCompareMap(compareMatrix[0])
+			if context.Save {
+				compareMapMarshalled, marshalErr := json.MarshalIndent(compareMap, "", " ")
+				if marshalErr != nil {
+					log.Error().Msgf("error marshalling compareMap for: %s\nErr: %s", billnumber, marshalErr)
+				} else {
+					bills.SaveBillDataJson(billnumber, compareMapMarshalled, context.ParentPath, esSimilarCategoryFileName)
+				}
 			}
 		}
 	}
