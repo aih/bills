@@ -13,16 +13,17 @@ import (
 const samplesPath = "./samples"
 const samplesPathHR1500 = "samples/congress/data/116/bills/hr/hr1500"
 
-var senateFilesList = []string{"samples/congress/data/117/bills/s/s100", "samples/congress/data/117/bills/s/s100/billMeta.json", "samples/congress/data/117/bills/s/s100/data-fromfdsys-lastmod.txt", "samples/congress/data/117/bills/s/s100/data.json", "samples/congress/data/117/bills/s/s100/data.xml", "samples/congress/data/117/bills/s/s100/fdsys_billstatus-lastmod.txt", "samples/congress/data/117/bills/s/s100/fdsys_billstatus.xml", "samples/congress/data/117/bills/s/s101", "samples/congress/data/117/bills/s/s101/billMeta.json", "samples/congress/data/117/bills/s/s101/data-fromfdsys-lastmod.txt", "samples/congress/data/117/bills/s/s101/data.json", "samples/congress/data/117/bills/s/s101/data.xml", "samples/congress/data/117/bills/s/s101/fdsys_billstatus-lastmod.txt", "samples/congress/data/117/bills/s/s101/fdsys_billstatus.xml"}
+var senateFilesList = []string{"samples/congress/data/117/bills/s/s100", "samples/congress/data/117/bills/s/s100/data-fromfdsys-lastmod.txt", "samples/congress/data/117/bills/s/s100/data.xml", "samples/congress/data/117/bills/s/s100/fdsys_billstatus-lastmod.txt", "samples/congress/data/117/bills/s/s100/fdsys_billstatus.xml", "samples/congress/data/117/bills/s/s101", "samples/congress/data/117/bills/s/s101/data-fromfdsys-lastmod.txt", "samples/congress/data/117/bills/s/s101/data.xml", "samples/congress/data/117/bills/s/s101/fdsys_billstatus-lastmod.txt", "samples/congress/data/117/bills/s/s101/fdsys_billstatus.xml"}
 var documentXMLFilesSample = []string{"samples/congress/data/116/bills/hr/hr1500/text-versions/eh/document.xml", "samples/congress/data/116/bills/hr/hr1500/text-versions/ih/document.xml", "samples/congress/data/116/bills/hr/hr1500/text-versions/rfs/document.xml", "samples/congress/data/116/bills/hr/hr1500/text-versions/rh/document.xml"}
 var dataJsonFilesSample = []string{"samples/congress/data/116/bills/hr/hr1500/data.json"}
 
 var senateBillsFilter = func(testPath string) bool {
 	matched, err := regexp.MatchString(`/s[0-9]`, testPath)
-	if err != nil {
+	matchedJson, err2 := regexp.MatchString(`\.json`, testPath)
+	if err != nil || err2 != nil {
 		return false
 	}
-	return matched
+	return matched && !matchedJson
 }
 
 func TestWalkDirFilter(t *testing.T) {
