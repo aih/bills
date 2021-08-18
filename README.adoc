@@ -18,7 +18,7 @@ billmeta:: command-line tool to create bill metadata and store it to a file. Com
 To run a sample and store results in `testMeta.json`, run `cmd/bin/billmeta -parentPath ./samples -billMetaPath ./samples/test/results/testMeta.json`
 committees:: command-line tool to download committees.yaml to `tmp/committees.yaml` 
 comparematrix:: a command-line tool to which takes a list of bills as input and outputs a matrix of bill similarity (including the category of similarity)
-esquery:: find the similar bills for each section of bills. This can be run on a sample of bills, or all bills. This does not yet use concurrency or store results.
+esquery:: find the similar bills for each section of bills. It depends on having an Elasticsearch index of bills, divided into sections. The esquery command can be run on a sample of bills, or all bills. Bills are not yet processed concurrently, but the architecture (processing one bill at a time, by bill number) is designed to allow this.
 jsonpgx:: a command-line tool to work with posgtresql
 legislators:: a command-line tool to download legislators.yaml to `tmp/legislators.yaml`
 unitedstates:: a stub (not currently working) that will download and process bill data and metadata
@@ -27,10 +27,12 @@ Note: Some of these commands process many files in parallel. In order to prevent
 
 ## Bill Processing Pipeline
 
-1. Download documents to `congress` directory (using `unitedstates` repository) 
+Bills are downloaded into the file structure defined in `https://github.com/unitedstates/congress`. Additional JSON metadata files are created and stored in the filepath for each bill, e.g. `[path]/congress/data/117/bills/hr/hr1500`. The files are stored separately so that each process can be run independently and concurrently.
+
+1. Download documents to `congress` directory (using `unitedstates` repository at https://github.com/unitedstates/congress) 
 TODO: develop a Go alternative for downloads.
-2. Process bill metadata (using `billmeta`) and store in `billMetaGo.json`
+2. Process bill metadata (using `billmeta`) and store in the path for each bill, . There is also an option to store *all* metadata in a file `[path]/congress/billMetaGo.json` and in Golang key/value stores. This processing also creates a key/value store for titles and for main titles.
 3. Index bill xml to Elasticsearch (currently, this is done in Python)
 TODO: develop a Go alternative for indexing.
-4. For each bill, find similar bills by section
-5. For the most similar bills, calculate similarity scores and assign categories (e.g. `identical`, `nearly identical`, `includes`, `includedby`). 
+4. For each bill, find similar bills by section using the `esquery` command. The list of similar sections for each bill is stored in the filename defined as `esSimilarityFileName       = "esSimilarity.json"` in `cmd/esquery/main.go`. The bills that are similar to the latest version of a given bill are collected in another file, defined as `esSimilarBillsDictFileName = "esSimilarBillsDict.json"`.
+5. For the most similar bills, calculate similarity scores and assign categories (e.g. `identical`, `nearly identical`, `includes`, `includedby`). A map of bill:categories is stored in a file defined by `esSimilarCategoryFileName  = "esSimilarCategory.json"`

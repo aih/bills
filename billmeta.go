@@ -264,6 +264,9 @@ func MakeBillsMeta(parentPath string) {
 			log.Info().Msgf("[%d] Storing metadata for %s.", billCounter, billMeta.BillCongressTypeNumber)
 			// Get related bill data
 			BillMetaSyncMap.Store(billMeta.BillCongressTypeNumber, billMeta)
+			// Saves bill JSON to a file
+			WriteBillMetaFile(billMeta, parentPath)
+
 			/* Saves each bill JSON to an item in db
 			saveDbErr := SaveBillJsonToDB(billMeta.BillCongressTypeNumber, billMeta)
 			if saveDbErr != nil {
