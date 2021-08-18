@@ -44,7 +44,8 @@ func (bl *BillList) Set(s string) error {
 	return nil
 }
 
-func GetSimilarityForBill(billnumber string, context SimilarityContext) {
+func GetSimilarityForBill(billnumber string, context SimilarityContext, sem chan bool) {
+	defer func() { <-sem }()
 	// This is the equivalent of es_similarity in BillMap
 	log.Info().Msgf("Get versions of: %s", billnumber)
 	r := bills.GetBill_ES(billnumber)
@@ -198,8 +199,14 @@ func main() {
 		wg := &sync.WaitGroup{}
 		wg.Add(len(billNumbers))
 	*/
+	maxconcurrent := 20
+	sem := make(chan bool, maxconcurrent)
 
 	for _, billnumber := range billNumbers {
-		GetSimilarityForBill(billnumber, similarityContext)
+		sem <- true
+		go GetSimilarityForBill(billnumber, similarityContext, sem)
+	}
+	for i := 0; i < cap(sem); i++ {
+		sem <- true
 	}
 }
