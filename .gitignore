@@ -18,6 +18,8 @@ _testMeta.json
 *.test
 
 samples/*.json
+relatedDict.json
+similarsResp.json
 
 # Logs 
 *.log
