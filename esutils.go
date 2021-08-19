@@ -505,7 +505,7 @@ func GetAllBillNumbers() []string {
 	if err := json.NewEncoder(&buf).Encode(idQuery); err != nil {
 		log.Fatal().Msgf("Error encoding query: %s", err)
 	}
-	ScrollQueryBillNumbers(buf, resultChan)
+	go ScrollQueryBillNumbers(buf, resultChan)
 	for newBillNumbers := range resultChan {
 		billNumbers = append(billNumbers, newBillNumbers...)
 	}
