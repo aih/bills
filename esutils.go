@@ -27,7 +27,28 @@ var (
 		"fields":  []string{"id"},
 		"_source": false,
 	}
+	congressIdQuery117 = map[string]interface{}{
+		"query": map[string]interface{}{
+			"match": map[string]interface{}{
+				"congress": "117",
+			},
+		},
+		"fields":  []string{"id"},
+		"_source": false,
+	}
 )
+
+func GetCongressIdQuery(congress string) map[string]interface{} {
+	return map[string]interface{}{
+		"query": map[string]interface{}{
+			"match": map[string]interface{}{
+				"congress": congress,
+			},
+		},
+		"fields":  []string{"id"},
+		"_source": false,
+	}
+}
 
 func GetKeysFromMap(m map[string]interface{}) (keys []string) {
 	for k := range m {
@@ -393,6 +414,7 @@ func ScrollQueryBillNumbers(buf bytes.Buffer, resultChan chan []gjson.Result) {
 	log.Debug().Msg("Batch   " + strconv.Itoa(batchNum))
 	log.Debug().Msg("ScrollID: " + scrollID)
 	billNumbers := gjson.Get(json, "hits.hits.#fields.id").Array()
+	log.Info().Msgf("billNumbers in Scroll: %v", billNumbers)
 	//log.Debug().Msg("IDs:     " + strings.Join(billNumbers, ", "))
 	resultChan <- billNumbers
 	log.Debug().Msg(strings.Repeat("-", 80))
@@ -502,6 +524,36 @@ func GetAllBillNumbers() []string {
 	resultChan := make(chan []gjson.Result)
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(idQuery); err != nil {
+		log.Fatal().Msgf("Error encoding query: %s", err)
+	}
+	go ScrollQueryBillNumbers(buf, resultChan)
+	for newBillNumbers := range resultChan {
+		billNumbers = append(billNumbers, newBillNumbers...)
+	}
+	//fmt.Println(billNumbers)
+	// billNumbers is an Array of gjson.Result;
+	// each result is itself an array of string of the form
+	//["117hr141ih"]
+	log.Info().Msgf("Length of billNumbers: %d", len(billNumbers))
+	var billNumberStrings []string
+	for _, b := range billNumbers {
+		bRes := b.Array()
+		for _, bItem := range bRes {
+			billNumber := bItem.String()
+			if billNumber != "" {
+				billNumberStrings = append(billNumberStrings, billNumber)
+			}
+		}
+	}
+	return billNumberStrings
+}
+
+func GetBillNumbersByCongress(congress string) []string {
+	var billNumbers []gjson.Result
+	resultChan := make(chan []gjson.Result)
+	var buf bytes.Buffer
+	congressIdQuery := GetCongressIdQuery(congress)
+	if err := json.NewEncoder(&buf).Encode(congressIdQuery); err != nil {
 		log.Fatal().Msgf("Error encoding query: %s", err)
 	}
 	go ScrollQueryBillNumbers(buf, resultChan)

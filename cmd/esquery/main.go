@@ -131,6 +131,15 @@ func filterBillsByCongress(bills []string, congress string) []string {
 	return filteredBills
 }
 
+func billNumberVersionsToBillNumbers(billNumberVersions []string) (billNumbers []string) {
+	for _, billNumberVersion := range billNumberVersions {
+		billNumber := bills.BillnumberRegexCompiled.ReplaceAllString(billNumberVersion, "$1$2$3")
+		billNumbers = append(billNumbers, billNumber)
+	}
+	billNumbers = bills.RemoveDuplicates(billNumbers)
+	return billNumbers
+}
+
 func main() {
 	save := flag.Bool("save", false, "save results files")
 	debug := flag.Bool("debug", false, "sets log level to debug")
@@ -190,21 +199,14 @@ func main() {
 	var billNumbers []string
 	if *all {
 		billNumberVersions := bills.GetAllBillNumbers()
-		for _, billNumberVersion := range billNumberVersions {
-			billNumber := bills.BillnumberRegexCompiled.ReplaceAllString(billNumberVersion, "$1$2$3")
-			billNumbers = append(billNumbers, billNumber)
-		}
-		billNumbers = bills.RemoveDuplicates(billNumbers)
+		billNumbers = billNumberVersionsToBillNumbers(billNumberVersions)
 	} else if len(billList) > 0 {
 		billNumbers = billList
 	} else if len(congress) > 0 {
 		log.Info().Msgf("Processing similarity for congress: %s", congress)
-		billNumberVersions := bills.GetAllBillNumbers()
-		for _, billNumberVersion := range billNumberVersions {
-			billNumber := bills.BillnumberRegexCompiled.ReplaceAllString(billNumberVersion, "$1$2$3")
-			billNumbers = append(billNumbers, billNumber)
-		}
-		billNumbers = filterBillsByCongress(bills.RemoveDuplicates(billNumbers), congress)
+		billNumberVersions := bills.GetBillNumbersByCongress(congress)
+		billNumbers = billNumberVersionsToBillNumbers(billNumberVersions)
+		//billNumbers = filterBillsByCongress(bills.RemoveDuplicates(billNumbers), congress)
 		log.Info().Msgf("Length of billNumbers in congress %s: %d", congress, len(billNumbers))
 	} else {
 		billNumbers = bills.GetSampleBillNumbers()
