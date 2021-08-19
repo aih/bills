@@ -33,7 +33,7 @@ var (
 				"congress": "117",
 			},
 		},
-		"fields":  []string{"id"},
+		"fields":  []string{"id", "congress"},
 		"_source": false,
 	}
 )
@@ -42,6 +42,7 @@ func GetCongressIdQuery(congress string) map[string]interface{} {
 	return map[string]interface{}{
 		"query": map[string]interface{}{
 			"match": map[string]interface{}{
+				//"id": "117hjres19ih",
 				"congress": congress,
 			},
 		},
@@ -413,7 +414,9 @@ func ScrollQueryBillNumbers(buf bytes.Buffer, resultChan chan []gjson.Result) {
 
 	log.Debug().Msg("Batch   " + strconv.Itoa(batchNum))
 	log.Debug().Msg("ScrollID: " + scrollID)
-	billNumbers := gjson.Get(json, "hits.hits.#fields.id").Array()
+	billNumbersRes := gjson.Get(json, "hits.hits.#.fields.id")
+	billNumbers := billNumbersRes.Array()
+	log.Info().Msg("IDs:     " + billNumbersRes.String())
 	log.Info().Msgf("billNumbers in Scroll: %v", billNumbers)
 	//log.Debug().Msg("IDs:     " + strings.Join(billNumbers, ", "))
 	resultChan <- billNumbers
@@ -454,8 +457,9 @@ func ScrollQueryBillNumbers(buf bytes.Buffer, resultChan chan []gjson.Result) {
 		} else {
 			log.Debug().Msg("Batch   " + strconv.Itoa(batchNum))
 			log.Debug().Msg("ScrollID: " + scrollID)
-			billNumbers := gjson.Get(json, "hits.hits.#.fields.id").Array()
-			//log.Debug().Msg("IDs:     " + strings.Join(billNumbers, ", "))
+			billNumbersRes := gjson.Get(json, "hits.hits.#.fields.id")
+			billNumbers := billNumbersRes.Array()
+			log.Info().Msg("IDs:     " + billNumbersRes.String())
 			resultChan <- billNumbers
 			log.Debug().Msg(strings.Repeat("-", 80))
 		}
