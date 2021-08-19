@@ -361,6 +361,7 @@ func GetMLTResult(size, minscore int, searchtext string) (esResult SearchResult_
 }
 
 // Performs scroll query over indices in `searchIndices`; sends result to the resultChan for processing to extract billnumbers
+// See https://github.com/elastic/go-elasticsearch/issues/44#issuecomment-483974031
 func ScrollQueryBillNumbers(buf bytes.Buffer, resultChan chan []gjson.Result) {
 	defer close(resultChan)
 	es, err := elasticsearch.NewDefaultClient()
@@ -503,7 +504,7 @@ func GetAllBillNumbers() []string {
 	if err := json.NewEncoder(&buf).Encode(idQuery); err != nil {
 		log.Fatal().Msgf("Error encoding query: %s", err)
 	}
-	go ScrollQueryBillNumbers(buf, resultChan)
+	ScrollQueryBillNumbers(buf, resultChan)
 	for newBillNumbers := range resultChan {
 		billNumbers = append(billNumbers, newBillNumbers...)
 	}
