@@ -438,6 +438,7 @@ func ScrollQueryBillNumbers(buf bytes.Buffer, resultChan chan []gjson.Result) {
 			log.Debug().Msg(strings.Repeat("-", 80))
 		}
 	}
+	close(resultChan)
 }
 
 // Sort the eh, es, and enr as latest
