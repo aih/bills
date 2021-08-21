@@ -123,7 +123,7 @@ func MarshalJSONBillSimilarity(m *sync.Map) ([]byte, error) {
 	return json.Marshal(tmpMap)
 }
 
-// Marshals a sync.Map object of the type map[string]string
+// Marshals a sync.Map object of the type map[string][]string
 // see https://stackoverflow.com/a/46390611/628748
 // and https://stackoverflow.com/a/65442862/628748
 func MarshalJSONStringArray(m *sync.Map) ([]byte, error) {
