@@ -236,9 +236,6 @@ func MakeBillMeta(parentPath, billDirPath string) BillMeta {
 		sem <- true
 		go ExtractBillMeta(jpath, billMetaStorageChannel, sem, wg)
 	}
-	for i := 0; i < cap(sem); i++ {
-		sem <- true
-	}
 	return billMetaReturn
 
 }
