@@ -158,9 +158,10 @@ func main() {
 	shorthand := " (shorthand)"
 	flagDefs := map[string]flagDef{
 		"billnumbers": {"", "comma-separated list of billnumbers"},
-		"congress":    {"117", "congress to process"},
-		"parentpath":  {string(bills.ParentPathDefault), "Absolute path to the parent directory for 'congress' and json metadata files"},
-		"log":         {"Info", "Sets Log level. Options: Error, Info, Debug"},
+		// TODO: calculate the current congress
+		"congress":   {"117", "congress to process"},
+		"parentpath": {string(bills.ParentPathDefault), "Absolute path to the parent directory for 'congress' and json metadata files"},
+		"log":        {"Info", "Sets Log level. Options: Error, Info, Debug"},
 	}
 	flag.Var(&billList, "b", flagDefs["billnumbers"].usage+shorthand)
 	flag.Var(&billList, "billnumbers", flagDefs["billnumbers"].usage)
