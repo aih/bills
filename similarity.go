@@ -200,6 +200,28 @@ func CompareSamples() {
 
 }
 
+func CompareBillsfromPaths(docPaths []string, print bool) ([][]CompareItem, error) {
+
+	nGramMaps, err := makeBillNgrams(docPaths)
+	if err != nil {
+		log.Error().Msgf("Error making ngrams: %s\n", err)
+		return nil, err
+	}
+	if len(docPaths) == 0 {
+		log.Info().Msg("No documents to compare")
+		if print {
+			fmt.Print(":compareMatrix:", "", ":compareMatrix:")
+		}
+		return nil, nil
+	}
+	compareMatrix, _ := compareFiles(nGramMaps, docPaths)
+	compareMatrixJson, _ := json.Marshal(compareMatrix)
+	if print {
+		fmt.Print(":compareMatrix:", string(compareMatrixJson), ":compareMatrix:")
+	}
+	return compareMatrix, nil
+}
+
 // To call from Python
 // import subprocess
 // result = subprocess.run(['./compare', '-p', '../../../congress/data', '-b', '116hr1500rh,115hr6972ih'],  capture_output=True, text=True)
@@ -218,25 +240,7 @@ func CompareBills(parentPath string, billList []string, print bool) ([][]Compare
 			docPathsToCompare = append(docPathsToCompare, path.Join(parentPath, billPath, "document.xml"))
 		}
 	}
-	// log.Info().Msg(docPathsToCompare)
-	nGramMaps, err := makeBillNgrams(docPathsToCompare)
-	if err != nil {
-		log.Error().Msgf("Error making ngrams: %s\n", err)
-		return nil, err
-	}
-	if len(docPathsToCompare) == 0 {
-		log.Info().Msg("No documents to compare")
-		if print {
-			fmt.Print(":compareMatrix:", "", ":compareMatrix:")
-		}
-		return nil, nil
-	}
-	compareMatrix, _ := compareFiles(nGramMaps, docPathsToCompare)
-	compareMatrixJson, _ := json.Marshal(compareMatrix)
-	if print {
-		fmt.Print(":compareMatrix:", string(compareMatrixJson), ":compareMatrix:")
-	}
-	return compareMatrix, nil
+	return CompareBillsfromPaths(docPathsToCompare, print)
 }
 
 func GetCompareMap(compareRow []CompareItem) (compareMap map[string]CompareItem) {

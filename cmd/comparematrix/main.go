@@ -19,6 +19,7 @@ func main() {
 
 // BillList is a string slice
 type BillList []string
+type BillPathList []string
 
 func (bl *BillList) String() string {
 	return fmt.Sprintln(*bl)
@@ -50,11 +51,20 @@ func main() {
 	var billList BillList
 	flag.Var(&billList, "billnumbers", "comma-separated list of billnumbers")
 	flag.Var(&billList, "b", "comma-separated list of billnumbers")
+
+	var absPathList string
+	flag.StringVar(&absPathList, "abspaths", "", "comma-separated list of absolute paths to bill xml files")
 	flag.Parse()
 	if *debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 	log.Debug().Msg("Log level set to Debug")
 
-	bills.CompareBills(parentPath, billList, true)
+	if absPathList != "" {
+		log.Debug().Msg("Absolute paths to bill xml files: " + absPathList)
+		absPathListSlice := strings.Split(absPathList, ",")
+		bills.CompareBillsfromPaths(absPathListSlice, true)
+	} else {
+		bills.CompareBills(parentPath, billList, true)
+	}
 }
