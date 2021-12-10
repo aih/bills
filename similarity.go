@@ -225,6 +225,8 @@ func CompareBillsfromPaths(docPaths []string, print bool) ([][]CompareItem, erro
 // To call from Python
 // import subprocess
 // result = subprocess.run(['./compare', '-p', '../../../congress/data', '-b', '116hr1500rh,115hr6972ih'],  capture_output=True, text=True)
+// OR
+// result = subprocess.run(['./compare', '-abspaths', '../../../congress/data/.../BILLS-116hr15000rh,../....'],  capture_output=True, text=True)
 // result.stdout.split('compareMatrix:\n')[-1]
 // Out[4]: '[[{1 identical} {0.63 incorporates}] [{0.79 incorporated by} {1 identical}]]'
 

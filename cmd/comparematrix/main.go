@@ -63,6 +63,9 @@ func main() {
 	if absPathList != "" {
 		log.Debug().Msg("Absolute paths to bill xml files: " + absPathList)
 		absPathListSlice := strings.Split(absPathList, ",")
+		for i, absPath := range absPathListSlice {
+			absPathListSlice[i] = strings.TrimSpace(absPath)
+		}
 		bills.CompareBillsfromPaths(absPathListSlice, true)
 	} else {
 		bills.CompareBills(parentPath, billList, true)
