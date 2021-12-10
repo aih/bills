@@ -10,8 +10,8 @@
     all: test build
     build:
 	    if [ ! -d "cmd/bin" ]; then \
-			mkdir cmd/bin; \
-		fi 	
+			  mkdir cmd/bin; \
+		  fi 	
 	    for go_pkg in $$(go list ./... | grep cmd); do \
 	    	echo "Building $$go_pkg"; \
 	    	$(GOBUILD) -o cmd/bin/ $$go_pkg ; \
@@ -31,4 +31,10 @@
     
     # Cross compilation
     build-linux:
-	    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
+	if [ ! -d "cmd/bin" ]; then \
+			  mkdir cmd/bin; \
+		  fi 	
+	    for go_pkg in $$(go list ./... | grep cmd); do \
+	    	echo "Building $$go_pkg"; \
+		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o cmd/bin/ $$go_pkg ; \
+	    done
