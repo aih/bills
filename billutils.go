@@ -28,14 +28,23 @@ func BillNumberToBillId(billNumber string) string {
 }
 
 //  Gets billnumber + version from the bill path
-//  E.g. bill_path of the form e.g. [path]/data/116/bills/hr/hr1/text-versions
+//  E.g. bill_path of the form e.g. [path]/data/116/bills/hr/hr1500/text-versions/rh
 //    returns 116hr1500rh
 func BillNumberFromPath(billPath string) string {
 	var matchMap = FindNamedMatches(UsCongressPathRegexCompiled, billPath)
 	if version, ok := matchMap["version"]; ok {
 		return fmt.Sprintf("%s%s%s", matchMap["congress"], matchMap["billnumber"], version)
 	} else {
-		return fmt.Sprintf("%s%s", matchMap["congress"], matchMap["billnumber"])
+		if billnumber, ok := matchMap["billnumber"]; ok {
+			return fmt.Sprintf("%s%s", matchMap["congress"], billnumber)
+		} else {
+			var matchMap2 = FindNamedMatches(BillFileRegexCompiled, billPath)
+			if billnumber, ok := matchMap2["billnumber"]; ok {
+				return fmt.Sprintf("%s%s%s%s", matchMap2["congress"], matchMap2["stage"], billnumber, matchMap2["version"])
+			} else {
+				return ""
+			}
+		}
 	}
 }
 
