@@ -68,9 +68,9 @@ func getExplanation(scorei, scorej float64, iTotal, jTotal int) string {
 		return "bills-unrelated"
 	}
 	if (scorei > incorporateThreshold) && scorej/scorei < incorporateRatio {
-		return "bills-incorporated_by"
-	} else if (scorej > incorporateThreshold) && scorei/scorej < incorporateRatio {
 		return "bills-incorporates"
+	} else if (scorej > incorporateThreshold) && scorei/scorej < incorporateRatio {
+		return "bills-incorporated_by"
 	} else {
 		return "bills-some_similarity"
 	}
